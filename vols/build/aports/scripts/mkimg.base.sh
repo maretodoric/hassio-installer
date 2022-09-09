@@ -281,7 +281,7 @@ create_image_iso() {
 	if [ "$ARCH" = ppc64le ]; then
 		grub-mkrescue --output ${ISO} ${DESTDIR} -follow-links \
 			-sysid LINUX \
-			-volid "alpine-${profile_abbrev:-$PROFILE} $RELEASE $ARCH"
+			-volid "${profile_abbrev:-$PROFILE} $RELEASE $ARCH"
 	else
 		if [ "$ARCH" = s390x ]; then
 			printf %s "$initfs_cmdline $kernel_cmdline " > ${WORKDIR}/parmfile
@@ -300,7 +300,7 @@ create_image_iso() {
 			-joliet \
 			-rational-rock \
 			-sysid LINUX \
-			-volid "alpine-${profile_abbrev:-$PROFILE} $RELEASE $ARCH" \
+			-volid "${profile_abbrev:-$PROFILE} $RELEASE $ARCH" \
 			$_isolinux \
 			$_efiboot \
 			-follow-links \
