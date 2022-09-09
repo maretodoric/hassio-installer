@@ -1,0 +1,29 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=postgresql-login_hook
+_projname=login_hook
+# No versions tagged, see https://github.com/splendiddata/login_hook/issues/9
+pkgver=1.1
+pkgrel=1
+pkgdesc="PostgreSQL database extension to mimic a logon trigger"
+url="https://github.com/splendiddata/login_hook"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="postgresql-dev"
+subpackages="$pkgname-doc"
+install="$pkgname.post-install"
+source="https://github.com/splendiddata/login_hook/archive/version_$pkgver/$pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_projname-version_$pkgver"
+options="!check"  # XXX: tests require running PostgreSQL
+
+build() {
+	make
+}
+
+package() {
+	depends="postgresql$(pg_config --major-version)"
+
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="ac3d02ee9c90f2512d3055a12bd20e1df9e41be16acc330f8e4d54bd0b3a8b12e2c1624c7593b3667b17d3d9a798a65fbd577830bd49162b17303d205113f29b  postgresql-login_hook-1.1.tar.gz"

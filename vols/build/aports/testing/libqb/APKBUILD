@@ -1,0 +1,48 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer:
+pkgname=libqb
+pkgver=2.0.2
+pkgrel=1
+pkgdesc="Library providing high performance logging, tracing, ipc, and poll"
+url="https://clusterlabs.github.io/libqb"
+license="LGPL-2.1-or-later"
+arch="all"
+makedepends="autoconf automake libtool libxml2-dev doxygen coreutils"
+checkdepends="check-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-tools"
+source="https://github.com/ClusterLabs/libqb/releases/download/v$pkgver/libqb-$pkgver.tar.xz"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+check() {
+	make -C tests VERBOSE=1 check
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--includedir=/usr/include \
+		--disable-static
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+
+	# remove a helper tool
+	rm "$pkgdir"/usr/bin/doxygen2man
+}
+
+tools() {
+	pkgdesc="Tools to use with $pkgname"
+
+	amove usr/sbin
+}
+
+sha512sums="634509032bb4b60fdddf97283bd5be2bbc97bae475c1aa90e53a73df3350c80706d0688b9b5c869c7c37429c54102e46a2d20ab9df49682c93afd6fa7e7bb19a  libqb-2.0.2.tar.xz"

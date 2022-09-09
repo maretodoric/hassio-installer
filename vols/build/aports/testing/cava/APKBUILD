@@ -1,0 +1,39 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=cava
+pkgver=0.8.2
+pkgrel=0
+pkgdesc="Console-based Audio Visualizer for ALSA"
+url="https://github.com/karlstav/cava"
+arch="all"
+license="MIT"
+makedepends="autoconf automake alsa-lib-dev libtool m4 fftw-dev ncurses-dev iniparser-dev xxd"
+source="cava-$pkgver.tar.gz::https://github.com/karlstav/cava/archive/$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+8ab146987324fad97dea5e9fd893de6c12b00cbb074d835c1e334d75c0d32cb4cbbc13cf72f7899191ebd5d346505b2639dcad5312e5ab00975b29a006ba41b3  cava-0.8.2.tar.gz
+"

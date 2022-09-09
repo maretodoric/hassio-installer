@@ -1,0 +1,47 @@
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Maintainer: Andy Postnikov <apostnikov@gmail.com>
+pkgname=php81-phalcon
+_extname=phalcon
+pkgver=5.0.0_rc2
+_pkgver=${pkgver/_rc/RC}
+pkgrel=0
+pkgdesc="High performance, full-stack PHP 8.1 framework delivered as a C extension"
+url="https://phalcon.io/"
+arch="all"
+license="BSD-3-Clause"
+depends="
+	php81-curl
+	php81-fileinfo
+	php81-gettext
+	php81-mbstring
+	php81-openssl
+	php81-pdo
+	php81-session
+	php81-pecl-psr
+	"
+makedepends="php81-dev"
+source="php-$_extname-$_pkgver.tgz::https://pecl.php.net/get/$_extname-$_pkgver.tgz"
+builddir="$srcdir/$_extname-$_pkgver"
+
+build() {
+	phpize81
+	./configure --prefix=/usr --with-php-config=/usr/bin/php-config81
+	make
+}
+
+check() {
+	# no tests provided
+	php81 -d extension=modules/$_extname.so --ri $_extname
+}
+
+package() {
+	make INSTALL_ROOT="$pkgdir" install
+
+	local _confdir="$pkgdir"/etc/php81/conf.d
+	install -d $_confdir
+	echo "extension=$_extname" > $_confdir/$_extname.ini
+}
+
+sha512sums="
+9868323ece522fdc5f292d777eb75eda1f1a96eb6841cf4653992bc98655e9402e505ee1d5d2098af09a995adcbc7e972ccba3487b9e112cef2bec37d6667e64  php-phalcon-5.0.0RC2.tgz
+"

@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-mopidy-youtube
+pkgver=3.4
+pkgrel=1
+pkgdesc="Mopidy extension for playing music from YouTube"
+url="https://github.com/natumbri/mopidy-youtube"
+arch="noarch"
+license="Apache-2.0"
+depends="
+	mopidy
+	py3-beautifulsoup4
+	py3-cachetools
+	py3-pykka
+	py3-requests
+	py3-ytmusicapi
+	python3
+	youtube-dl
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-vcrpy
+	py3-pytest
+	"
+source="https://pypi.python.org/packages/source/M/Mopidy-YouTube/Mopidy-YouTube-$pkgver.tar.gz"
+options="!check" # Broken, https://github.com/natumbri/mopidy-youtube/issues/180
+builddir="$srcdir/Mopidy-YouTube-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# Disabled tests require a network connection
+	pytest -k 'not test_list_playlists and not test_search and not test_list_videos and not test_list_playlistitems and not test_get_video'
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+8e86c489554b7edc24d644d66cb56ccb1d8104d8d561af7624b951dd461a5667bccf9c3522aff97aea2f54a5ce3859eae670b0f224e222d358accccd5031d21b  Mopidy-YouTube-3.4.tar.gz
+"

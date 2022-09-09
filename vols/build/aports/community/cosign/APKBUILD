@@ -1,0 +1,75 @@
+# Maintainer: Ariadne Conill <ariadne@dereferenced.org>
+pkgname=cosign
+pkgver=1.7.1
+pkgrel=2
+pkgdesc="container signing tool with support for ephemeral keys and Sigstore signing"
+url="https://github.com/sigstore/cosign"
+arch="all"
+license="Apache-2.0"
+# pcsc-lite-libs needed at runtime for smartcard support
+depends="pcsc-lite-libs"
+makedepends="go pcsc-lite-dev"
+# NOTE: We can't use the default bashcomp, etc splitters because they take everything,
+# the default splitters should be improved somehow.
+subpackages="
+	sget
+	sget-bash-completion:_sget_bashcomp
+	sget-fish-completion:_sget_fishcomp
+	sget-zsh-completion:_sget_zshcomp
+
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/sigstore/cosign/archive/v$pkgver/cosign-$pkgver.tar.gz"
+options="!check"
+
+# secfixes:
+#   1.5.2-r0:
+#     - CVE-2022-23649
+
+build() {
+	mkdir build
+	go build -o build/ -tags -tags=pivkey,pkcs11key "$builddir"/cmd/...
+
+	for i in bash fish zsh; do
+		"$builddir"/build/cosign completion $i > "$builddir"/cosign.$i
+		"$builddir"/build/sget completion $i > "$builddir"/sget.$i
+	done
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm755 "$builddir"/build/cosign "$pkgdir"/usr/bin/cosign
+	install -Dm755 "$builddir"/build/sget "$pkgdir"/usr/bin/sget
+
+	for i in cosign sget; do
+		install -Dm644 "$builddir"/$i.bash "$pkgdir"/usr/share/bash-completion/completions/$i
+		install -Dm644 "$builddir"/$i.fish "$pkgdir"/usr/share/fish/completions/$i.fish
+		install -Dm644 "$builddir"/$i.zsh "$pkgdir"/usr/share/zsh/site-functions/_$i
+	done
+}
+
+sget() {
+	pkgdesc="secure container image fetching tool"
+	amove /usr/bin/sget
+}
+
+_sget_bashcomp() {
+	amove /usr/share/bash-completion/completions/sget
+}
+
+_sget_fishcomp() {
+	amove /usr/share/fish/completions/sget.fish
+}
+
+_sget_zshcomp() {
+	amove /usr/share/zsh/site-functions/_sget
+}
+
+sha512sums="
+98181db507f65ab5b2fb7b25c9a5b4f708daa8c1b3d1af046afe59b897bf1e91d26bd41711f3b1d4ec1936bfb921bee7f20ce00c76f9e49350ca92cc45a57191  cosign-1.7.1.tar.gz
+"

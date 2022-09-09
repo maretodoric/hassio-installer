@@ -1,0 +1,120 @@
+# Maintainer:
+# Contributor: Sheila Aman <sheila@vulpine.house>
+
+pkgname=python3-tkinter
+pkgver=3.10.5
+_basever="${pkgver%.*}"
+pkgrel=0
+pkgdesc="A graphical user interface for the Python programming language"
+url="https://wiki.python.org/moin/TkInter"
+arch="all"
+license="PSF-2.0"
+replaces="python3"
+subpackages="$pkgname-tests::noarch python3-idle:_idle:noarch"
+makedepends="expat-dev openssl1.1-compat-dev zlib-dev ncurses-dev bzip2-dev xz-dev
+	sqlite-dev libffi-dev tcl-dev linux-headers gdbm-dev readline-dev
+	tk tk-dev python3"
+source="https://www.python.org/ftp/python/$pkgver/Python-$pkgver.tar.xz
+	musl-find_library.patch
+	fix-xattrs-glibc.patch
+	"
+builddir="$srcdir/Python-$pkgver"
+
+# secfixes:
+#   3.6.8-r1:
+#     - CVE-2019-5010
+
+prepare() {
+	local _pyapkbuild="$startdir"/../../main/python3/APKBUILD
+	if [ -e "$_pyapkbuild" ]; then
+		_pver=$(. "$_pyapkbuild" ; echo $pkgver)
+		if [ "$_pver" != "$pkgver" ]; then
+			error "python version mismatch ($_pver). Set pkgver=$_pver"
+			return 1
+		fi
+	fi
+	default_prepare
+	# force system libs
+	rm -r Modules/expat \
+		Modules/_ctypes/darwin* \
+		Modules/_ctypes/libffi*
+}
+
+build() {
+	# --enable-optimizations is not enabled because it
+	# is very, very slow as many tests are ran sequentially
+	# for profile guided optimizations. additionally it
+	# seems some of the training tests hang on certain
+	# e.g. architectures (x86) possibly due to grsec or musl.
+
+	# -Os overwrites --enable-optimizations
+	export CFLAGS="${CFLAGS/-Os/} -fno-semantic-interposition"
+	export LDFLAGS="$LDFLAGS -fno-semantic-interposition"
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-ipv6 \
+		--enable-loadable-sqlite-extensions \
+		--enable-shared \
+		--with-lto \
+		--with-computed-gotos \
+		--with-dbmliborder=gdbm:ndbm \
+		--with-system-expat \
+		--with-system-ffi
+
+	# set thread stack size to 1MB so we don't segfault before we hit
+	# sys.getrecursionlimit()
+	make EXTRA_CFLAGS="$CFLAGS -DTHREAD_STACK_SIZE=0x100000"
+}
+
+package() {
+	# we only care about idle, and tkinter
+	make DESTDIR="$builddir"/tmpinstall sharedinstall libinstall
+
+	mkdir -p "$pkgdir"/usr/lib/python$_basever/lib-dynload \
+		"$pkgdir"/usr/bin
+
+	for lib in idlelib tkinter; do
+		mv "$builddir"/tmpinstall/usr/lib/python$_basever/$lib \
+			"$pkgdir"/usr/lib/python$_basever/
+	done
+
+	mv "$builddir"/tmpinstall/usr/lib/python$_basever/lib-dynload/_tkinter*.so \
+		"$pkgdir"/usr/lib/python$_basever/lib-dynload/
+
+	mv "$builddir"/tmpinstall/usr/bin/idle* \
+		"$pkgdir"/usr/bin/
+}
+
+_mv_files() {
+	local i
+	for i in "$@"; do
+		mkdir -p "$subpkgdir"/${i%/*}
+		mv "$pkgdir"/$i "$subpkgdir"/$i
+	done
+}
+
+tests() {
+	pkgdesc="The test modules from the main python package for tkinter"
+	replaces="python3-tests"
+	cd "$pkgdir"
+	_mv_files usr/lib/python*/*/*_test \
+		usr/lib/python${pkgver%.*}/tkinter/test
+}
+
+_idle() {
+	pkgdesc="IDE for Python3 using Tkinter"
+	depends="$pkgname=$pkgver-r$pkgrel python3"
+	replaces="python3"
+	cd "$pkgdir"
+	_mv_files usr/bin
+	_mv_files usr/lib/python*/idlelib
+}
+
+sha512sums="
+aa7f58a9b31de9824185b3e7bfa7da0dcf64ae9e89840664eae9d98d9048a650fa012cd5b873a62ff44b65b856db86f095c4003117406ec5e9583ec5f7e78e90  Python-3.10.5.tar.xz
+ab8eaa2858d5109049b1f9f553198d40e0ef8d78211ad6455f7b491af525bffb16738fed60fc84e960c4889568d25753b9e4a1494834fea48291b33f07000ec2  musl-find_library.patch
+fe123dd871f7a3fa868c499a957b94f1d815a1e1de964aaff1116c579defd4d9d1e9b7eb418cf114b169b97426ed603bf4b1e61b45ec483df06abe988c6a30ee  fix-xattrs-glibc.patch
+"

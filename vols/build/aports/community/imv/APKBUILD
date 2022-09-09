@@ -1,0 +1,91 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=imv
+pkgver=4.3.1
+pkgrel=5
+pkgdesc="Image viewer for X11/Wayland"
+url="https://sr.ht/~exec64/imv"
+arch="all !s390x" # freeimage-dev
+license="MIT"
+makedepends="
+	asciidoc
+	fontconfig-dev
+	freeimage-dev
+	glu-dev
+	inih-dev
+	libxkbcommon-dev
+	mesa-dev
+	meson
+	pango-dev
+	sdl2_ttf-dev
+	wayland-dev
+	"
+checkdepends="
+	cmocka
+	cmocka-dev
+	"
+subpackages="$pkgname-doc $pkgname-wayland $pkgname-x11"
+source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~exec64/imv/archive/v$pkgver.tar.gz
+	move-wayland-and-x11-to-libexec.patch
+	version.patch
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+case $CARCH in
+	s390x|riscv64)
+		_rsvg=""
+		;;
+	*)
+		makedepends="$makedepends librsvg-dev"
+		_rsvg="-Dlibrsvg=enabled"
+		;;
+esac
+
+build() {
+	local _test=enabled
+	if ! want_check; then
+		_test=disabled
+	fi
+	abuild-meson \
+		-Dwindows=all \
+		-Dtest=$_test \
+		-Dman=enabled \
+		-Dfreeimage=enabled \
+		-Dlibtiff=disabled \
+		-Dlibpng=disabled \
+		-Dlibjpeg=disabled \
+		-Dlibnsgif=disabled \
+		-Dlibheif=disabled \
+		$_rsvg \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+wayland() {
+	pkgdesc="Image viewer for Wayland"
+	depends="$pkgname=$pkgver-r$pkgrel"
+	install_if="$pkgname=$pkgver-r$pkgrel wayland-libs-server"
+
+	amove usr/libexec/imv-wayland
+}
+
+x11() {
+	pkgdesc="Image viewer for X11"
+	depends="$pkgname=$pkgver-r$pkgrel"
+	install_if="$pkgname=$pkgver-r$pkgrel xorg-server"
+
+	amove usr/libexec/imv-x11
+}
+
+sha512sums="
+f70b95f3f99d7d6a9276370650cef0885938464e3a40ab1768231292ba35d9040f7196a5853ea1268fe6d47cf08d129b3fbae1ca215df96d12ccd85b7efd1ee6  imv-4.3.1.tar.gz
+e14260a79083393a5e81933adafe654892d6fc9e33f18eb906e9bcccc4227a9862851e234a0f14b457e87b8a9a7de71168d8b4fa18677b83105ab24bf3dcc60f  move-wayland-and-x11-to-libexec.patch
+910880051a25d3dfe6a9dd6fc1db620f09e5bdcef90fff17509d3fc8252cbde3797c52848857d6dbfc47c4231a8152e55bd87bec846dbbdc9e9429091c27fb5c  version.patch
+"

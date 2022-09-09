@@ -1,0 +1,40 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=faudio
+pkgver=22.06
+pkgrel=0
+pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
+url="https://fna-xna.github.io/"
+arch="all"
+license="Zlib"
+makedepends="cmake samurai sdl2-dev"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/FNA-XNA/FAudio/archive/$pkgver.tar.gz"
+builddir="$srcdir/FAudio-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+
+	cmake -G Ninja -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=1 \
+		-DBUILD_TESTS=1
+	cmake --build build
+}
+
+check() {
+	cd build
+	./faudio_tests
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+1d6526d5299883539b62005cbb3b565883d866e37f92fd37557cd73ac195b28c1c30fae81e1aed83bd927f78a118ae0f42410f236c0de85d341fa72630b0ab1c  faudio-22.06.tar.gz
+"

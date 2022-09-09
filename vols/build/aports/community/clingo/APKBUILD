@@ -1,0 +1,43 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer:
+pkgname=clingo
+pkgver=5.5.0
+pkgrel=1
+pkgdesc="Grounder and solver for logic programs"
+url="https://potassco.org/clingo/"
+arch="all"
+license="MIT"
+depends="!clasp" # both provide /usr/bin/clasp
+makedepends="python3-dev cmake"
+subpackages="$pkgname-dev py3-$pkgname:py"
+options="!check"
+source="https://github.com/potassco/clingo/archive/v$pkgver/clingo-$pkgver.tar.gz"
+replaces="gringo" # backwards compatibility
+
+build() {
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCLINGO_REQUIRE_PYTHON=ON \
+		-DCLINGO_BUILD_PY_SHARED=ON \
+		-DPYCLINGO_USER_INSTALL=OFF \
+		-DCLINGO_REQUIRE_LUA=OFF
+	make -C build
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+}
+
+py() {
+	pkgdesc="Python bindings for clingo"
+	depends="python3"
+
+	mkdir -p "$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/lib/python* "$subpkgdir"/usr/lib/
+}
+
+sha512sums="
+c5cc71be081f93bb1322ef018bf9eac024f872dc0f149b340370a40e4b0533b9345316ad259d7664a98fad4fab248e3decf535d393052971a3cd9cf6daa707c5  clingo-5.5.0.tar.gz
+"

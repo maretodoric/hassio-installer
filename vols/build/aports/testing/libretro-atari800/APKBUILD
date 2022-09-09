@@ -1,0 +1,27 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-atari800
+pkgver=0_git20220327
+pkgrel=0
+_commit="beab30e7ea10b7ed14d0514064f47d16f76cd995"
+pkgdesc="atari800 3.1.0 for libretro/libco"
+url="https://github.com/libretro/libretro-atari800"
+arch="all"
+license="GPL-2.0-only"
+makedepends="zlib-dev"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/libretro-atari800/archive/$_commit.tar.gz"
+builddir="$srcdir/libretro-atari800-$_commit"
+options="!check" # No tests
+
+build() {
+	rm -rf deps
+	make SYSTEM_ZLIB=1
+}
+
+package() {
+	install -Dm644 atari800_libretro.so "$pkgdir"/usr/lib/libretro/atari800_libretro.so
+}
+
+sha512sums="
+55ac72ddccfc5e1a37513ddc94d2103a5ecf12373ceacfac3e65d5745211219dd9f36dae206dc282d7f7280f1bf5a97dff0f775da77f7318d83b88e6ec4f80bf  libretro-atari800-beab30e7ea10b7ed14d0514064f47d16f76cd995.tar.gz
+"

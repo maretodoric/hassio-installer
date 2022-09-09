@@ -1,0 +1,32 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=getting-things-gnome
+pkgver=0.6
+pkgrel=0
+pkgdesc="A personal tasks and TODO-list items organizier for GNOME, inspired by the Getting Things Done methodology"
+url="https://wiki.gnome.org/Apps/GTG"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="python3 py3-cairo py3-xdg py3-dbus py3-gobject3 py3-liblarch py3-lxml"
+makedepends="py3-setuptools py3-pytest gettext gtksourceview4 itstool meson"
+checkdepends="py3-nose py3-pyflakes py3-mock py3-pycodestyle py3-caldav py3-vobject xvfb-run"
+subpackages="$pkgname-doc $pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/getting-things-gnome/gtg/archive/v$pkgver.tar.gz"
+builddir="$srcdir/gtg-$pkgver"
+
+build() {
+	abuild-meson output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run python3 run-tests
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+68a5229c17b85b87a9a134a08e5e86fbf24d28d6ce55e848c17eef650620d6f56172ee495cb113f4279b34c19127ae03981e2feec5a39dc51be49e387e458600  getting-things-gnome-0.6.tar.gz
+"

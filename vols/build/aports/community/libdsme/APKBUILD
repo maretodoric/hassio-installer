@@ -1,0 +1,36 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libdsme
+pkgver=0.66.7
+pkgrel=0
+pkgdesc="Libraries for programs that communicate with the Device State Management Entity"
+arch="all"
+url="https://github.com/sailfishos/libdsme"
+license="LGPL-2.1-or-later"
+depends_dev="
+	check-dev
+	glib-dev
+	"
+makedepends="$depends_dev
+	coreutils
+	"
+subpackages="$pkgname-static $pkgname-dev"
+source="https://github.com/sailfishos/libdsme//archive/$pkgver/libdsme-$pkgver.tar.gz"
+options="!check" # No suitable tests
+
+build() {
+	make
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+
+	# Create missing symlinks
+	ldconfig "$pkgdir"/usr/lib
+
+	# Remove tests
+	rm -rf "$pkgdir"/opt
+}
+sha512sums="
+c3fdd6b6206d980ba0c08c574aba19edb5a5d103a21630597dd4d900c046a08a1d3960b8c8b47e25b60997464451d51afae5449ddbc6784781f827c274538c08  libdsme-0.66.7.tar.gz
+"

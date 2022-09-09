@@ -1,0 +1,29 @@
+# Contributor: André Klitzing <aklitzing@gmail.com>
+# Maintainer: André Klitzing <aklitzing@gmail.com>
+pkgname=gocryptfs
+pkgver=2.2.1
+pkgrel=4
+pkgdesc="Encrypted overlay filesystem written in Go"
+url="https://github.com/rfjakob/gocryptfs"
+# riscv64 fails to build https://gitlab.alpinelinux.org/alpine/aports/-/issues/12793
+arch="all !riscv64"
+license="MIT"
+makedepends="go bash openssl1.1-compat-dev"
+depends="fuse"
+options="!check" # test requires fuse kernel module
+subpackages="$pkgname-doc"
+source="https://github.com/rfjakob/gocryptfs/releases/download/v$pkgver/gocryptfs_v${pkgver}_src-deps.tar.gz"
+builddir="$srcdir/${pkgname}_v${pkgver}_src-deps"
+
+build() {
+	./build.bash
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -rf "$pkgdir"/usr/share/licenses
+}
+
+sha512sums="
+b8aeb34fd7c16d1f0b1a53abf5ea26df0729fc1f8342e8e27a4ba63ed9da6726c6327e6397c7c0bca519d1a3f1f1ec74fe4b85bda50cfc64ae9b732f45507665  gocryptfs_v2.2.1_src-deps.tar.gz
+"

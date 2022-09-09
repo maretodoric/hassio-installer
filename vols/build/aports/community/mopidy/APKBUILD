@@ -1,0 +1,94 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=mopidy
+pkgver=3.3.0
+pkgrel=0
+pkgdesc="Mopidy is an extensible music server"
+url="https://www.mopidy.com/"
+arch="noarch"
+license="Apache-2.0"
+depends="
+	gst-plugins-base
+	gst-plugins-good
+	gst-plugins-ugly
+	py3-dbus
+	py3-gst
+	py3-libxml2
+	py3-pykka
+	py3-requests
+	py3-setuptools
+	py3-six
+	py3-tornado
+	python3
+	"
+makedepends="
+	graphviz
+	py3-sphinx
+	py3-sphinx_rtd_theme
+	python3-dev
+	"
+checkdepends="
+	py3-pytest
+	py3-responses
+	"
+install="$pkgname.pre-install"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="https://github.com/mopidy/mopidy/archive/v$pkgver/mopidy-v$pkgver.tar.gz
+	mopidy.conf
+	logging.conf
+	mopidy.initd
+	"
+
+pkgusers="mopidy"
+pkggroups="audio"
+
+build() {
+	python3 setup.py build
+
+	python3 setup.py build_sphinx -b man
+	python3 setup.py build_sphinx -b html
+}
+
+check() {
+	pytest --ignore tests/stream/test_playback.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	install -Dm755 extra/mopidyctl/mopidyctl "$pkgdir/usr/bin/mopidyctl"
+	install -Dm644 extra/desktop/mopidy.desktop -t "$pkgdir"/usr/share/applications
+
+	install -dm755 "$pkgdir/usr/share/doc/mopidy"
+	cp -r build/sphinx/html "$pkgdir/usr/share/doc/mopidy"
+
+	local man
+	for man in build/sphinx/man/*.? extra/mopidyctl/mopidyctl.8; do
+		install -Dm644 "$man" \
+			"$pkgdir"/usr/share/man/man${man##*.}/${man##*/}
+	done
+
+	install -Dm644 "$srcdir/mopidy.conf" \
+		"$pkgdir/etc/mopidy/mopidy.conf"
+	install -Dm644 "$srcdir/logging.conf" \
+		"$pkgdir/etc/mopidy/logging.conf"
+
+	install -Dm755 "$srcdir/$pkgname.initd" \
+		"$pkgdir/etc/init.d/$pkgname"
+
+	install -dm755 -o mopidy -g audio \
+		"$pkgdir/etc/mopidy/extensions.d" \
+		"$pkgdir/var/log/mopidy" \
+		"$pkgdir/var/cache/mopidy" \
+		"$pkgdir/var/lib/mopidy/media" \
+		"$pkgdir/var/lib/mopidy/playlists"
+}
+
+sha512sums="
+9cad7d5013defb9f7edee17b48120286a0b3be568eba15c60fc5363f8ee2ab9041dd79574b2ce1a14a941f41f53101f588e0d0283ee01b82499bc6ffe001cee2  mopidy-v3.3.0.tar.gz
+eb66e8e826640a939b1ba51569ab7fab041b8b5e8823ea2d5f05596faf1de8882fd8c1c32bdb92534e759243fb5ff741bda0d2ebb3282af542d1287c8c68b5ea  mopidy.conf
+0c438058500ab7559baae21b03b10e2b80b10c77776b240b2100da1f4c84ea8efe24dc7a38a95034e75605eaf5d21604d13e5b8c7358778c555ddb6372a49388  logging.conf
+8492ac223c32e4a0bb0ae64348ed0a5928cc98c0ce713eff5948b12e09860f83a9de5377117f85fd9ad54643201aadd84f68494e773aa8c1bba97fa992bd9dbe  mopidy.initd
+"

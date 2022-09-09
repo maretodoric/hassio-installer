@@ -1,0 +1,31 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=py3-injector
+pkgver=0.19.0
+pkgrel=0
+pkgdesc="Python dependency injection framework, inspired by Guice"
+url="https://github.com/alecthomas/injector"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-typing-extensions"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+options="!check" # Tests apparently aren't in pypi tarballs?
+source="https://files.pythonhosted.org/packages/source/i/injector/injector-$pkgver.tar.gz"
+builddir="$srcdir/injector-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$(echo $PWD/build/lib.*)" pytest-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+a2b63112e782d69bce9ae4f7c669a01d48051f8923f76fb798b561fd1077382b8bc1a080f54115a2285be5a00e142bcf7b9782a7aa9539134c268c03ca0a86c2  injector-0.19.0.tar.gz
+"

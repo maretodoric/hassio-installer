@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-settings
+pkgver=0_git20211128
+pkgrel=0
+_commit="2e9b722ad2611486694d5172322dcca39447dc9c"
+pkgdesc="Default settings app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-settings"
+# armhf blocked by nemo-qml-plugin-systemsettings
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	mapplauncherd
+	mce
+	nemo-qml-plugin-configuration
+	nemo-qml-plugin-systemsettings
+	nemo-qml-plugin-time
+	"
+makedepends="
+	dbus-dev
+	dbus-glib-dev
+	extra-cmake-modules
+	mce-dev
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtmultimedia-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-settings/archive/$_commit/asteroid-settings-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+5a007aa3e8c492ebb7e6dff68f7953d5df69839c068258043768c89f9a1421220b5075bd6463cecfe37bb8e3f8053d544aa98e4d8855104f25aeb4506936ed84  asteroid-settings-2e9b722ad2611486694d5172322dcca39447dc9c.tar.gz
+"

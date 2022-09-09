@@ -1,0 +1,49 @@
+# Contributor: stef <l0ls0fo2i@ctrlc.hu>
+# Contributor: Bradley J Chambers <brad.chambers@gmail.com>
+# Maintainer: Bradley J Chambers <brad.chambers@gmail.com>
+pkgname=eigen
+pkgver=3.4.0
+pkgrel=3
+pkgdesc="Eigen is a C++ template library for linear algebra"
+url="https://eigen.tuxfamily.org/"
+arch="noarch"
+license="MPL-2.0"
+options="!check"  # checks take a long time, and tend to fail randomly
+makedepends="cmake suitesparse-dev mpfr-dev fftw-dev boost-dev gmp-dev glu-dev freeglut-dev openblas-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://gitlab.com/libeigen/eigen/-/archive/$pkgver/eigen-$pkgver.tar.gz
+	fftw-test-fix.patch
+	"
+
+build() {
+	# needs -std so c11 tests are being built
+	CXXFLAGS="$CXXFLAGS -std=c++11" \
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=MinSizeRel
+	cmake --build build
+}
+
+check() {
+	ctest --test-dir build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname
+	cp -r "$builddir"/doc/ "$pkgdir"/usr/share/doc/$pkgname
+	mkdir -p $pkgdir/usr/lib/pkgconfig
+	mv $pkgdir/usr/share/pkgconfig/eigen3.pc $pkgdir/usr/lib/pkgconfig
+}
+
+dev() {
+	default_dev
+	mkdir -p $subpkgdir/usr/share/cmake/Modules
+	mv $pkgdir/usr/share/eigen3/cmake/*.cmake $subpkgdir/usr/share/cmake/Modules
+}
+
+sha512sums="
+ba75ecb760e32acf4ceaf27115468e65d4f77c44f8d519b5a13e7940af2c03a304ad433368cb6d55431f307c5c39e2666ab41d34442db3cf441638e51f5c3b6a  eigen-3.4.0.tar.gz
+c1f9d7d8c9025b4b2b3a679f80519e494f206d7bee232cd10dd45df454b1ce6697858547bc0d956a5818481d344948704db8dbb39d04ac69ff7de99961492384  fftw-test-fix.patch
+"

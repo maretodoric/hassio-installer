@@ -1,0 +1,48 @@
+# Contributor: Newbyte <newbie13xd@gmail.com>
+# Maintainer: Newbyte <newbie13xd@gmail.com>
+pkgname=giara
+pkgver=1.0.1
+pkgrel=1
+pkgdesc="reddit app for GNOME, created with mobile Linux in mind."
+url="https://gitlab.gnome.org/World/giara"
+# s390x and riscv64 blocked by libhandy1 -> rust
+arch="noarch !s390x !riscv64"
+license="GPL-3.0-or-later"
+subpackages="$pkgname-lang"
+depends="
+	py3-beautifulsoup4
+	py3-cairo
+	py3-dateutil
+	py3-gobject3
+	py3-mistune
+	py3-pillow
+	py3-praw
+	py3-requests
+	gtksourceview5
+	gtk4.0
+	libadwaita
+	python3
+	webkit2gtk
+	"
+makedepends="
+	appstream
+	blueprint-compiler
+	gtk4.0-dev
+	libadwaita-dev
+	meson
+	"
+options="!check"
+source="https://gitlab.gnome.org/World/giara/-/archive/$pkgver/giara-$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+ee85a094cf4a1f90703dc2976fff8d321dc47a4c730bd5586b7666b93b519c41a23ae2102d9096559f5a8b93fe86b8e03802e838f6e21cbb1ba59250b4b0a3f3  giara-1.0.1.tar.gz
+"

@@ -1,0 +1,31 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-aiohttp
+_pkgname=aiohttp
+pkgver=3.8.1
+pkgrel=1
+pkgdesc="HTTP client/server for asyncio"
+url="https://pypi.python.org/pypi/aiohttp"
+arch="all"
+license="Apache-2.0"
+depends="python3 py3-async-timeout py3-charset-normalizer py3-multidict py3-yarl
+	py3-idna-ssl py3-attrs py3-typing-extensions py3-aiosignal"
+makedepends="python3-dev py3-setuptools"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --optimize=1
+}
+sha512sums="
+3611549393e50c8d30426aee9ddd23794a71ddefe4384eb549049b93e452fafb38de7ad900737213b61fbe717bd85035a780c1622593eae250328f17d484a0a7  py3-aiohttp-3.8.1.tar.gz
+"

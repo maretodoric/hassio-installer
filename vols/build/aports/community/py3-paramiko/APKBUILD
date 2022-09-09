@@ -1,0 +1,52 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-paramiko
+_pkgname=paramiko
+pkgver=2.11.0
+pkgrel=0
+pkgdesc="An SSH2 protocol library for Python3"
+url="https://www.paramiko.org/"
+arch="noarch"
+license="LGPL-2.0-or-later"
+options="!check" # missing pytest-relaxed module
+depends="python3 py3-asn1 py3-cryptography py3-bcrypt py3-pynacl py3-six"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+subpackages="$pkgname-doc $pkgname-demos"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-paramiko" # Backwards compatibility
+provides="py-paramiko=$pkgver-r$pkgrel" # Backwards compatibility
+
+# secfixes:
+#   2.4.2-r0:
+#     - CVE-2018-1000805
+#   2.4.1-r0:
+#     - CVE-2018-7750
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	mkdir -p "$pkgdir"/usr/share/doc/"$pkgname"
+	cp -a docs "$pkgdir"/usr/share/doc/"$pkgname"/
+}
+
+demos() {
+	depends="$pkgname=$pkgver-r$pkgrel"
+	pkgdesc="$pkgdesc (demos)"
+
+	mkdir -p "$subpkgdir"/usr/share/doc/"$pkgname"/demos
+	cp -a "$builddir"/demos "$subpkgdir"/usr/share/doc/"$pkgname"/
+}
+
+sha512sums="
+e174e704867f00e5eabae0e9d01ba4c0d1743f85a4bf5b135b31737eee51a7f25df1aedf71c106eabc0d1c3d15ec25b7417d3b3aa74ee672667c3cd30978aa91  paramiko-2.11.0.tar.gz
+"

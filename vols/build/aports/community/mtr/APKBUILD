@@ -1,0 +1,73 @@
+# Contributor: John Keith Hohm <john@hohm.net>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=mtr
+pkgver=0.95
+pkgrel=1
+pkgdesc="Full screen ncurses traceroute tool"
+url="http://www.bitwizard.nl/mtr/"
+arch="all"
+license="GPL-2.0-only"
+makedepends="autoconf automake ncurses-dev autoconf gtk+2.0-dev libcap-dev jansson-dev"
+subpackages="$pkgname-doc $pkgname-gtk $pkgname-bash-completion:bashcomp:noarch"
+source="$pkgname-$pkgver-update.tar.gz::https://github.com/traviscross/mtr/archive/v$pkgver/mtr-$pkgver.tar.gz
+	mtr-gtk.desktop
+	"
+options="suid !check" # Tests require pyhton2
+
+prepare() {
+	default_prepare
+
+	./bootstrap.sh
+}
+
+build() {
+	mkdir -p mtr curses gtk
+
+	export GIT_DIR="$builddir"
+	cd "$builddir"/curses
+	../configure --prefix=/usr \
+		--without-gtk
+	make
+
+	cd "$builddir"/gtk
+	../configure --prefix=/usr \
+		--with-gtk \
+		--program-suffix=-gtk
+	make
+	unset GIT_DIR
+}
+
+package() {
+	cd "$builddir"/curses
+	make DESTDIR="$pkgdir" install
+	cd "$builddir"/gtk
+	make DESTDIR="$pkgdir" install
+	install -D -m 644 "$srcdir"/mtr-gtk.desktop \
+		"$pkgdir"/usr/share/applications/mtr-gtk.desktop
+	install -D -m 644 "$builddir"/img/mtr_icon.xpm \
+		"$pkgdir"/usr/share/pixmaps/mtr_icon.xpm
+}
+
+gtk() {
+	pkgdesc="The GTK+ interface for mtr"
+	mkdir -p "$subpkgdir"/usr/sbin "$subpkgdir"/usr/share
+	mv "$pkgdir"/usr/sbin/mtr*-gtk "$subpkgdir"/usr/sbin/
+	mv "$pkgdir"/usr/share/applications "$subpkgdir"/usr/share/
+	mv "$pkgdir"/usr/share/pixmaps "$subpkgdir"/usr/share/
+}
+
+bashcomp() {
+	depends=""
+	pkgdesc="Bash completion for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	mkdir -p "$subpkgdir"/usr/share/bash-completion
+	mv "$pkgdir"/usr/share/bash-completion/completions \
+		"$subpkgdir"/usr/share/bash-completion
+	rm -rf "$pkgdir"/usr/share/bash-completion
+}
+
+sha512sums="
+a7d69e0c551a10ae80a650a34588119e6c6b124a8c2c93d3de29e5daa6ef99f9217d875529d443c3760cd6fd7bd04d1e9abe33ef12635826c66a98bd776c1690  mtr-0.95-update.tar.gz
+ecf7543e0125fad6d3f17c30f29f1fc8a3b1e2e477802fe8464e436c3cdfa30d0630b8543cc3f022c475228e94ac8f92981df4d8fb08fe01d004be3d78d6da77  mtr-gtk.desktop
+"

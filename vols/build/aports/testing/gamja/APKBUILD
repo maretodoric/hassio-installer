@@ -1,0 +1,35 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=gamja
+pkgver=1.0.0_beta4
+_pkgver=v${pkgver/_beta/-beta.}
+pkgrel=0
+pkgdesc="Simple IRC web client"
+url="https://sr.ht/~emersion/gamja/"
+license="AGPL-3.0"
+arch="noarch !riscv64" # blocked by nodejs
+makedepends="npm"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~emersion/gamja/archive/$_pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$_pkgver"
+options="!check" # no test suite
+
+build() {
+	npm install --production
+}
+
+package() { 
+	local webroot="$pkgdir"/usr/share/webapps/gamja
+
+	install -d "$webroot" "$pkgdir"/usr/share/doc/gamja
+	cp -r "$builddir"/* "$webroot"
+	mv "$webroot"/README.md "$pkgdir"/usr/share/doc/gamja
+
+	# default empty config
+	echo "{}" | install -Dm644 /dev/stdin "$pkgdir"/etc/gamja/config.json
+	ln -s /etc/gamja/config.json "$pkgdir"/usr/share/webapps/gamja/config.json
+}
+
+sha512sums="
+8873026874f7b165eda2ed3ee94f0343f7b6bb35759db87051dcd03d8d2326d369d6c21b80e4349cc9d022967081b1678ecb736fbd8848df90bcf49a7fa4af48  gamja-1.0.0_beta4.tar.gz
+"

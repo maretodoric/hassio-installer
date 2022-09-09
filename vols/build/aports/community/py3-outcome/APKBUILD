@@ -1,0 +1,32 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-outcome
+pkgver=1.1.0
+pkgrel=3
+pkgdesc="Capture the outcome of Python function calls"
+url="https://github.com/python-trio/outcome"
+arch="noarch"
+license="MIT OR Apache-2.0"
+depends="
+	py3-async_generator
+	py3-attrs
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/o/outcome/outcome-$pkgver.tar.gz"
+builddir="$srcdir/outcome-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="3bebeaef87af1128442b769cdfc6ef81d202130437b1503e26f8468830647595937d3e422ef4d8679191a1e9a083dcfb2e9bce35a49f63fc12665d7a61b56d3d  outcome-1.1.0.tar.gz"

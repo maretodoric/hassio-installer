@@ -1,0 +1,26 @@
+# Contributor: Mohammad Abdolirad <m.abdolirad@gmail.com>
+# Maintainer: Mohammad Abdolirad <m.abdolirad@gmail.com>
+pkgname=wait4x
+pkgver=0.4.0
+pkgrel=6
+pkgdesc="Waiting for a port to enter into specify state"
+url="https://github.com/atkrad/wait4x"
+arch="all"
+license="MIT"
+makedepends="go"
+source="$pkgname-$pkgver.tar.gz::https://github.com/atkrad/wait4x/archive/v$pkgver.tar.gz"
+options="!check" # Wait4X doesn't provide tests
+_commitsha="9fcfdc13"
+_commitdatetime="2020-12-21T19:05:13Z"
+
+build() {
+	go build -v \
+	-ldflags "-X github.com/atkrad/wait4x/internal/app/wait4x/cmd.AppVersion=v$pkgver -X github.com/atkrad/wait4x/internal/app/wait4x/cmd.GitCommit=$_commitsha -X github.com/atkrad/wait4x/internal/app/wait4x/cmd.BuildTime=$_commitdatetime" \
+	-o bin/$pkgname cmd/wait4x/main.go
+}
+
+package() {
+	install -Dm755 "$builddir"/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+}
+
+sha512sums="8fbeae077321ca301b92120edc82cc4ad6f17cc173513c77c5334c6b266550e8e81a7e8d5154a6ac30697e349901e53fd44960c1b12bbeee1ba62d099d76abb5  wait4x-0.4.0.tar.gz"

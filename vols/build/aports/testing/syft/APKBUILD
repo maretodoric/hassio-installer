@@ -1,0 +1,35 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=syft
+pkgver=0.49.0
+pkgrel=0
+pkgdesc="Generate a Software Bill of Materials (SBOM) from container images and filesystems"
+url="https://github.com/anchore/syft"
+license="Apache-2.0"
+arch="all !armhf !armv7 !x86 !ppc64le !riscv64" # FTBFS on 32-bit arches, riscv64, ppc64le
+makedepends="go"
+source="https://github.com/anchore/syft/archive/v$pkgver/syft-$pkgver.tar.gz"
+options="!check" # tests need docker
+
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+export GOPATH="$srcdir"
+export CGO_ENABLED=0
+
+build() {
+	go build -ldflags "
+		-X github.com/anchore/syft/internal/version.version=$pkgver
+		" \
+		-o bin/syft ./cmd/syft
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 bin/syft "$pkgdir"/usr/bin/syft
+}
+
+sha512sums="
+e48c357cb72678685f957d796b6d565836df4bad5ff6a1177d756ee6cc88e60dabae1513b0dacb1c1cbdd99c9641bd0662509098804e4bfc1183d1e1ee85a8d9  syft-0.49.0.tar.gz
+"

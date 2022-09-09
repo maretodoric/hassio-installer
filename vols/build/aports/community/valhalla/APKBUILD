@@ -1,0 +1,97 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=valhalla
+pkgver=3.1.4
+pkgrel=4
+pkgdesc="Open Source Routing Engine for OpenStreetMap "
+url="https://valhalla.readthedocs.io/"
+# s390x blocked by prime_server
+# riscv64 blocked by luajit
+arch="all !s390x !riscv64"
+license="MIT"
+depends_dev="
+	boost-dev
+	curl-dev
+	libspatialite-dev
+	luajit-dev
+	prime_server-dev
+	protobuf-dev
+	python3-dev
+	sqlite-dev
+	zeromq-dev
+	zlib-dev
+	"
+makedepends="$depends_dev
+	cmake
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://dev.alpinelinux.org/archive/valhalla/valhalla-$pkgver.tar.gz
+	0001-libvalhalla-configuring.patch
+	"
+builddir="$srcdir/$pkgname"
+
+_disturl="dev.alpinelinux.org:/archive/$pkgname/"
+
+snapshot() {
+	clean
+	deps
+	mkdir -p "$srcdir" && cd "$srcdir"
+	git clone https://github.com/valhalla/valhalla --recursive
+	cd valhalla && git checkout $pkgver && cd -
+	tar czvf $SRCDEST/$pkgname-$pkgver.tar.gz valhalla
+	rsync --progress -La $SRCDEST/$pkgname-$pkgver.tar.gz $_disturl
+}
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=TRUE \
+		-DENABLE_WERROR=OFF \
+		-DENABLE_TOOLS=OFF \
+		-DENABLE_DATA_TOOLS=OFF \
+		-DENABLE_SERVICES=OFF \
+		-DENABLE_HTTP=ON \
+		-DENABLE_PYTHON_BINDINGS=OFF \
+		-DENABLE_CCACHE=OFF \
+		-DENABLE_COVERAGE=OFF \
+		-DENABLE_COMPILER_WARNINGS=ON \
+		-DENABLE_SANITIZERS=OFF \
+		-DENABLE_ADDRESS_SANITIZER=OFF \
+		-DENABLE_UNDEFINED_SANITIZER=OFF \
+		-DENABLE_TESTS=ON \
+		-DENABLE_SINGLE_FILES_WERROR=OFF \
+		-DENABLE_BENCHMARKS=OFF \
+		-DENABLE_THREAD_SAFE_TILE_REF_COUNT=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# We don't need gtest related files, those are already available from
+	# the gtest package
+	rm -r \
+		"$pkgdir"/usr/lib/pkgconfig/gmock.pc \
+		"$pkgdir"/usr/lib/pkgconfig/gmock_main.pc \
+		"$pkgdir"/usr/lib/pkgconfig/gtest.pc \
+		"$pkgdir"/usr/lib/pkgconfig/gtest_main.pc \
+		"$pkgdir"/usr/lib/cmake \
+		"$pkgdir"/usr/lib/libgmock.so \
+		"$pkgdir"/usr/lib/libgmock_main.so \
+		"$pkgdir"/usr/lib/libgtest.so \
+		"$pkgdir"/usr/lib/libgtest_main.so \
+		"$pkgdir"/usr/include/gmock \
+		"$pkgdir"/usr/include/gtest
+}
+
+sha512sums="
+94bda83499d975bf8cb04db4bb226e081b03174bdbff2cdf79570632999d89c72772fb6b366a64615398fad0b684a3803612a8550bc3f324979127dcafc2828d  valhalla-3.1.4.tar.gz
+7bec6abe6d203cf654f32b841268f99a83cb29eb300499bb19f7eacf22730511b3337116d9acedbc2cad33455f5759f9248d5ba1a15ed5e7ec49dddfce4e35ce  0001-libvalhalla-configuring.patch
+"

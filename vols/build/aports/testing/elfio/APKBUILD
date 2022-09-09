@@ -1,0 +1,35 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer:
+pkgname=elfio
+pkgver=3.10
+pkgrel=0
+pkgdesc="ELF reader and producer implemented as a header only C++ library"
+url="https://github.com/serge1/ELFIO"
+arch="noarch"
+license="MIT"
+makedepends="cmake ninja"
+subpackages="$pkgname-dev"
+source="https://github.com/serge1/ELFIO/releases/download/Release_$pkgver/elfio-$pkgver.tar.gz
+	fix-cmake-install-dir.patch
+	"
+options="!check"  # no tests included in release tarball
+
+build() {
+	cmake -G Ninja -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	rm -rf "$pkgdir"/usr/share/docs
+}
+
+sha512sums="
+e63857254277254b36d92c7280fbe0208a260da14067cf3f5d9c8f69b7449062c85a95debefe647d5f381afc5e8d305b6aa7cef174c0c88403b3ea46dad47ffb  elfio-3.10.tar.gz
+cfd760aac6cc5182fbc5d1082d488be2aabfbae78dd0617ec1c7f46237ab6b9d5f95f871b873bdb936a83311478e68511ebd88e2e5c6aacc897be5c2a6d68951  fix-cmake-install-dir.patch
+"

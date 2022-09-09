@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=keditbookmarks
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/"
+pkgdesc="Bookmark Organizer and Editor"
+license="GPL-2.0-only AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kbookmarks-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kparts-dev
+	kwindowsystem-dev
+	qt5-qtbase-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/keditbookmarks-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+bf9ca517af299469a2afc4e71fadafce8156c7360de1616cd07dd3fce00bb8ca2213324f582731244151dd26a0b435006cdbccd5afe4cf3be45ed96bf2de9542  keditbookmarks-22.04.2.tar.xz
+"

@@ -1,0 +1,73 @@
+# Contributor: Sodface <sod@sodface.com>
+# Maintainer: lonjil <alpine@lonjil.xyz>
+pkgname=libqalculate
+# the pkgver must be kept in sync with: qalculate-gtk, qalculate-qt
+pkgver=4.2.0
+pkgrel=0
+pkgdesc="Library implementing a multi-purpose desktop calculator"
+url="https://qalculate.github.io/"
+license="GPL-2.0-or-later"
+arch="all"
+makedepends="
+	autoconf
+	automake
+	curl-dev
+	diffutils
+	gettext-dev
+	gmp-dev
+	gnu-libiconv-dev
+	icu-dev
+	intltool
+	libtool
+	libxml2-dev
+	mpfr-dev
+	readline-dev
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-lang
+	qalc
+	qalc-doc
+	"
+source="https://github.com/Qalculate/libqalculate/releases/download/v$pkgver/libqalculate-$pkgver.tar.gz
+	libqalculate.pc.in.patch
+	"
+options="!check" # no test suite
+
+prepare() {
+	default_prepare
+
+	autoreconf -f
+}
+
+build() {
+	# Compile with LTO to reduce binary size.
+	export CXXFLAGS="$CXXFLAGS -flto -fno-fat-lto-objects"
+	export LDFLAGS="$LDFLAGS -flto"
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--mandir=/usr/share/man
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+qalc() {
+	pkgdesc="Powerful and easy to use command line calculator"
+	amove usr/bin/qalc
+}
+
+doc() {
+	default_doc
+	pkgdesc="Powerful and easy to use command line calculator (documentation)"
+}
+
+sha512sums="
+105f567a3b24a1c396df0eb85f299d18228f489e4d989f0fa09cf97321494030e9a85d9cd9fe4b5dd8cc233b4329025788275ba168546929e912598dee8ef6b8  libqalculate-4.2.0.tar.gz
+a44bb2d18b6ac9306587cfaeec21955aa526faa4abe5f639ab5912227331eb052ec900626619ff939c9f93fb0e7a25d0af134b645bcde5bc694f78af8f4b0af5  libqalculate.pc.in.patch
+"

@@ -1,0 +1,52 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kbounce
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/games/kbounce/"
+pkgdesc="A single player arcade game with the elements of puzzle"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	ki18n-dev
+	kio-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libkdegames-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kbounce-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+581ae5a5a2e0e0729835a1ba844d00a5b9765dc3c77e59941b148f06e839a4c7951b21c38bc77d5b2b5d7cc1bc9a8ce33971973b8e1e92198c6df505a9fe9e15  kbounce-22.04.2.tar.xz
+"

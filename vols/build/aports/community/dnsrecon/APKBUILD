@@ -1,0 +1,34 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=dnsrecon
+pkgver=1.1.1
+pkgrel=0
+pkgdesc="DNS Enumeration Script"
+url="https://github.com/darkoperator/dnsrecon"
+arch="noarch"
+license="GPL-2.0-only"
+depends="py3-dnspython py3-lxml py3-netaddr"
+makedepends="py3-build py3-installer py3-poetry-core
+py3-wheel py3-setuptools"
+checkdepends="py3-pytest"
+options="!check"
+source="$pkgname-$pkgver.tar.gz::https://github.com/darkoperator/dnsrecon/archive/$pkgver.tar.gz"
+
+build() {
+	python3 -m build --no-isolation --wheel
+}
+
+check() {
+        python3 -m installer -d testenv dist/$pkgname-$pkgver-py3-none-any.whl
+        local sitedir="$(python3 -c 'import site;print(site.getsitepackages()[0])')"
+
+        PYTHONPATH="$PWD/testenv/$sitedir" python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" dist/$pkgname-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+985fcbd2874f72144e3d0b52ee322df848abfb1fecd403d6a9786cfa5509610609d9aacb4ffc2fa89b5717c21942fa81d1884ddbfa0cb605e95fa1e0da1a2b57  dnsrecon-1.1.1.tar.gz
+"

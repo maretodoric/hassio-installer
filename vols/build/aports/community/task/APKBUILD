@@ -1,0 +1,57 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=task
+pkgver=2.6.2
+pkgrel=0
+pkgdesc="command-line to-do list manager"
+url="https://taskwarrior.org"
+arch="all"
+license="MIT"
+makedepends="cmake gnutls-dev util-linux-dev"
+subpackages="$pkgname-doc
+	$pkgname-bash-completion:bashcomp:noarch
+	$pkgname-fish-completion:fishcomp:noarch
+	$pkgname-zsh-completion:zshcomp:noarch"
+source="https://github.com/GothenburgBitFactory/taskwarrior/releases/download/v$pkgver/task-$pkgver.tar.gz"
+
+build() {
+	cmake . \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+bashcomp() {
+	pkgdesc="Bash completions for $pkgname"
+	depends=""
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	install -Dm644 "$builddir"/scripts/bash/$pkgname.sh \
+		"$subpkgdir"/usr/share/bash-completion/completions/$pkgname
+}
+
+fishcomp() {
+	pkgdesc="Fish completions for $pkgname"
+	depends=""
+	install_if="$pkgname=$pkgver-r$pkgrel fish"
+
+	install -Dm644 "$builddir"/scripts/fish/$pkgname.fish \
+		"$subpkgdir"/usr/share/fish/completions/$pkgname.fish
+}
+
+zshcomp() {
+	pkgdesc="Zsh completions for $pkgname"
+	depends=""
+	install_if="$pkgname=$pkgver-r$pkgrel zsh"
+
+	install -Dm644 "$builddir"/scripts/zsh/_$pkgname \
+		"$subpkgdir"/usr/share/zsh/site-functions/_$pkgname
+}
+
+sha512sums="
+3c592552c1baada09ef4e06cf2266c9897ffae42a75998b70767f2cfbabd2e1de7d1a900f16f3b8eb164ce19637dabd21e246f84732a20a646f39716895cdf98  task-2.6.2.tar.gz
+"

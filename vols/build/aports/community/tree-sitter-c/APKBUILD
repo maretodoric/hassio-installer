@@ -1,0 +1,25 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=tree-sitter-c
+pkgver=0.20.1
+pkgrel=3
+pkgdesc="C grammar for tree-sitter"
+url="https://github.com/tree-sitter/tree-sitter-c"
+arch="all"
+license="MIT"
+makedepends="tree-sitter-dev"
+install_if="tree-sitter-grammars"
+source="https://github.com/tree-sitter/tree-sitter-c/archive/v$pkgver/tree-sitter-c-$pkgver.tar.gz"
+options="!check"  # no tests for shared lib
+
+build() {
+	abuild-tree-sitter build
+}
+
+package() {
+	DESTDIR="$pkgdir" abuild-tree-sitter install
+}
+
+sha512sums="
+b2f5b6d54fe05e7706708b50a5dd821a5669a121c916da4de3f80b6c57ebdd99f12f37c80051a8719f9737d4b0c00542aee62b45823dbb878acd4e02974f7a67  tree-sitter-c-0.20.1.tar.gz
+"

@@ -1,0 +1,22 @@
+Tests for MySQL/PostgreSQL/Cassandra integration are kinda broken, they expect
+already initialized databases prepared for Kea tests.
+
+--- a/src/bin/admin/tests/Makefile.am
++++ b/src/bin/admin/tests/Makefile.am
+@@ -11,13 +11,13 @@
+ SHTESTS += admin_tests.sh
+ SHTESTS += memfile_tests.sh
+ if HAVE_MYSQL
+-SHTESTS += mysql_tests.sh
++#SHTESTS += mysql_tests.sh
+ endif
+ if HAVE_PGSQL
+-SHTESTS += pgsql_tests.sh
++#SHTESTS += pgsql_tests.sh
+ endif
+ if HAVE_CQL
+-SHTESTS += cql_tests.sh
++#SHTESTS += cql_tests.sh
+ endif
+ 
+ # Run tests on "make check".

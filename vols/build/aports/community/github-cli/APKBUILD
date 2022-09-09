@@ -1,0 +1,63 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor Andrei Jiroh Eugenio Halili <ajhalili2006@gmail.com>
+# Maintainer: Andrei Jiroh Eugenio Halili <ajhalili2006@gmail.com>
+pkgname=github-cli
+pkgver=2.13.0
+pkgrel=0
+pkgdesc="CLI for dealing with GitHub"
+options="net" # Need to fetch modules
+url="https://cli.github.com"
+arch="all"
+license="MIT"
+depends="git"
+makedepends="go"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/cli/cli/archive/v$pkgver/github-cli-$pkgver.tar.gz
+	no-ignore-goflags.patch
+	"
+builddir="$srcdir/cli-$pkgver"
+
+export GOFLAGS="$GOFLAGS -trimpath -modcacherw"
+export CGO_ENABLED=0
+
+prepare() {
+	default_prepare
+
+	# TODO: These tests invoke the TTY and our container *really* does not like that
+	# Copied from https://github.com/archlinux/svntogit-community/blob/packages/github-cli/trunk/PKGBUILD
+	rm pkg/cmd/auth/login/login_test.go
+}
+
+build() {
+	CGO_CPPFLAGS="$CPPFLAGS" \
+	CGO_CFLAGS="$CFLAGS" \
+	CGO_CXXFLAGS="$CXXFLAGS" \
+	CGO_LDFLAGS="$LDFLAGS" \
+	\
+	make GH_VERSION="v$pkgver" bin/gh manpages
+	bin/gh completion -s bash | install -Dm0644 /dev/stdin \
+		share/bash-completion/completions/gh
+	bin/gh completion -s zsh | install -Dm0644 /dev/stdin \
+		share/zsh/site-functions/_gh
+}
+
+check() {
+	go test -v ./...
+}
+
+package() {
+	install -Dm755 bin/gh "$pkgdir"/usr/bin/gh
+
+	mkdir -p "$pkgdir"/usr
+	cp -r share "$pkgdir"/usr
+}
+
+
+sha512sums="
+1240e673656378fa62f8a4bfaf80bbb7e97d6b49c1ed19b0a9a4a6eea1e61acce79a9b4a95c6b052d4215c8b00adaa3d90a1171b018add4ed8e3baeb7eb66898  github-cli-2.13.0.tar.gz
+873b931af40952b2e1b82d7d825d301a5334be40e9df34fc192160e564a26d13d7de4d13d48cfe08119f9b4741c25051068d062181e23f80abefad1d18155357  no-ignore-goflags.patch
+"

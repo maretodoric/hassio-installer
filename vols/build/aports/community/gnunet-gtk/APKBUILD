@@ -1,0 +1,39 @@
+# Contributor: xrs <xrs@mail36.net>
+# Maintainer: xrs <xrs@mail36.net>
+pkgname=gnunet-gtk
+pkgver=0.16.0
+pkgrel=0
+pkgdesc="Graphical user interface for GNUnet"
+url="https://gnunet.org"
+# s390x, riscv64, and ppc64le blocked by luatek -> texlive -> gnunet
+arch="all !s390x !ppc64le !riscv64"
+license="GPL-3.0-only"
+makedepends="gnunet-dev gtk+3.0-dev glade-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://ftpmirror.gnu.org/gnu/gnunet/gnunet-gtk-$pkgver.tar.gz"
+options="!check" # The GNUnet project lacks a good CI at the moment.
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--disable-fs-app \
+		--disable-conversation-app
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+478815504430e130c161b769ade2ad253d7c365a873bb42e619e926fe4550afd91e73a9a8a22f95ef0b0966d82c8addc81cc7c1d6e31ccba6704c594a8fae06c  gnunet-gtk-0.16.0.tar.gz
+"

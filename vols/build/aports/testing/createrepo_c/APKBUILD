@@ -1,0 +1,87 @@
+# Contributor:
+# Maintainer: Paul Morgan <jumanjiman@gmail.com>
+pkgname=createrepo_c
+pkgver=0.17.1
+pkgrel=1
+pkgdesc="C implementation of createrepo"
+url="https://github.com/rpm-software-management/createrepo_c/"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	bash-completion
+	bzip2-dev
+	cmake
+	curl-dev
+	expat-dev
+	file-dev>=5.40-r1
+	glib-dev
+	openssl-dev
+	libxml2-dev
+	python3-dev
+	rpm-dev
+	scanelf
+	sqlite-dev
+	xz-dev
+	zlib-dev
+	"
+checkdepends="
+	check-dev
+	py3-nose
+	xz
+	"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-libs
+	py3-${pkgname}:py3
+	"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/rpm-software-management/createrepo_c/archive/$pkgver.tar.gz
+	"
+
+build() {
+	mkdir "$builddir"/build
+	cd "$builddir"/build
+
+	# Pass cmake variables so
+	# end user does not need to set LD_LIBRARY_PATH.
+	# https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
+	cmake .. \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_SKIP_BUILD_RPATH=true \
+		-DCMAKE_BUILD_WITH_INSTALL_RPATH=false \
+		-DCMAKE_INSTALL_RPATH=/usr/lib \
+		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=true \
+		-DPYTHON_DESIRED=3 \
+		-DWITH_ZCHUNK=OFF \
+		-DWITH_LIBMODULEMD=OFF \
+		-DENABLE_DRPM=OFF
+	make
+}
+
+check() {
+	cd "$builddir"/build
+	make tests
+	tests/run_gtester.sh
+}
+
+package() {
+	cd "$builddir"/build
+	make install/strip DESTDIR=$pkgdir
+}
+
+py3() {
+	pkgdesc="Python3 bindings for createrepo_c"
+	depends="python3 $pkgname-libs"
+
+	# This is architecture-specific and provides a *.so file.
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/python* "$subpkgdir"/usr/lib/
+}
+
+sha512sums="
+5c5d459e255a3fef61ed4c25a655aa26698696b3f3fc0ba6492509338d527db0ccf71f23495e1bfba1a0e11055d29c7930dbf761ac3254f780d5dad33f7d70ce  createrepo_c-0.17.1.tar.gz
+"

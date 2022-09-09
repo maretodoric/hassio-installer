@@ -1,0 +1,66 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Magicloud <magiclouds@gmail.com>
+pkgname=minikube
+pkgver=1.26.0
+pkgrel=0
+pkgdesc="Tool that makes it easy to run Kubernetes locally"
+url="https://github.com/kubernetes/minikube"
+license="Apache-2.0"
+arch="all !s390x !riscv64" # blocked by libvirt
+arch="$arch !x86 !armhf !armv7 !ppc64le !aarch64" # FTBFS (kvm2 driver)
+options="chmod-clean"
+makedepends="go go-bindata bash libvirt-dev"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	docker-machine-driver-kvm2:_kvm2_driver
+	"
+source="https://github.com/kubernetes/minikube/archive/v$pkgver/minikube-$pkgver.tar.gz
+	skip-amd64-only-test.patch
+	"
+
+export GOPATH="$srcdir"
+
+prepare() {
+	default_prepare
+
+	mkdir -p "$srcdir"/src/k8s.io
+	mv "$srcdir"/minikube-$pkgver "$srcdir"/src/k8s.io/minikube
+	ln -s "$srcdir"/src/k8s.io/minikube/out "$srcdir"/minikube-$pkgver
+}
+
+build() {
+	cd "$GOPATH"/src/k8s.io/minikube
+	make out/minikube out/docker-machine-driver-kvm2
+
+	cd "$builddir"
+	 ./minikube completion bash > $pkgname.bash
+	 ./minikube completion fish > $pkgname.fish
+	 ./minikube completion zsh > $pkgname.zsh
+}
+
+check() {
+	cd "$GOPATH"/src/k8s.io/minikube
+	TESTSUITE=unittest make test
+}
+
+package() {
+	install -Dm755 minikube "$pkgdir"/usr/bin/minikube
+	install -Dm755 docker-machine-driver-kvm2 "$pkgdir"/usr/bin/docker-machine-driver-kvm2
+
+	install -Dm644 $pkgname.bash "$pkgdir"/usr/share/bash-completion/completions/$pkgname
+	install -Dm644 $pkgname.fish "$pkgdir"/usr/share/fish/completions/$pkgname.fish
+	install -Dm644 $pkgname.zsh "$pkgdir"/usr/share/zsh/site-functions/_$pkgname
+}
+
+_kvm2_driver() {
+	pkgdesc="minikube-maintained KVM driver for docker-machine"
+
+	amove usr/bin/docker-machine-driver-kvm2
+}
+
+sha512sums="
+60e0e246afea89c864d4dae157f0b8393d4caedf6b76d760cfb3a7a9a04b99abc96c09cdb4dc8f3e0d226cdfeb01284b65aa85587426759e5f2ac2d17f8378b7  minikube-1.26.0.tar.gz
+2eccb63b0905791968dec95f8f758da12632a8530c6db600648f2a190b23dd363d1a3c717488fc4e36f9082346c053eb9cf2ed00f65d14744e3fe9606dc32ddd  skip-amd64-only-test.patch
+"

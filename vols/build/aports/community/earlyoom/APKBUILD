@@ -1,0 +1,48 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=earlyoom
+pkgver=1.7
+pkgrel=0
+pkgdesc="Early OOM Daemon for Linux"
+url="https://github.com/rfjakob/earlyoom"
+arch="all"
+license="MIT"
+checkdepends="cppcheck go psutils"
+makedepends="cmd:setcap"
+subpackages="$pkgname-openrc"
+source="https://github.com/rfjakob/earlyoom/archive/v$pkgver/earlyoom-$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	"
+# FIXME: tests fail on builder, but pass locally
+options="!check"
+
+build() {
+	make VERSION="v$pkgver"
+}
+
+check() {
+	GO111MODULE=off make test
+}
+
+package() {
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+
+	cd "$pkgdir"
+
+	# Set needed capabilities (see earlyoom.service.in) so we can start
+	# earlyoom as an unprivileged user.
+	setcap 'cap_kill,cap_ipc_lock,cap_setpcap=+ep' usr/bin/earlyoom
+
+	# Remove systemd stuff.
+	rm -rf etc
+
+	install -D -m755 "$srcdir"/$pkgname.initd etc/init.d/$pkgname
+	install -D -m644 "$srcdir"/$pkgname.confd etc/conf.d/$pkgname
+}
+
+sha512sums="
+5732632c38d9b511aaa81845b3d8f8afe737aa6498dca7e31accaf18bfcf271ba436946aa06a514a34c953f99343f9b197d8a2b8751e16d336aeb084944f3602  earlyoom-1.7.tar.gz
+81b447fb74c3f18e00598bdc35d5314c5caea2331c24bcacf7234ae861dcd06a101d0b601d5a8805cb43f1e7293103375b023e27dc8748f9d71dc481428fc95a  earlyoom.initd
+bc36c85b0869637c222bb077bdb70afc6a240a000f16b2c9fa4f40ee415c42b66b93d41ca9f93eb5a7a980080a9e030575747539b330e71653b0f8fc11e017de  earlyoom.confd
+"

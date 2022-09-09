@@ -1,0 +1,27 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=py3-coveralls
+pkgver=2.2.0
+pkgrel=2
+pkgdesc="Show coverage stats online via coveralls.io"
+url="https://github.com/coveralls-clients/coveralls-python"
+arch="noarch"
+license="MIT"
+depends="py3-coverage py3-docopt py3-requests"
+makedepends="py3-setuptools"
+options="!check" #no testsuite
+source="$pkgname-$pkgver.tar.gz::https://github.com/coveralls-clients/coveralls-python/archive/$pkgver.tar.gz"
+builddir="$srcdir"/coveralls-python-$pkgver
+
+replaces=py-coveralls # Backwards compatibility
+provides=py-coveralls=$pkgver-r$pkgrel # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="488202c6b603fa22dac9500afd9ad509e9c87b9058188446c04cd31e0d6d9aa5e80404de5696f05e3bf75110ad1a5309147b34c0ebc25982cd8104d1b6798a34  py3-coveralls-2.2.0.tar.gz"

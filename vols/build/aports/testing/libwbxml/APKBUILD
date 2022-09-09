@@ -1,0 +1,40 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=libwbxml
+pkgver=0.11.8
+pkgrel=0
+pkgdesc="A library to encode and decode WBXML (WAP Binary XML)."
+url="https://github.com/libwbxml/libwbxml"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="cmake expat-dev"
+checkdepends="check-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/libwbxml/libwbxml/archive/libwbxml-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgname-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DENABLE_UNIT_TEST=ON \
+		$CMAKE_CROSSOPTS
+	make -C build
+}
+
+check() {
+	make -C build test
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+
+	mkdir -p "$pkgdir"/usr/lib
+	mv "$pkgdir"/usr/share/cmake "$pkgdir"/usr/lib
+}
+
+sha512sums="
+14b74e3d25f21ce4bf05f4ed546087817c698b5a44190c569b7691e26510b117118bf828e15beccaa4bdd2e744c45f9b5695b38eb7994f3af0f4f81f90ecff69  libwbxml-0.11.8.tar.gz
+"

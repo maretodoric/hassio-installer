@@ -1,0 +1,43 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=grantleetheme
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="KDE PIM mail related libraries"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by knewstuff
+arch="all !armhf !s390x !riscv64"
+url="https://kontact.kde.org/"
+license="GPL-2.0-or-later AND LGPL-2.1-or-later"
+makedepends="
+	extra-cmake-modules
+	grantlee-dev
+	ki18n-dev
+	knewstuff-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/grantleetheme-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# grantleethemetest is broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "grantleethemetest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+431d8ab311f3257ca45786f09f058b5f69842058a4d17ea461935ffaeacb9f9f1ec0453117bae298536561e4eb346c70e9c41ce36269f8b6ee24c8e6e4cadec9  grantleetheme-22.04.2.tar.xz
+"

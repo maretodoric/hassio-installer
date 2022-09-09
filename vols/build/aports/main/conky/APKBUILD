@@ -1,0 +1,44 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=conky
+pkgver=1.12.2
+pkgrel=1
+pkgdesc="An advanced, highly configurable system monitor for X based on torsmo"
+url="http://conky.sourceforge.net/"
+arch="all"
+license="custom"
+makedepends="alsa-lib-dev libxml2-dev curl-dev wireless-tools-dev
+	libxft-dev glib-dev libxdamage-dev libxext-dev imlib2-dev lua5.3-dev
+	cairo-dev tolua++ ncurses-dev linux-headers cmake gawk libxinerama-dev"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/brndnmtthws/conky/archive/v$pkgver.tar.gz"
+
+# temp allow textrels on riscv64
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+prepare() {
+	sed -i -e '32 iinclude(CheckIncludeFile)' CMakeLists.txt
+	default_prepare
+}
+
+build() {
+	cmake . \
+		-DRELEASE=ON \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_CURL=ON \
+		-DBUILD_XDBE=ON \
+		-DBUILD_IMLIB2=ON \
+		-DBUILD_RSS=ON \
+		-DBUILD_WEATHER_METAR=ON \
+		-DBUILD_WLAN=ON \
+		-DBUILD_I18N=OFF \
+		-DBUILD_LUA_CAIRO=ON
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -D -m644 COPYING $pkgdir/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="55280953da437efe36320e4c12f74d95b8406bd7d8b7d93c6582f9b346c1c80a94b71d1c27860f6274de9171865fca91e330dfc39feb80bb2f453a538bc5ce1a  conky-1.12.2.tar.gz"

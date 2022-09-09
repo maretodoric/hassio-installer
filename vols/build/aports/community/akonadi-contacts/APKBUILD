@@ -1,0 +1,61 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=akonadi-contacts
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Libraries and daemons to implement Contact Management in Akonadi"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by akonadi
+# ppc64le blocked by qt5-qtwebengine -> akonadi
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later AND GPL-2.0-or-later AND BSD-3-Clause"
+depends_dev="
+	akonadi-dev>=$pkgver
+	gpgme-dev
+	grantlee-dev
+	grantleetheme-dev
+	kcodecs-dev
+	kcompletion-dev
+	kconfig-dev
+	kcontacts-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kmime-dev
+	kservice-dev
+	ktextwidgets-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libkleo-dev
+	prison-dev
+	qt5-qtbase-dev
+	samurai
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/akonadi-contacts-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+81899905896da0f3b3459201400e6461d3dbec5ea2752b5176b0870974e015d03a5e409b5958c57fa737ac6b9381e9f5b347ba673d4346c32b7f84677478695c  akonadi-contacts-22.04.2.tar.xz
+"

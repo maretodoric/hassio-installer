@@ -1,0 +1,35 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+_luaversion="5.2"
+pkgname=acf-core
+pkgver=0.22.0
+pkgrel=2
+pkgdesc="Web-based system administration interface framework"
+url="https://gitlab.alpinelinux.org/acf/acf-core"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+install="$pkgname.post-upgrade"
+depends="acf-jquery acf-lib acf-skins haserl-lua$_luaversion lua$_luaversion
+	lua$_luaversion-posix lua$_luaversion-md5 lua-json4
+	lua$_luaversion-subprocess"
+source="https://gitlab.alpinelinux.org/acf/acf-core/-/archive/v$pkgver/acf-core-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	sed "s~luadir=.*~luadir=\${prefix}/share/lua/$_luaversion/acf~" -i config.mk
+
+	# fix shebang
+	sed -i -e "1s:#!/usr/bin/haserl :#!/usr/bin/haserl-lua$_luaversion :" \
+		www/cgi-bin/acf
+
+	sed -i -e "1s:#!/usr/bin/lua.*:#!/usr/bin/lua$_luaversion:" \
+		bin/acf-cli
+
+	make DESTDIR="$pkgdir" install
+	mkdir -p "$pkgdir"/etc/acf/skins
+}
+
+sha512sums="
+0d379a92a55f11a894a64bbe8c577e279c33527003eb78c88e5a23f7cd3a5516fc2038e1bb7fdefc54bab5f70a1a3645c2d2d6dd2de16497fd425df75ac9011e  acf-core-v0.22.0.tar.gz
+"

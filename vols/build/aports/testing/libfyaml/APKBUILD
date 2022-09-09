@@ -1,0 +1,39 @@
+# Contributor: Lucas Ramage <ramage.lucas@protonmail.com>
+# Maintainer: Lucas Ramage <ramage.lucas@protonmail.com>
+pkgname=libfyaml
+pkgver=0.7.12
+pkgrel=0
+pkgdesc="Fully feature complete YAML parser and emitter"
+url="https://github.com/pantoniou/libfyaml"
+arch="all"
+license="MIT"
+makedepends="bash libtool m4"
+checkdepends="check git"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/pantoniou/libfyaml/releases/download/v$pkgver/libfyaml-$pkgver.tar.gz"
+options="!check" # tests failing, (See: https://github.com/pantoniou/libfyaml/issues/20)
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--disable-static
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+check() {
+	make check
+}
+
+sha512sums="
+568beadf007d002babd760abbf8153ef8c4191dface276d8614b30ffc0c9606eb7cffc2f63047042f843da5ded7ef4b302b36a36ed19a6f38e2c6e22f310aa29  libfyaml-0.7.12.tar.gz
+"

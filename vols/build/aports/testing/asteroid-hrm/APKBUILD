@@ -1,0 +1,39 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-hrm
+pkgver=0_git20210517
+pkgrel=0
+_commit="6d3c74f37162281026ca3f70c6b2a08de4fc655f"
+pkgdesc="Default heart-rate-monitor app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-hrm"
+# armhf blocked by qt5-qtsensors
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	mapplauncherd
+	qt5-qtsensors
+	"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-hrm/archive/$_commit/asteroid-hrm-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+8ab873896753c513d5d7335a6b8cde70ae562be486b9b54926371412c3b23a004afeb42be12548a10e72eb850a48deac7244e51c69fe546252689b5215a293fd  asteroid-hrm-6d3c74f37162281026ca3f70c6b2a08de4fc655f.tar.gz
+"

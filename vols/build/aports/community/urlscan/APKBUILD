@@ -1,0 +1,27 @@
+# Contributor: Keith Maxwell <keith.maxwell@gmail.com>
+# Maintainer: Keith Maxwell <keith.maxwell@gmail.com>
+pkgname=urlscan
+_pkgname=urlscan
+pkgver=0.9.9
+pkgrel=0
+pkgdesc="Mutt and terminal url selector (similar to urlview)"
+options="!check" # No testsuite
+url="https://github.com/firecat53/urlscan"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="python3 py3-urwid"
+makedepends="py3-setuptools"
+subpackages="$pkgname-doc"
+source="https://files.pythonhosted.org/packages/source/u/$_pkgname/$_pkgname-$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+2e3eeae203f43ac695f7ad0a8123ea4946ec8c062caba61efbabe66dc772223299e812943edf731a7ef1aab1745592e38f5301cb1df02a0ce8cee2ea17881ace  urlscan-0.9.9.tar.gz
+"

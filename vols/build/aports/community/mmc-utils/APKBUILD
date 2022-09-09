@@ -1,0 +1,30 @@
+# Contributor: Olliver Schinagl <oliver@schinagl.nl>
+# Maintainer: Olliver Schinagl <oliver@schinagl.nl>
+pkgname=mmc-utils
+pkgver=4.3.0_git20210824
+pkgrel=0
+pkgdesc="Configure MMC storage devices from userspace"
+url="https://www.kernel.org/doc/html/latest/driver-api/mmc/mmc-tools.html"
+arch="all"
+license="GPL-2.0"
+makedepends="linux-headers"
+options="!check" # No checks available
+subpackages="$pkgname-doc"
+_githash="0eea71e4f22a837ed59e607743767df2d038825e"
+source="https://git.kernel.org/pub/scm/utils/mmc/mmc-utils.git/snapshot/mmc-utils-$_githash.tar.gz"
+builddir="$srcdir/mmc-utils-$_githash"
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" prefix="/usr" install install-man
+
+	gzip -c "man/mmc.1" > "mmc.1.gz" && \
+	install -D -m 0644 "mmc.1.gz" "$pkgdir/usr/share/man/man1/mmc.1.gz"
+}
+
+sha512sums="
+50254141244eaa1caf09d276feb8ff17c1b76cd75d8c27f558f3fdae77156d29be7ce5a6afbe24f5f6231c231f75170c99fa3724c80d5202b444e717c5ffd21e  mmc-utils-0eea71e4f22a837ed59e607743767df2d038825e.tar.gz
+"

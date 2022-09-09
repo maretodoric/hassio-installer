@@ -1,0 +1,65 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-pytest
+pkgver=7.1.2
+pkgrel=1
+pkgdesc="Python3 testing library"
+url="https://docs.pytest.org/en/latest/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-atomicwrites
+	py3-attrs
+	py3-iniconfig
+	py3-more-itertools
+	py3-packaging
+	py3-pluggy
+	py3-py
+	py3-pygments
+	py3-six
+	py3-tomli
+	py3-wcwidth
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="bash py3-hypothesis py3-virtualenv py3-xmlschema"
+source="https://files.pythonhosted.org/packages/source/p/pytest/pytest-$pkgver.tar.gz
+	0001-remove-setuptools_scm.patch
+	"
+builddir="$srcdir/pytest-$pkgver"
+options="!check" # causes bootstrapping issues because of checkdepends
+
+replaces="pytest" # Backwards compatibility
+provides="pytest=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+
+	sed -e "/^\[metadata\]/a version = $pkgver" -i setup.cfg
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m venv --system-site-packages test-env
+	test-env/bin/python3 setup.py install
+
+	test-env/bin/python3 -m pytest
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr/bin
+
+	local name; for name in py.test pytest; do
+		ln -s $name-3 "$pkgdir"/usr/bin/$name
+	done
+
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+e61c9b0a8fc053626da307d6bac1f5caab451c4948ef7c7f2e2f991c3433a55f81ec0d9412fca646c02f22e695c71e873ee48fc0ab0aad337ce01b70628df494  pytest-7.1.2.tar.gz
+3e8f2ed789b668371a51c25bd3ff1c31132fc8a1e415437034023cd2537d1a27d759058156664730a8c381c2a2a536813b739b1d8fbb2534c6d8ed374629e979  0001-remove-setuptools_scm.patch
+"

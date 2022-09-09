@@ -1,0 +1,41 @@
+# Contributor: Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+# Maintainer: Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+pkgname=py3-sklearn-nature-inspired-algorithms
+_pkgorig=Sklearn-Nature-Inspired-Algorithms
+pkgver=0.9.0
+pkgrel=0
+pkgdesc="Nature-inspired algorithms for hyper-parameter tuning of Scikit-Learn models"
+url="https://github.com/timzatko/Sklearn-Nature-Inspired-Algorithms"
+arch="noarch !riscv64 !s390x !armv7" # py3-matplotlib, py3-scikit-learn, assertion errors
+license="MIT"
+depends="
+	py3-matplotlib
+	py3-niapy
+	py3-numpy
+	py3-pandas
+	py3-scikit-learn
+	py3-seaborn
+	py3-toml
+	python3
+	"
+makedepends="py3-setuptools poetry py3-platformdirs py3-threadpoolctl py3-installer"
+checkdepends="py3-pytest"
+source="https://github.com/timzatko/Sklearn-Nature-Inspired-Algorithms/archive/v$pkgver/$_pkgorig-$pkgver.tar.gz"
+builddir="$srcdir/Sklearn-Nature-Inspired-Algorithms-$pkgver"
+
+build() {
+	GIT_DIR="$builddir" poetry build -f wheel
+}
+
+check() {
+	python3 -m unittest tests
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		dist/sklearn_nature_inspired_algorithms-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+669a3e6f38bbd6b57c663d659745ac28ee3019d96e443164a7362662523476c8c63587de30e52c380e619a4a7e9c0131d627ea554761b4848950bdfe0ba67ab5  Sklearn-Nature-Inspired-Algorithms-0.9.0.tar.gz
+"

@@ -1,0 +1,87 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=digikam
+pkgver=7.7.0
+pkgrel=0
+pkgdesc="An advanced open-source digital photo management application"
+url="https://www.digikam.org/"
+# armhf blocked by extra-cmake-modules
+# riscv64, ppc64le and s390 blocked by akonadi-contacts, marble and opencv
+arch="all !armhf !ppc64le !s390x !riscv64"
+license="LGPL-2.1-or-later AND GPL-2.0-or-later"
+makedepends="
+	akonadi-contacts-dev
+	bison
+	boost-dev
+	doxygen
+	eigen-dev
+	exiv2-dev
+	expat-dev
+	extra-cmake-modules
+	flex
+	gettext
+	graphviz
+	imagemagick-dev
+	jasper-dev
+	kcalendarcore-dev
+	kdoctools-dev
+	kfilemetadata-dev
+	lcms2-dev
+	lensfun-dev
+	libgphoto2-dev
+	libheif-dev
+	libksane-dev
+	libpng-dev
+	libxml2-dev
+	libxslt-dev
+	marble-dev
+	opencv-dev
+	qt5-qtxmlpatterns-dev
+	samurai
+	tiff-dev
+	x265-dev
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://download.kde.org/stable/digikam/$pkgver/digiKam-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	local tests="
+		albums
+		digikam-advancedrename
+		digikam-detectblur
+		digikam-dimghistorygraph
+		digikam-printmetadata
+		digikam-queryrevision
+		digikam-setiptcpreview
+		digikam-tagsreadwrite
+		digikam-timestampupdate
+		frequentrequests
+		photos
+		userinfo
+		"
+	local skipped_tests="("
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)_utest"
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+c26ea1c2d76e9fe86b0ca360183b5e59b18a0cb2164b2aabaaa889af6f0b7bdf2cdbfa70ac568129a428ce6f690dd077f4ea4080c2061c22166a2a9c2b980513  digiKam-7.7.0.tar.xz
+"

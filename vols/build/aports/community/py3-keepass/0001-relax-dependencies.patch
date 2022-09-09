@@ -1,0 +1,14 @@
+--- a/setup.py
++++ b/setup.py
+@@ -21,9 +21,9 @@
+     install_requires=[
+         "python-dateutil",
+         # FIXME python2 - last version to support python2
+-        "construct==2.10.54",
++        "construct==2.10.*",
+         "argon2_cffi",
+-        "pycryptodomex>=3.6.2",
++        "pycryptodomex>=3.*",
+         "lxml",
+         # FIXME python2
+         "future",

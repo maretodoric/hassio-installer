@@ -1,0 +1,33 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=hdparm
+pkgver=9.63
+pkgrel=0
+pkgdesc="Utility for manipulating IDE device parameters"
+url="https://sourceforge.net/projects/hdparm"
+arch="all"
+license="BSD-2-Clause OR GPL-2.0-only"
+makedepends="linux-headers"
+options="!check"
+subpackages="$pkgname-doc"
+source="https://downloads.sourceforge.net/sourceforge/hdparm/hdparm-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	sed -i '/^LDFLAGS/d' "$builddir"/Makefile
+}
+
+build() {
+	export CFLAGS="$CFLAGS -D_GNU_SOURCE"
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -D -m755 contrib/idectl "$pkgdir"/sbin
+	install -D -m755 contrib/ultrabayd "$pkgdir"/sbin
+	install -D -m644 LICENSE.TXT "$pkgdir"/usr/share/licenses/hdparm/LICENSE.TXT
+}
+
+sha512sums="
+1d09dc2c79c31f45fa242dd5bf259e84281d1464e49ada9fd53bb6d58cb0458046e534a93f9d6de18478ca5db50b6d36ecbe5b784c0c681a1db29f15fadd525c  hdparm-9.63.tar.gz
+"

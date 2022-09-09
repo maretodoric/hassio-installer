@@ -1,0 +1,45 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-httpx
+pkgver=0.22.0
+pkgrel=0
+pkgdesc="Next generation HTTP client for Python"
+url="https://www.python-httpx.org/"
+license="BSD-3-Clause"
+arch="noarch !armhf !ppc64le" # limited by py3-httpcore
+depends="
+	python3
+	py3-certifi
+	py3-charset-normalizer
+	py3-httpcore
+	py3-idna
+	py3-rfc3986
+	py3-sniffio
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-pytest-asyncio py3-pytest-trio py3-socksio py3-trustme uvicorn"
+subpackages="$pkgname-doc"
+source="https://github.com/encode/httpx/archive/$pkgver/py3-httpx-$pkgver.tar.gz
+	relax-dependencies.patch
+	"
+builddir="$srcdir/httpx-$pkgver"
+options="!check" # cyclic dependency on uvicorn
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --skip-build
+
+	install -Dm644 LICENSE.md "$pkgdir"/usr/share/licenses/$pkgname/LICENSE.md
+}
+
+sha512sums="
+a7360f5355f75f07425b42d49697e480319f3fe606d4601bb6d64b870c8a8fce6fad8bd857ef422fc48e6141201307ee94876d5bc54a68557c7dc32ce8f1451b  py3-httpx-0.22.0.tar.gz
+1d3f92df4886dfa970eb3b99d54ce1a646231419830fabb814cdde79844560123b9fe3f368283611b51e9656be267cda6a2b06c3ad79d0fb3d23b790086c7b94  relax-dependencies.patch
+"

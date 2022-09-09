@@ -1,0 +1,68 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=falkon
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Cross-platform Qt Web Browser"
+url="https://github.com/KDE/falkon"
+# armhf blocked by qt5-qtdeclarative
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+license="GPL-3.0-or-later"
+depends="qt5-qtbase-sqlite"
+makedepends="
+	extra-cmake-modules
+	karchive-dev
+	kcoreaddons-dev
+	kcrash-dev
+	ki18n-dev
+	kio-dev
+	kwallet-dev
+	libxcb-dev
+	purpose-dev
+	python3
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qttools-dev
+	qt5-qtwebengine-dev
+	qt5-qtx11extras-dev
+	samurai
+	xcb-util-dev
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-lang $pkgname-bash-completion:bashcomp:noarch"
+source="https://download.kde.org/stable/release-service/$pkgver/src/falkon-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DBUILD_TESTING=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# Requires working OpenGL
+	# qmlhistoryapitest, qmlcookiesapitest, qmltabsapitest and qmlwindowsapitest are SIGTRAP'ing
+	xvfb-run ctest -E "falkon-(webview|webtab|tabmodel|qml-qml(historyapi|cookiesapi|tabsapi|windowsapi))test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+bashcomp() {
+	depends=""
+	pkgdesc="Bash completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	amove usr/share/bash-completion/completions
+}
+
+sha512sums="
+b98231f71802f1d123705270c7597fcdb0e1ee2e5374472c9a89b78bfde24f1efd802c36721379211ac2c40822ef812574a540209e4802fd4d3735b6128f93da  falkon-22.04.2.tar.xz
+"

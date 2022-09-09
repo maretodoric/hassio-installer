@@ -1,0 +1,87 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdepim-addons
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org/"
+pkgdesc="Addons for KDE PIM applications"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later"
+makedepends="
+	akonadi-calendar-dev
+	akonadi-contacts-dev
+	akonadi-dev
+	akonadi-import-wizard-dev
+	akonadi-notes-dev
+	discount-dev
+	extra-cmake-modules
+	gpgme-dev
+	grantlee-dev
+	grantleetheme-dev
+	incidenceeditor-dev
+	kaddressbook-dev
+	kcalendarcore-dev
+	kcalutils-dev
+	kconfig-dev
+	kcontacts-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	kholidays-dev
+	ki18n-dev
+	kiconthemes-dev
+	kidentitymanagement-dev
+	kimap-dev
+	kio-dev
+	kitinerary-dev
+	kmailtransport-dev
+	kontactinterface-dev
+	kparts-dev
+	kpimtextedit-dev
+	kpkpass-dev
+	ktnef-dev
+	kxmlgui-dev
+	libgravatar-dev
+	libkdepim-dev
+	libkleo-dev
+	libksieve-dev
+	mailcommon-dev
+	mailimporter-dev
+	messagelib-dev
+	pimcommon-dev
+	prison-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	samurai
+	syntax-highlighting-dev
+	"
+checkdepends="
+	drkonqi
+	xvfb-runi
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdepim-addons-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+options="!check" # Require OpenGL and running dbus
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DKDEPIMADDONS_BUILD_EXAMPLES=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+9c075798699eff6cc50750c27ba9b239a2da98344df3785a631de4478d8d074b870bbd4462e904ccbb384a99636e6e40a0437187b0565bdad01aa1839badee7f  kdepim-addons-22.04.2.tar.xz
+"

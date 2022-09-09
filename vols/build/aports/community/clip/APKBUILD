@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=clip
+pkgver=2.1.2
+pkgrel=1
+pkgdesc="Video player and video collection manager"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by mauikit
+arch="all !armhf !s390x !riscv64"
+url="https://invent.kde.org/maui/clip"
+license="GPL-3.0-or-later"
+depends="
+	qt5-qtbase-sqlite
+	"
+makedepends="
+	extra-cmake-modules
+	ffmpeg-dev
+	kcoreaddons-dev
+	ki18n-dev
+	mauikit-dev
+	mauikit-filebrowsing-dev
+	mpv-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtmultimedia-dev
+	qt5-qtxmlpatterns-dev
+	samurai
+	taglib-dev
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/maui/clip/$pkgver/clip-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+fdc1787e484ed1363c48eefb5622f209a3a2f43cf0cae2df576360aff6a1e6e1e6475424241f409f06aa7c6f4d1b5f10a6998f5e208a2ae391ecb2f7cf74c773  clip-2.1.2.tar.xz
+"

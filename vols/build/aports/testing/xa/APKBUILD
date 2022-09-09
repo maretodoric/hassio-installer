@@ -1,0 +1,28 @@
+# Contributor: Henrik Riomar <henrik.riomar@gmail.com>
+# Maintainer: Henrik Riomar <henrik.riomar@gmail.com>
+pkgname=xa
+pkgver=2.3.13
+pkgrel=0
+pkgdesc="cross-assembler and utility suite for 65xx/65816 processors"
+url="https://www.floodgap.com/retrotech/xa"
+arch="all"
+license="GPL-2.0-only"
+checkdepends="perl"
+subpackages="$pkgname-doc"
+source="https://www.floodgap.com/retrotech/xa/dists/xa-$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+check() {
+	make -j1 test
+}
+
+package() {
+	make DESTDIR="$pkgdir/usr" install
+}
+
+sha512sums="
+b8a4c1856e51bbe212b98be06895987d6fb926a229511a67ea90a934da1fcc84daf29bd289c3c4c2254d2bce345333bb92747947f3286376761613b2e181e99b  xa-2.3.13.tar.gz
+"

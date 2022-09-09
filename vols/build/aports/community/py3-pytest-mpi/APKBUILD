@@ -1,0 +1,35 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-pytest-mpi
+pkgver=0.5
+pkgrel=2
+pkgdesc="pytest plugin to collect information from tests"
+url="https://pytest-mpi.readthedocs.io/en/latest/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="
+	py3-mpi4py
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-sybil
+	py3-pytest
+	"
+source="https://pypi.python.org/packages/source/p/pytest-mpi/pytest-mpi-$pkgver.tar.gz"
+options="!check" # Errors everywhere
+builddir="$srcdir/pytest-mpi-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest -p pytester
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="900c6524bf271cbd26381cf3dbe89c02a1b201693fce22f142e887d874f36f8394c89e52545a386071032b4055b50e2399690a12981a1a239889f4bf4f140cff  pytest-mpi-0.5.tar.gz"

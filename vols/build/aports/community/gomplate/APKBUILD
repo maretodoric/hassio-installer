@@ -1,0 +1,43 @@
+# Maintainer: Dave Henderson <dhenderson@gmail.com>
+pkgname=gomplate
+_goname="github.com/hairyhenderson/$pkgname"
+pkgver=3.11.1
+pkgrel=0
+pkgdesc="A versatile Go template processor"
+url="https://github.com/hairyhenderson/gomplate"
+arch="all !s390x" # FAIL: TestCreateContext with SIGSEGV
+license="MIT"
+depends="ca-certificates"
+makedepends="go"
+source="$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz"
+builddir="$srcdir/src/$_goname"
+
+prepare() {
+	mkdir -p "${builddir%/*}"
+	mv "$srcdir"/$pkgname-$pkgver "$builddir"/
+
+	default_prepare
+}
+
+build() {
+	make build \
+		GOPATH="$srcdir" \
+		VERSION="$pkgver" \
+		COMMIT="unknown"
+}
+
+check() {
+	# Note: make test (that runs go test -race) doesn't work.
+	GOPATH="$srcdir" go test -v
+}
+
+package() {
+	install -D -m 755 bin/gomplate "$pkgdir"/usr/bin/gomplate
+}
+
+cleanup_srcdir() {
+	[ -d src ] && chmod -R +w src
+	default_cleanup_srcdir
+}
+
+sha512sums="01ecd2b440ac3240b77fec3200bb579ade95f873f1af744f4cb2089700df86645fb04e171cb8debd2776f73b29f37f4b2618be7b7c5c6eef85e89fd62d9e4460  gomplate-3.11.1.tar.gz"

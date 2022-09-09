@@ -1,0 +1,30 @@
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=hunspell-pt
+pkgver=20201212
+pkgrel=1
+pkgdesc="Portuguese hunspell dictionaries"
+url="https://natura.di.uminho.pt/download/sources/Dictionaries/hunspell/"
+arch="noarch"
+options="!check" # data only package
+license="GPL-2.0-or-later AND LGPL-2.1-or-later AND MPL-1.1"
+subpackages="$pkgname-doc"
+source="http://natura.di.uminho.pt/download/sources/Dictionaries/hunspell/hunspell-pt_PT-$pkgver.tar.gz"
+
+builddir="$srcdir"/hunspell-pt_PT-$pkgver
+
+package() {
+	install -dm755 $pkgdir/usr/share/hunspell
+	install -m644 pt_*.dic pt_*.aff $pkgdir/usr/share/hunspell
+
+	local lang
+	for lang in pt_AO; do
+		ln -svf pt_PT.aff $pkgdir/usr/share/hunspell/$lang.aff
+		ln -svf pt_PT.dic $pkgdir/usr/share/hunspell/$lang.dic
+	done
+
+	# docs
+	install -dm755 $pkgdir/usr/share/doc/$pkgname
+	install -m644 README_pt*.txt $pkgdir/usr/share/doc/$pkgname
+}
+
+sha512sums="40c8c3bd2533868771bb255051bdfedf1aa4d2e60a41ba0fb50d8424217a17def927530f1258c0ac2ae4032ca44ebec36e4ed567e3bcf46bb66c7dc2a7710d76  hunspell-pt_PT-20201212.tar.gz"

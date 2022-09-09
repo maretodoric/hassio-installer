@@ -1,0 +1,37 @@
+# Contributor: Drew DeVault <sir@cmpwn.com>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=grim
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="Grabs images from Wayland compositors"
+url="https://wayland.emersion.fr/grim/"
+license="MIT"
+arch="all"
+makedepends="
+	libjpeg-turbo-dev
+	libpng-dev
+	meson
+	pixman-dev
+	scdoc
+	wayland-dev
+	wayland-protocols
+	"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/emersion/grim/archive/v$pkgver.tar.gz
+	printf-fix.patch
+	"
+options="!check" # no test suite
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+d0b33528a00528b3ef7488a0984cde5034de4f5a211eb5c8d3299aea356d9348c5d02d08171802bc0315afb19d2446f5f132ea9dca0579ace803b7d5d90a89cc  grim-1.4.0.tar.gz
+f49d6d8d243fb5b8ef8c2abcee5d718748974fd838da7902cae84f5d957ebff8b9d6787b6d417a86c6921a4ef69f2d249aef69495dc832e18c5dd48a760a4d8f  printf-fix.patch
+"

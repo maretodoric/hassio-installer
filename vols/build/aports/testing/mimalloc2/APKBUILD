@@ -1,0 +1,93 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Contributor: Nicolas Lorin <androw95220@gmail.com>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mimalloc2
+_projname=mimalloc
+pkgver=2.0.6
+_pkgver=${pkgver%_*}
+pkgrel=0
+_pkgdesc="A compact general purpose allocator with excellent performance"
+pkgdesc="$_pkgdesc (in secure mode)"
+url="https://github.com/microsoft/mimalloc"
+arch="all"
+license="MIT"
+makedepends="cmake samurai"
+provides="mimalloc=$pkgver-r$pkgrel"
+provider_priority=0  # lowest
+subpackages="$pkgname-dev $pkgname-insecure $pkgname-debug"
+source="https://github.com/microsoft/mimalloc/archive/v$_pkgver/$_projname-$_pkgver.tar.gz
+	cmake-add-insecure-suffix.patch
+	"
+builddir="$srcdir/$_projname-$_pkgver"
+
+_buildtypes='debug insecure secure'
+
+build() {
+	_build out/debug -DCMAKE_BUILD_TYPE=Debug -DMI_DEBUG_FULL=ON
+
+	# This is called "release" build by upstream.
+	_build out/insecure -DCMAKE_BUILD_TYPE=Release -DMI_SECURE=OFF
+
+	_build out/secure -DCMAKE_BUILD_TYPE=Release -DMI_SECURE=ON
+}
+
+_build() {
+	local outdir="$1"; shift
+
+	local crossopts=
+	[ "$CBUILD" = "$CHOST" ] \
+		|| crossopts='-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux'
+
+	CFLAGS=${CFLAGS/-Os/} cmake -B "$outdir" -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DMI_INSTALL_TOPLEVEL=ON \
+		$crossopts \
+		"$@" .
+	cmake --build "$outdir"
+}
+
+check() {
+	local btype; for btype in $_buildtypes; do
+		msg "Testing $btype build"
+
+		cd "$builddir"/out/$btype
+		CTEST_OUTPUT_ON_FAILURE=TRUE ctest --timeout 300
+	done
+}
+
+package() {
+	local btype; for btype in $_buildtypes; do
+		DESTDIR="$pkgdir" cmake --install out/$btype
+	done
+
+	cd "$pkgdir"
+	ln -s libmimalloc-secure.so usr/lib/libmimalloc.so
+	ln -s libmimalloc-secure.so.${pkgver%.*} usr/lib/libmimalloc.so.${pkgver%.*}
+	ln -s libmimalloc-secure.a usr/lib/libmimalloc.a
+
+	sed 's/-secure/-insecure/g' usr/lib/cmake/mimalloc/mimalloc-release.cmake \
+		> usr/lib/cmake/mimalloc/mimalloc-insecure.cmake
+	mv usr/lib/cmake/mimalloc/mimalloc-release.cmake usr/lib/cmake/mimalloc/mimalloc-secure.cmake
+	ln -s mimalloc-secure.cmake usr/lib/cmake/mimalloc/mimalloc-release.cmake
+
+	rm -f usr/lib/*.o
+}
+
+insecure() {
+	pkgdesc="$_pkgdesc (in insecure mode)"
+
+	amove usr/lib/libmimalloc-insecure.*
+}
+
+debug() {
+	pkgdesc="$_pkgdesc (debug build)"
+	options="!strip"
+
+	amove usr/lib/libmimalloc-debug.*
+}
+
+sha512sums="
+f2fc0fbfb6384e85959897f129e5d5d9acc51bda536d5cabcd7d4177dbda9fb735b8a8c239b961f8bea31d37c9ae10f66da23aa91d497f95393253d4ac792bb3  mimalloc-2.0.6.tar.gz
+984d4d1f0be8ae1ad6a33fc49e0509fbe2a07a9834bbfca9794e02347aee3c615562fc0846e03f84e735367743d95d7a65dd2ffb09b6548036436d6a0b3e13a3  cmake-add-insecure-suffix.patch
+"

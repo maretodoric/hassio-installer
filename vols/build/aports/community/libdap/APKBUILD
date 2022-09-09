@@ -1,0 +1,68 @@
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=libdap
+pkgver=3.20.9
+pkgrel=0
+pkgdesc="The C++ DAP2 library from OPeNDAP"
+url="https://www.opendap.org/"
+arch="all"
+license="LGPL-2.1-or-later"
+depends_dev="libtirpc-dev"
+makedepends="
+	$depends_dev
+	bison
+	cppunit
+	curl-dev
+	doxygen
+	flex-dev
+	fontconfig
+	graphviz
+	groff
+	libxml2-dev
+	ttf-freefont
+	util-linux-dev
+	util-linux-misc
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	"
+source="https://www.opendap.org/pub/source/libdap-$pkgver.tar.gz
+	disable-broken-tests.patch.noauto
+	"
+
+prepare() {
+	default_prepare
+
+	update_config_sub
+	update_config_guess
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--disable-static
+	make
+	make docs
+}
+
+check() {
+	patch -p1 < "$srcdir"/disable-broken-tests.patch.noauto
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	mv "$pkgdir"/usr/bin/dap-config-pkgconfig "$pkgdir"/usr/bin/dap-config
+	rm "$pkgdir"/usr/lib/*.a
+	rm "$pkgdir"/usr/lib/charset.alias
+
+	mkdir -p "$pkgdir"/usr/share/doc
+	cp -pr html "$pkgdir"/usr/share/doc/$pkgname-doc
+}
+
+sha512sums="
+2e360148e5ca3b5c12552ff429b161d8be6905594ae2df98c5b005cd286cb803913b8336371cd07361082749122f7aa5cbc93ff1812ed598908afd0e83df927c  libdap-3.20.9.tar.gz
+5cb75fb3d54a816e71e42d70df057676beb8a85dc0aaeaac121fb8c5a92a000f48bccf1f7e02beb80b1e2ae8b53019c409e8e7322133a54ee2447f3f85627ff6  disable-broken-tests.patch.noauto
+"

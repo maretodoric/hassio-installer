@@ -1,0 +1,39 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=intel-gmmlib
+pkgver=22.1.4
+pkgrel=0
+pkgdesc="Intel Graphics Memory Management Library"
+options="!check" # tests can't run in check(), only on install
+url="https://github.com/intel/gmmlib/"
+arch="aarch64 x86_64 x86"
+license="MIT"
+makedepends="cmake samurai"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/intel/gmmlib/archive/intel-gmmlib-$pkgver.tar.gz"
+builddir="$srcdir/gmmlib-intel-gmmlib-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	# BUILD_TYPE is a separate type for another thing internally,
+	# and only takes release
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_TYPE=Release \
+		-DRUN_TEST_SUITE=OFF \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cd31611a53474c2d457f9ce1ce903a184b320d398dc2eba1600f5586108cfa156cde584501ce283d51a8cb13d1917789370d194b6ee3b6a2b5d823d1323b0ef2  intel-gmmlib-22.1.4.tar.gz
+"

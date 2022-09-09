@@ -1,0 +1,25 @@
+# Contributor: Danilo Falcão <danilo@falcao.org>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=fabric
+_pkgname=fabric
+pkgver=2.6.0
+pkgrel=2
+pkgdesc="simple pythonic remote deployment tool"
+options="!check" # Fails to find 'fabfile' module
+url="https://www.fabfile.org/"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-paramiko py3-invoke"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-mock"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="22c430bff6c4d93fec5231999949cb1959c11ec06754e62a88776a9d62db1b30788214dd0b873252559fdf41441389585170c0b53a4d7af7fe4f5a36dc85fb4d  fabric-2.6.0.tar.gz"

@@ -1,0 +1,41 @@
+# Contributor: Díaz Urbaneja Diego <sodomon2@gmail.com>
+# Maintainer: Díaz Urbaneja Diego <sodomon2@gmail.com>
+pkgname=sqlitebrowser
+pkgver=3.12.2
+pkgrel=2
+pkgdesc="GUI editor for sqlite databases"
+url="https://sqlitebrowser.org/"
+arch="all"
+license="GPL-3.0-only"
+makedepends="
+	cmake
+	qscintilla-dev
+	qt5-qtbase-dev
+	qt5-qttools-dev
+	sqlite-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sqlitebrowser/sqlitebrowser/archive/v$pkgver.tar.gz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DENABLE_TESTING=OFF \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	ctest -V
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+a6afc0a4286f07adb7038f3a010c93e14204b477bde27b1599c9bfe3390422d3edfaa2a9381b1f13e63a7aaf90e931ee85358eb8b2c15b6ea55818d29c59395f  sqlitebrowser-3.12.2.tar.gz
+"

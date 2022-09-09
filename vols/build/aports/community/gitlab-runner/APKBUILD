@@ -1,0 +1,69 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Rasmus Thomsen <oss@cogitir.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gitlab-runner
+pkgver=15.1.0
+pkgrel=0
+# first 8 chars of the git hash of the release, see
+# https://gitlab.com/gitlab-org/gitlab-runner/-/tags
+# PLEASE update this, since they're used to determine what version of
+# https://hub.docker.com/r/gitlab/gitlab-runner-helper/tags to use
+_rev=76984217
+pkgdesc="GitLab runner for CI/CD jobs"
+url="https://docs.gitlab.com/runner/"
+arch="all"
+license="MIT"
+makedepends="go"
+install="$pkgname.pre-install $pkgname.pre-upgrade"
+pkgusers="gitlab-runner"
+pkggroups="gitlab-runner"
+options="!check chmod-clean" # Need to be run in a git repo
+subpackages="$pkgname-helper $pkgname-openrc"
+source="https://gitlab.com/gitlab-org/gitlab-runner/-/archive/v$pkgver/gitlab-runner-v$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.confd
+	"
+
+builddir="$srcdir/$pkgname-v$pkgver"
+
+export GOPATH="$srcdir"
+export CGO_ENABLED=0
+
+build() {
+	local ldflags="
+		-X gitlab.com/gitlab-org/$pkgname/common.NAME=$pkgname
+		-X gitlab.com/gitlab-org/$pkgname/common.VERSION=$pkgver
+		-X gitlab.com/gitlab-org/$pkgname/common.REVISION=$_rev
+		-X gitlab.com/gitlab-org/$pkgname/common.BUILT=$(date -u +%Y-%m-%dT%H:%M:%S%z)
+		-X gitlab.com/gitlab-org/$pkgname/common.BRANCH=master
+		-s -w
+		"
+	# required for github.com/docker/docker
+	export GO111MODULE=auto
+	go build -ldflags "$ldflags" -o bin/gitlab-runner
+	go build -ldflags "$ldflags" -o bin/gitlab-runner-helper \
+		./apps/gitlab-runner-helper
+}
+
+package() {
+	install -Dm755 "$builddir"/bin/gitlab-runner \
+		"$pkgdir"/usr/bin/gitlab-runner
+
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/gitlab-runner
+	install -Dm644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/gitlab-runner
+
+	mkdir -p "$pkgdir"/var/lib/gitlab-runner
+	chown gitlab-runner:gitlab-runner "$pkgdir"/var/lib/gitlab-runner
+}
+
+helper() {
+	pkgdesc="$pkgdesc (helper)"
+	install -Dm755 "$builddir"/bin/gitlab-runner-helper \
+		"$subpkgdir"/usr/bin/gitlab-runner-helper
+}
+
+sha512sums="
+7892b4ccfa5973f20deda365e337b8f70e159a9387b6823eada4b39a0cabcd078af08c9bc45e629aa432f49c72f71df6b04fc1cecb72bc2e9c9cd018fc04299b  gitlab-runner-v15.1.0.tar.gz
+d58f883ef5c55585b8928885e06e6da44cd9f93c6d171c6b4ab22c10b277322823e5aaff210e50c7f25b30d10ce850d9a3a3b80bddcdf3df325c1b552333d375  gitlab-runner.initd
+243ed9d7575e925794213973232f95f02d5e10cfab6cd29df6a4641b9d05b342ae90678b2eea4b21ddc703596429919d037b38248046d7c5e7a480406f412445  gitlab-runner.confd
+"

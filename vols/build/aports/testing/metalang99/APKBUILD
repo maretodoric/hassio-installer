@@ -1,0 +1,22 @@
+# Contributor: Sebastian Hudak <sebastian@sebsite.pw>
+# Maintainer: Sebastian Hudak <sebastian@sebsite.pw>
+pkgname=metalang99
+pkgver=1.13.2
+pkgrel=0
+pkgdesc="C meta-programming language built with pre-processor macros"
+url="https://github.com/Hirrolot/metalang99"
+arch="noarch"
+license="MIT"
+checkdepends="bash cmake"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Hirrolot/metalang99/archive/v$pkgver.tar.gz"
+
+check() {
+	scripts/test.sh
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr
+	cp -r include "$pkgdir"/usr/include
+}
+
+sha512sums="e1077241aedd999b2b4ea46e39aa42fc3bf68a0637dcea7feb1487ab8c11f89a8b6e3c2b59d1fddb66db685a3b616e7321efde4dc83a23ac0d39cfe5441d83a1  metalang99-1.13.2.tar.gz"

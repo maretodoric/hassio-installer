@@ -1,0 +1,38 @@
+# Contributor: Will Sinatra <wpsinatra@gmail.com>
+# Maintainer: Will Sinatra <wpsinatra@gmail.com>
+pkgname=recutils
+pkgver=1.9
+pkgrel=0
+pkgdesc="Set of tools and libraries to access plain text databases called recfiles"
+url="https://www.gnu.org/software/recutils/"
+license="GPL-3.0-or-later"
+arch="all"
+depends="libgcrypt" # Required for encryption
+source="https://ftp.gnu.org/gnu/recutils/recutils-$pkgver.tar.gz"
+subpackages="$pkgname-doc $pkgname-dev"
+
+# secfixes:
+#   1.9-r0:
+#     - CVE-2021-46019
+#     - CVE-2021-46022
+#     - CVE-2021-46022
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+775b3b8925a4e5c6f04c6376291b966bdc271f172be2bca06b1f02155ecba12d916c22219f85fe0393f7f9f200f3788ab5fa5d522da2b84b2a0c0ec198318809  recutils-1.9.tar.gz
+"

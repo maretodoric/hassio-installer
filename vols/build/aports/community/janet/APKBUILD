@@ -1,0 +1,61 @@
+# Contributor: Will Sinatra <wpsinatra@gmail.com>
+# Maintainer: Will Sinatra <wpsinatra@gmail.com>
+pkgname=janet
+pkgver=1.23.0
+pkgrel=0
+pkgdesc="Dynamic Lisp dialect and bytecode VM"
+url="https://janet-lang.org/"
+license="MIT"
+arch="all !riscv64" # FTBS riscv64
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/janet-lang/janet/archive/v$pkgver.tar.gz"
+
+# secfixes:
+#   1.22.0-r0:
+#     - CVE-2022-30763
+
+prepare() {
+	default_prepare
+
+	case "$CARCH" in
+	s390x)
+		sed -i '/suite0009.janet/d' meson.build
+		rm test/suite0009.janet
+		;;
+	esac
+}
+
+build() {
+	make PREFIX=/usr
+	make PREFIX=/usr build/janet.pc
+	make PREFIX=/usr docs
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dt "$pkgdir"/usr/bin build/janet
+	install -Dm644 -t "$pkgdir"/usr/include/janet build/janet.h
+
+	install -Dm644 build/libjanet.a -t "$pkgdir"/usr/lib/
+
+	install -Dm755 build/libjanet.so "$pkgdir"/usr/lib/libjanet.so.$pkgver
+	ln -s libjanet.so.$pkgver "$pkgdir"/usr/lib/libjanet.so
+	ln -s libjanet.so.$pkgver "$pkgdir"/usr/lib/libjanet.so.${pkgver%.*.*}
+
+	install -Dm644 build/janet.pc -t "$pkgdir"/usr/lib/pkgconfig/
+
+	install -Dm644 -t "$pkgdir"/usr/share/man janet.1
+
+	install -dm755 "$pkgdir"/usr/share/janet
+	cp -a examples "$pkgdir"/usr/share/janet
+
+	install -Dm644 build/doc.html "$pkgdir"/usr/share/doc/janet/doc.html
+	install -Dm644 -t "$pkgdir"/usr/lib/janet tools/.keep
+}
+
+sha512sums="
+7f9faeaafc75a92085643588e9e32b9d656a7f19c9cbd4013779fa299059a5868940ea57b9bc92313ac63ea846a743ab5c2e4ccf83fcce8bd0e418843e62f8df  janet-1.23.0.tar.gz
+"

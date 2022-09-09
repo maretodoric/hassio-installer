@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdialog
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/"
+pkgdesc="A utility for displaying dialog boxes from shell scripts"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kdbusaddons-dev
+	kguiaddons-dev
+	kiconthemes-dev
+	kio-dev
+	knotifications-dev
+	ktextwidgets-dev
+	kwindowsystem-dev
+	qt5-qtbase-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdialog-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cbf072246c4a46d13a527459954138b88421fe5fb3d0967edbaa0e7861c957d5d2a9410d0f6ab6feb451063f30c8b7bc2e7ad3bc61e781afaa5dbd2d0a847bb8  kdialog-22.04.2.tar.xz
+"

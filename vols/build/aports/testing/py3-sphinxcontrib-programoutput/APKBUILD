@@ -1,0 +1,34 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-programoutput
+_pkgname=sphinxcontrib-programoutput
+pkgver=0.17
+pkgrel=1
+pkgdesc="Sphinx programoutput extension"
+url="https://sphinxcontrib-programoutput.readthedocs.io/en/latest/"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3 py3-sphinx"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/NextThought/$_pkgname/archive/$pkgver.tar.gz"
+
+replaces="py-sphinxcontrib-programoutput" # Backwards compatibility
+provides="py-sphinxcontrib-programoutput=$pkgver-r$pkgrel" # Backwards compatibility
+
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+200f91e5e1f3f633dfe3255ff5d5c3f3da81aea1674a4c1325ca4d60c7a97a6cb35bbbab3484d8b8920dc9723b7c480c360e58ed6a772ba53ab46e84ecad5bef  py3-sphinxcontrib-programoutput-0.17.tar.gz
+"

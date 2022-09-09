@@ -1,0 +1,39 @@
+# Contributor: Joe Searle <joe@jsearle.net>
+# Maintainer: Joe Searle <joe@jsearle.net>
+pkgname=mariadb-connector-odbc
+pkgver=3.1.14
+pkgrel=0
+pkgdesc="MariaDB Connector/ODBC database driver"
+url="https://github.com/MariaDB/mariadb-connector-odbc"
+arch="all"
+license="LGPL-2.1-only"
+options="!check" # 'test' directory not included in releases
+makedepends="cmake unixodbc-dev mariadb-connector-c-dev mariadb-static"
+source="$pkgname-$pkgver.tar.gz::https://github.com/MariaDB/mariadb-connector-odbc/archive/$pkgver.tar.gz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	# Link to /usr/include/mysql necessary when using system installed mariadb-connector-c
+	CFLAGS="$CFLAGS -I/usr/include/mysql" \
+		cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DUSE_SYSTEM_INSTALLED_LIB=True \
+		-DWITH_SSL=OPENSSL \
+		$CMAKE_CROSSOPTS .
+	make -C build
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+
+	# Remove license files
+	rm -rf "$pkgdir"/usr/docs
+}
+
+sha512sums="
+8b45f38e6b6a78ee2c68f09917cbf23fd11b0f452d8920fbe8fdbe31b1126f8584188895b19c978bc0e6a7030e02b1b04c2e2238ed70684aee9ef72ed3baa932  mariadb-connector-odbc-3.1.14.tar.gz
+"

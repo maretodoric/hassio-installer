@@ -1,0 +1,33 @@
+# Maintainer: Galen Abell <galen@galenabell.com>
+# Contributor: Galen Abell <galen@galenabell.com>
+pkgname=packer
+pkgver=1.8.2
+pkgrel=0
+pkgdesc="tool for creating machine images for multiple platforms"
+url="https://www.packer.io/"
+license="MPL-2.0"
+arch="all"
+makedepends="go"
+options="net chmod-clean"
+source="$pkgname-$pkgver.tar.gz::https://github.com/hashicorp/packer/archive/v$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+
+build() {
+	export GOFLAGS="$GOFLAGS -trimpath"
+	export GOLDFLAGS="-s -w -X main.GitCommit=v$pkgver"
+	go build -v -o bin/$pkgname
+}
+
+check() {
+	go list . | xargs -t -n4 go test -timeout=2m -parallel=4
+	bin/$pkgname -v
+}
+
+package() {
+	install -Dm755 bin/"$pkgname" -t "$pkgdir"/usr/bin/
+}
+
+sha512sums="
+24360e11075c8f360c9715e03239b2ab09672bb26dcace09b9533347c67b0484c7733392e0a835591ef11b53b4da8aaf3929735e15d464abeaa4cd61171e9089  packer-1.8.2.tar.gz
+"

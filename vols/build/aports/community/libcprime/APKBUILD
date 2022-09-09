@@ -1,0 +1,30 @@
+# Contributor: rahmanshaber <rahmanshaber@yahoo.com>
+# Maintainer: rahmanshaber <rahmanshaber@yahoo.com>
+pkgname=libcprime
+pkgver=4.3.0
+pkgrel=0
+pkgdesc="Library for bookmarking, saving activities, sharing files and more"
+arch="all"
+url="https://gitlab.com/cubocore"
+license="GPL-3.0-or-later"
+depends="libnotify qt5-qtconnectivity"
+makedepends="qt5-qtbase-dev libcprime-dev cmake ninja"
+source="https://gitlab.com/cubocore/libcprime/-/archive/v$pkgver/libcprime-v$pkgver.tar.gz"
+subpackages="$pkgname-dev"
+builddir="$srcdir/$pkgname-v$pkgver"
+options="!check" # No tests
+
+build() {
+	cmake -B build -GNinja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+dadbd73d85980627920be8400fff4b74fa509b7c134c9fa8ee322db8cdc04bf050676c28cb27ba877daa011c27633a50d916669f046e0f8fc0bc8c35a34b7234  libcprime-v4.3.0.tar.gz
+"

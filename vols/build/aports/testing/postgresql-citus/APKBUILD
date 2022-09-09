@@ -1,0 +1,38 @@
+# Contributor: Michael Pirogov <vbnet.ru@gmail.com>
+# Maintainer: Michael Pirogov <vbnet.ru@gmail.com>
+pkgname=postgresql-citus
+_projname=citus
+pkgver=11.0.2
+pkgrel=0
+pkgdesc="Scalable PostgreSQL for multi-tenant and real-time analytics workloads"
+url="https://github.com/citusdata/citus"
+arch="all"
+license="AGPL-3.0-only"
+makedepends="autoconf postgresql-dev icu-dev lz4-dev zstd-dev libxml2-dev"
+install="$pkgname.post-install"
+source="https://github.com/citusdata/citus/archive/v$pkgver/$_projname-$pkgver.tar.gz"
+builddir="$srcdir/$_projname-$pkgver"
+options="!check" # tests requires running postgresql cluster
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--without-libcurl
+	make
+}
+
+package() {
+	depends="postgresql$(pg_config --major-version)"
+
+	make DESTDIR="$pkgdir" install
+	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="
+9050c0401b245b5e5c38fc79389cd33c5b98898ecec86a00e94912cdd6079170550eaffb524fcd04f4c4b42f8d211b4e4b65914e73780b01f321f75c061339ed  citus-11.0.2.tar.gz
+"

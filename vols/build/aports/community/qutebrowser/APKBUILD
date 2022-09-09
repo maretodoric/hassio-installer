@@ -1,0 +1,53 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=qutebrowser
+pkgver=2.5.2
+pkgrel=0
+pkgdesc="Keyboard-driven, vim-like browser based on PyQT5"
+url="https://qutebrowser.org/"
+# s390x, ppc64le and riscv64 blocked by qt5-qtwebengine
+# armhf blocked by qt5-qtdeclarative -> py3-qt5
+arch="noarch !armhf !s390x !ppc64le !riscv64"
+license="GPL-3.0-only"
+depends="
+	py3-adblock
+	py3-jinja2
+	py3-pyqt5-sip
+	py3-qt5
+	py3-qtwebengine
+	py3-yaml
+	qt5-qtbase
+	qt5-qtbase-sqlite
+	qt5-qtwebengine
+	"
+makedepends="
+	asciidoc
+	py3-setuptools
+	"
+checkdepends="
+	py3-hypothesis
+	py3-pytest
+	py3-pytest-benchmark
+	py3-pytest-mock
+	py3-pytest-rerunfailures
+	"
+subpackages="$pkgname-doc"
+source="https://github.com/qutebrowser/qutebrowser/releases/download/v$pkgver/qutebrowser-$pkgver.tar.gz"
+options="!check" # missing pytest dependencies
+
+build() {
+	a2x -f manpage doc/qutebrowser.1.asciidoc
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	make -f misc/Makefile DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+4751ea1a5b1776f085fcd1f9ab5ff805155fca34d0272ba8eb6574f9074257929c3fb5b50c9053a522bfb346aee1a2551b58cf933c6ff7c5c84fd10559ec36fc  qutebrowser-2.5.2.tar.gz
+"

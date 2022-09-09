@@ -1,0 +1,34 @@
+# Contributor: Malte Voos <malte@malvo.org>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Malte Voos <malte@malvo.org>
+_pkgname=filter-dkimsign
+pkgname=opensmtpd-$_pkgname
+pkgver=0.6
+pkgrel=0
+pkgdesc="OpenSMTPD filter for DKIM signing"
+url="http://imperialat.at/dev/filter-dkimsign/"
+arch="all"
+license="ISC"
+makedepends="libopensmtpd-dev openssl-dev mandoc"
+install="$pkgname.pre-install $pkgname.post-install"
+options="!check"  # no test suite
+subpackages="$pkgname-doc"
+source="http://imperialat.at/releases/filter-dkimsign-$pkgver.tar.gz
+	dkimsign-genkey
+	"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	make -f Makefile.gnu HAVE_ED25519=1
+}
+
+package() {
+	make -f Makefile.gnu DESTDIR="$pkgdir" BINDIR=/usr/lib/opensmtpd/ install
+
+	install -D -m755 "$srcdir"/dkimsign-genkey -t "$pkgdir"/usr/sbin/
+}
+
+sha512sums="
+1efab386a020c6a3cbf6059ce0feea539fa62be0990fd8538c4b152fa0c302d7bfffa7c7bb74643c25e47c20250f600f1371d2725dc3178ad103ce585530c0ce  filter-dkimsign-0.6.tar.gz
+0e6e1db509a8299c97070f82b2c4d832c9f19d8d8909e21563c3d589ef29ebfd5b867b3f5271a6ebe6b97196569a7b9d6403a91d9c0c1db72358d6c12abbc4c5  dkimsign-genkey
+"

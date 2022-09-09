@@ -1,0 +1,39 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Contributor: Nulo <alpine@nulo.in>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=qmk-cli
+pkgver=1.1.0
+pkgrel=0
+pkgdesc="QMK helper CLI"
+url="https://github.com/qmk/qmk_cli"
+arch="noarch"
+license="MIT"
+# py3-hidapi is not a dependency of qmk-cli but is required to work with
+# a qmk_firmware repository
+depends="
+	python3
+	py3-dotty-dict
+	py3-hidapi
+	py3-hjson
+	py3-jsonschema
+	py3-milc
+	py3-pygments
+	py3-usb
+	"
+makedepends="py3-setuptools py3-build py3-installer py3-wheel"
+options="!check"  # no tests
+source="$pkgname-$pkgver.tar.gz::https://github.com/qmk/qmk_cli/archive/$pkgver.tar.gz"
+builddir="$srcdir/qmk_cli-$pkgver"
+
+build() {
+	python3 -m build --skip-dependency-check --no-isolation --wheel .
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" --compile-bytecode 0 \
+		dist/qmk-$pkgver-py2.py3-none-any.whl
+}
+
+sha512sums="
+d544f8f9801df56a7d1774850cfd3135cdd72f05f61e80720be415d805526c3e0b923bd051dce4b2e51da589a5ea240a7e8ac531d73c41dec7dcc714c4a7c569  qmk-cli-1.1.0.tar.gz
+"

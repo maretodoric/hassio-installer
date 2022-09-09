@@ -1,0 +1,50 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ruby-net-ldap
+_gemname=net-ldap
+pkgver=0.17.0
+pkgrel=1
+pkgdesc="Pure Ruby LDAP library"
+url="https://github.com/ruby-ldap/ruby-net-ldap"
+arch="noarch"
+license="MIT"
+depends="ruby"
+checkdepends="ruby-bundler"
+source="https://github.com/ruby-ldap/$pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	gemspec.patch
+	"
+
+build() {
+	gem build $_gemname.gemspec
+}
+
+check() {
+	# TODO: Install from aports after we create aport for flexmock.
+	export GEM_HOME="$(pwd)/.gems"
+	bundle install
+
+	# XXX: This test is probably broken.
+	export TESTOPTS="--ignore-testcase=/^TestSSLBER$/"
+
+	"$GEM_HOME"/bin/rake test
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+
+	gem install --local \
+		--install-dir "$gemdir" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+
+	# Remove unnecessary files and empty directories.
+	cd "$gemdir"
+	rm -r cache build_info doc
+}
+
+sha512sums="
+417e946f044db2fda8ceb8ebfee2376310308ac6a1949e165beff0a9c2a8b410f88ffcb607d27ab060d1d55364cb75fd41753d101a404874be6dbbec3875f192  ruby-net-ldap-0.17.0.tar.gz
+acb62bf90b1ad54dbad8da4d9b15d1c01b81d5d4cbaf7959ea895f6517daca41ef0cf859ad1cbb6b97cdd7e2da26f97b94702187dbd0997f050ce0505569ae53  gemspec.patch
+"

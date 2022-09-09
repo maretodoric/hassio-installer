@@ -1,0 +1,27 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=mk-configure
+pkgver=0.37.0
+pkgrel=0
+pkgdesc="Lightweight replacement for autotools"
+url="https://github.com/cheusov/mk-configure"
+arch="noarch"
+license="BSD-2-Clause"
+depends="bmake bmkdep"
+checkdepends="texinfo flex bison groff"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/cheusov/mk-configure/archive/refs/tags/mk-configure-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgname-$pkgver"
+options="!check" # Not working correctly.
+
+build() {
+	bmake PREFIX=/usr SYSCONFDIR=/etc
+}
+
+package() {
+	bmake install DESTDIR="$pkgdir" PREFIX=/usr MANDIR=/usr/share/man SYSCONFDIR=/etc
+}
+
+sha512sums="
+53908709c478aa60ad9fc4ca5ef2c4249b243fd398735ad6f601864715b582b8abbd710a43d81d86a36864bf6e60e64304ddf014ddce0b1ae6c08a6a2a4e1cef  mk-configure-0.37.0.tar.gz
+"

@@ -1,0 +1,52 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=libplacebo
+pkgver=4.192.1
+pkgrel=3
+pkgdesc="Reusable library for GPU-accelerated video/image rendering"
+url="https://code.videolan.org/videolan/libplacebo"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="
+	glfw-dev
+	glslang-dev
+	glslang-static
+	lcms2-dev
+	libepoxy-dev
+	meson
+	py3-mako
+	sdl2-dev
+	sdl2_image-dev
+	shaderc-dev
+	spirv-tools-dev
+	vulkan-headers
+	vulkan-loader-dev
+	"
+subpackages="$pkgname-dev"
+source="https://code.videolan.org/videolan/libplacebo/-/archive/v$pkgver/libplacebo-v$pkgver.tar.gz"
+builddir="$srcdir/libplacebo-v$pkgver"
+
+build() {
+	abuild-meson \
+		-Ddemos=false \
+		-Dglslang=enabled \
+		-Dlcms=enabled \
+		-Dshaderc=enabled \
+		-Dtests=true \
+		-Dvulkan=enabled \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+780dff60a31a9c7fff47522385235077cc6b1a38be32bc0276c090d89ce25754dd0b910db5be631d0065337fe4700f68adabee06f48a4935d422f09f2e0e5525  libplacebo-v4.192.1.tar.gz
+"

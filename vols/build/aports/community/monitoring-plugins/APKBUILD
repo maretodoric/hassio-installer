@@ -1,0 +1,51 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=monitoring-plugins
+pkgver=2.3.1
+pkgrel=3
+pkgdesc="Plugins for Icinga, Naemon, Nagios, Shinken, Sensu and other monitoring applications"
+url="https://www.monitoring-plugins.org"
+arch="all"
+license="GPL-3.0-or-later"
+options="suid !check" # Tests require interactive output and connecting to various URLs
+depends="iputils procps bind-tools"
+makedepends="linux-headers libdbi-dev openssl1.1-compat-dev
+mariadb-connector-c-dev libpq-dev perl-dev perl-net-snmp net-snmp-tools"
+checkdepends="cmd:ksh"
+subpackages="$pkgname-doc"
+source="https://www.monitoring-plugins.org/download/$pkgname-$pkgver.tar.gz
+	mariadb.patch"
+
+prepare() {
+	default_prepare
+	update_config_guess
+	update_config_sub
+}
+
+build() {
+	 ./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib/monitoring-plugins \
+		--with-perl="$(which perl)" \
+		--with-ping-command="/bin/ping -n -U -w %d -c %d %s" \
+		--with-ping6-command="/bin/ping6 -n -U -w %d -c %d %s" \
+		--with-openssl \
+		--with-pgsql=/usr \
+		--with-dbi \
+		--with-mysql \
+		--with-ipv6
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	for i in ABOUT-NLS ACKNOWLEDGEMENTS AUTHORS CODING ChangeLog \
+		FAQ NEWS README REQUIREMENTS SUPPORT THANKS; do
+		install -Dm644 $i "$pkgdir"/usr/share/doc/$pkgname/$i
+	done
+	rm $pkgdir/usr/lib/charset.alias
+}
+
+sha512sums="0ae76bc776997ed23d142ad9a688edc4df9b8ec0f9539b446e4fb4849a165cc88e97cbfb3a7a9a450de452e021d38f2e4ada7e8a22d78cf58e17e266472d01d7  monitoring-plugins-2.3.1.tar.gz
+3db122a22012dbd571865023d5542c38541a6667b8e00a08d4180c04117300737f57dbdff3264240cda9f6746419022bace8da06d997b0ade776604c55da9bde  mariadb.patch"

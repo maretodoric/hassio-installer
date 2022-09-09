@@ -1,0 +1,34 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=sysprof
+pkgver=3.38.1
+pkgrel=0
+pkgdesc="System-wide profiler for Linux"
+url="http://sysprof.com/"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends_dev="$pkgname=$pkgver-r$pkgrel" # sysprof's lib setup is a bit weird...
+makedepends="meson gtk+3.0-dev itstool glib-dev polkit-dev elogind-dev
+	libdazzle-dev"
+options="!check" # test-model-filter fails
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/sysprof/${pkgver%.*}/sysprof-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Denable_gtk=true \
+		-Dsystemdunitdir=no \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="7ba3dd51bd4055dcdf4d46ff87e46537afe42ba009809fdee5ba0ebcdf70776d9e1ff812714096d33b09ac57d459707b92b1ca07682e2f3888b612ca74820442  sysprof-3.38.1.tar.xz"

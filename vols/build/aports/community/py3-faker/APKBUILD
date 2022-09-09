@@ -1,0 +1,43 @@
+# Contributor: Drew DeVault <sir@cmpwn.com>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-faker
+_pyname=Faker
+pkgver=13.14.0
+pkgrel=0
+pkgdesc="Python package that generates fake data for you"
+url="https://faker.readthedocs.io/en/master"
+license="MIT"
+arch="noarch"
+depends="py3-dateutil"
+makedepends="py3-setuptools"
+checkdepends="py3-email-validator py3-ipaddress py3-mock py3-freezegun
+	py3-more-itertools py3-pytest py3-ukpostcodeparser py3-validators
+	py3-pytest-runner py3-random2 py3-pillow"
+_pypiprefix="${_pyname%${_pyname#?}}"
+source="https://files.pythonhosted.org/packages/source/$_pypiprefix/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir=$srcdir/$_pyname-$pkgver
+
+replaces="py-faker" # Backwards compatibility
+provides="py-faker=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+	# tests erroneously require a specific version of pytest
+	sed -i setup.py -e 's/ *"pytest>=.*//g'
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+05edbad684a89b0cb4df4965be63b43729047075eed98de9678d98383b28d2ae6d3c645c03ab86d7bc935160c1ab744494d608749213322e318b465c0d47e9c7  Faker-13.14.0.tar.gz
+"

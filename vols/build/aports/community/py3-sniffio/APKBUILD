@@ -1,0 +1,24 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-sniffio
+pkgver=1.2.0
+pkgrel=2
+pkgdesc="Sniff out which async library your code is running under"
+url="https://github.com/python-trio/sniffio"
+arch="noarch"
+license="MIT OR Apache-2.0"
+depends="python3 py3-curio"
+makedepends="py3-setuptools"
+source="https://pypi.python.org/packages/source/s/sniffio/sniffio-$pkgver.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/sniffio-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="96da4e0f0fff99b122aa729da052e97c2dd75f19aab4dd3728f8e337875b0fac1b3d8d96c8c3a67ca96f15dbf07a593b89e323bf04a8ee0501d7414454030719  sniffio-1.2.0.tar.gz"

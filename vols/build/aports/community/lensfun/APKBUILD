@@ -1,0 +1,55 @@
+# Contributor: ScrumpyJack <scrumpyjack@st.ilet.to>
+# Maintainer: ScrumpyJack <scrumpyjack@st.ilet.to>
+pkgname=lensfun
+pkgver=0.3.3
+pkgrel=1
+pkgdesc="Image manipulation library to rectify lens defects"
+url="https://lensfun.github.io/"
+arch="all"
+license="LGPL-3.0-or-later"
+makedepends="py3-docutils cmake doxygen libpng-dev glib-dev samurai"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-tools py3-$pkgname:py3"
+source="pgkname-$pkgver.tar.gz::https://github.com/lensfun/lensfun/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	local opts=""
+	case "$CARCH" in
+		x86*) ;;
+		*) opts="-DBUILD_FOR_SSE=OFF -DBUILD_FOR_SSE2=OFF";;
+	esac
+
+	cmake -B build -G Ninja \
+		-DBUILD_DOC=ON \
+		-DBUILD_LENSTOOL=ON \
+		-DBUILD_TESTS=ON \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		$opts
+
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+tools() {
+	pkgdesc="$pkgdesc (extra tools)"
+	amove usr/bin
+}
+
+py3() {
+	depends="python3"
+	pkgdesc="$pkgdesc (python bindings)"
+	amove usr/lib/python3*
+}
+
+sha512sums="
+2d913e3d121ac069f4cb7acb3f09c9cf11c5d0069e743500631bd4b6007a1b19ebccf871a4ac8cfc2797a03066f8a678ea9d70feba0f7d6a05c28cef61f7d9cf  pgkname-0.3.3.tar.gz
+"

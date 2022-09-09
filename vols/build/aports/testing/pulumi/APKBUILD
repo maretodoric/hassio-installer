@@ -1,0 +1,41 @@
+# Contributor: Fraser Waters <frassle@gmail.com>
+# Maintainer: Fraser Waters <frassle@gmail.com>
+pkgname=pulumi
+pkgver=2.20.0
+pkgrel=7
+pkgdesc="Pulumi's Infrastructure as Code SDK"
+url="https://github.com/pulumi/pulumi"
+# x86_64 is the only supported architecture by pulumi
+arch="x86_64"
+license="Apache-2.0"
+depends="ca-certificates"
+makedepends="go bash"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pulumi/pulumi/archive/v$pkgver.tar.gz
+	10-install1.patch
+	"
+builddir="$srcdir/github.com/pulumi/$pkgname"
+
+prepare() {
+	mkdir -p ${builddir%/*}
+	mv $srcdir/$pkgname-$pkgver "$builddir"/
+	mkdir -p "$srcdir"/opt
+	default_prepare
+}
+
+build() {
+	export GOFLAGS="$GOFLAGS -modcacherw"
+	PULUMI_VERSION="v$pkgver" PULUMI_ROOT="$srcdir"/opt GOPATH="$srcdir" make install_plugin_all
+}
+
+check() {
+	# It would be good to at least run the fast tests but this hits OOM on the alpine pipelines
+	# PULUMI_ROOT="$srcdir"/opt GOPATH="$srcdir" make test_fast
+	[ "$("$srcdir"/opt/bin/"$pkgname" version)" == "v$pkgver" ]
+}
+
+package() {
+	install -Dm755 -t "$pkgdir"/usr/bin "$srcdir"/opt/bin/*
+}
+
+sha512sums="7b756336fd0259027a1e22ecf8fb26efaaa3653943e4d3c653d9c35a9fa1312a886d2fb18efdf82fe7f1a9c4ade1d690d8e85ec811f8b606d76e5efde38796f7  pulumi-2.20.0.tar.gz
+96783665ebb3993ef767d1e35781901ef115508c527e868c5816e37850b2e28372b11f1878c5c18c3cd276041cb85761ee50a1d838cf95dc21f19befb895bfca  10-install1.patch"

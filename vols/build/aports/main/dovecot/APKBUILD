@@ -1,0 +1,351 @@
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=dovecot
+pkgver=2.3.19.1
+case "$pkgver" in
+	*.*.*.*) _pkgverminor=${pkgver%.*.*};;
+	*.*.*) _pkgverminor=${pkgver%.*};;
+esac
+pkgrel=0
+_pigeonholever=0.5.19
+pkgdesc="IMAP and POP3 server"
+url="https://www.dovecot.org/"
+arch="all"
+options="libtool"
+license="LGPL-2.0-or-later"
+depends="openssl"
+pkgusers="dovecot dovenull"
+pkggroups="dovecot dovenull"
+makedepends="
+	autoconf
+	automake
+	bzip2-dev
+	clucene-dev
+	expat-dev
+	gettext-dev
+	heimdal-dev
+	icu-dev
+	libcap-dev
+	libpq-dev
+	libsodium-dev
+	libtool
+	linux-headers
+	mariadb-connector-c-dev
+	openldap-dev
+	openssl1.1-compat-dev
+	sqlite-dev
+	zlib-dev
+	"
+install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
+subpackages="
+	$pkgname-doc
+	$pkgname-dev
+	$pkgname-openrc
+	$pkgname-lmtpd
+	$pkgname-pop3d
+	$pkgname-submissiond
+	$pkgname-pigeonhole-plugin-ldap:_sieve_ldap
+	$pkgname-pigeonhole-plugin:_sieve
+	$pkgname-sql
+	$pkgname-pgsql
+	$pkgname-mysql
+	$pkgname-sqlite
+	$pkgname-gssapi
+	$pkgname-ldap
+	$pkgname-fts-solr:_fts_solr
+	$pkgname-fts-lucene:_fts_lucene
+	"
+source="https://www.dovecot.org/releases/$_pkgverminor/dovecot-$pkgver.tar.gz
+	https://pigeonhole.dovecot.org/releases/$_pkgverminor/dovecot-$_pkgverminor-pigeonhole-$_pigeonholever.tar.gz
+	skip-iconv-check.patch
+	split-protocols.patch
+	default-config.patch
+	fix-out-of-memory-test.patch
+	fix-libssl_iostream_openssl.patch
+	fix-test-file-cache.patch
+	test-imap-client-hibernate.patch
+	dovecot.logrotate
+	dovecot.initd
+	"
+_builddir_pigeonhole="$srcdir/$pkgname-$_pkgverminor-pigeonhole-$_pigeonholever"
+options="!check" # tests being weird
+
+# secfixes:
+#   2.3.15-r0:
+#     - CVE-2021-29157
+#     - CVE-2021-33515
+#   2.3.13-r0:
+#     - CVE-2020-24386
+#     - CVE-2020-25275
+#   2.3.11.3-r0:
+#     - CVE-2020-12100
+#     - CVE-2020-12673
+#     - CVE-2020-12674
+#   2.3.10.1-r0:
+#     - CVE-2020-10957
+#     - CVE-2020-10958
+#     - CVE-2020-10967
+#   2.3.9.3-r0:
+#     - CVE-2020-7046
+#     - CVE-2020-7957
+#   2.3.9.2-r0:
+#     - CVE-2019-19722
+#   2.3.7.2-r0:
+#     - CVE-2019-11500
+#   2.3.6-r0:
+#     - CVE-2019-11499
+#     - CVE-2019-11494
+#     - CVE-2019-10691
+#   2.3.5.1-r0:
+#     - CVE-2019-7524
+#   2.3.4.1-r0:
+#     - CVE-2019-3814
+#   2.3.1-r0:
+#     - CVE-2017-15130
+#     - CVE-2017-14461
+#     - CVE-2017-15132
+
+prepare() {
+	default_prepare
+	autoreconf -vi
+}
+
+_configure() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--disable-static \
+		"$@"
+}
+
+build() {
+	_configure \
+		--with-gssapi=plugin \
+		--with-ldap=plugin \
+		--with-sql=plugin \
+		--with-mysql \
+		--with-sqlite \
+		--with-pgsql \
+		--with-solr \
+		--with-lucene \
+		--with-ssl=openssl \
+		--with-ssldir=/etc/ssl/dovecot \
+		--with-rundir=/run/dovecot
+	make
+
+	# Build pigeonhole plugin
+	cd "$_builddir_pigeonhole"
+	_configure \
+		--with-dovecot="$builddir" \
+		--with-ldap=plugin
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	cd "$pkgdir"
+
+	install -d ./etc/ssl/dovecot
+	install -D -m 755 "$srcdir"/dovecot.initd ./etc/init.d/dovecot
+	install -D -m 644 "$srcdir"/dovecot.logrotate ./etc/logrotate.d/dovecot
+
+	# default config
+	rm ./etc/dovecot/*
+	rm ./usr/share/doc/dovecot/mkcert.sh
+	mv ./usr/share/doc/dovecot/dovecot-openssl.cnf ./etc/dovecot/
+	mv ./usr/share/doc/dovecot/example-config/dovecot* \
+		./usr/share/doc/dovecot/example-config/conf.d \
+		./etc/dovecot/
+	rm -fr ./usr/share/doc/dovecot/example-config
+
+	# Fix SSL dirs in default config.
+	sed -i -e 's,^ssl_cert =.*,ssl_cert = </etc/ssl/dovecot/server.pem,' \
+		-e 's,^ssl_key =.*,ssl_key = </etc/ssl/dovecot/server.key,' \
+		./etc/dovecot/conf.d/10-ssl.conf
+
+	# Set default passdb to passwd and create appropriate 'users' file.
+	install -m 640 -o dovecot -g mail /dev/null ./etc/dovecot/users
+	sed -i -e 's,!include auth-system.conf.ext,!include auth-passwdfile.conf.ext,' \
+		-e 's,#!include auth-passwdfile.conf.ext,#!include auth-system.conf.ext,' \
+		./etc/dovecot/conf.d/10-auth.conf
+
+
+	# Installing pigeonhole plugin.
+	cd "$_builddir_pigeonhole"
+	make install DESTDIR="$pkgdir"
+
+	# Moving config in the correct place
+	mv "$pkgdir"/usr/share/doc/dovecot/example-config/conf.d/* \
+		"$pkgdir"/etc/dovecot/conf.d
+
+	# Remove libtool archives.
+	find "$pkgdir" -name '*.la' -exec rm -f {} +
+}
+
+dev() {
+	default_dev
+	mkdir -p "$subpkgdir"/usr/lib/dovecot
+	mv "$pkgdir"/usr/lib/dovecot/dovecot-config \
+		"$subpkgdir"/usr/lib/dovecot/
+}
+
+lmtpd() {
+	pkgdesc="$pkgdesc (LMTP server)"
+	_protocol lmtp
+}
+
+pop3d() {
+	pkgdesc="$pkgdesc (POP3 daemon)"
+	_protocol pop3
+}
+
+submissiond() {
+	pkgdesc="$pkgdesc (mail submission agent)"
+	_protocol submission
+}
+
+_protocol() {
+	depends="$pkgname=$pkgver-r$pkgrel"
+	replaces="$pkgname"  # for backward compatibility
+	local name="$1"
+	local protocolsd="$subpkgdir/usr/share/dovecot/protocols.d"
+
+	cd "$pkgdir"
+	_submv usr/libexec/dovecot/"$name"*
+	_submv etc/dovecot/conf.d/*-"$name".conf
+
+	mkdir -p "$protocolsd"
+	echo "protocols = \$protocols $name" \
+		> "$protocolsd"/${subpkgname#$pkgname-}.conf
+}
+
+_sieve() {
+	pkgdesc="Sieve and managesieve plugin for Dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot sieve_extprograms
+	_find usr/lib/dovecot sieve_imapsieve
+	_find usr/bin sieve
+	_find usr/lib/dovecot sieve
+	_find usr/lib/dovecot pigeonhole
+	_find usr/libexec/dovecot managesieve
+	_find etc/dovecot/ sieve
+}
+
+_sieve_ldap() {
+	pkgdesc="Sieve and managesieve plugin for Dovecot (LDAP support)"
+	depends="$pkgname-pigeonhole-plugin=$pkgver-r$pkgrel $pkgname-ldap=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find  usr/lib/dovecot _sieve_storage_ldap_
+}
+
+pgsql() {
+	pkgdesc="PostgreSQL driver for Dovecot"
+	depends="$pkgname-sql=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot _pgsql
+}
+
+mysql() {
+	pkgdesc="MySQL driver for Dovecot"
+	depends="$pkgname-sql=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot _mysql
+}
+
+sqlite() {
+	pkgdesc="SQLite driver for Dovecot"
+	depends="$pkgname-sql=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot _sqlite
+}
+
+gssapi() {
+	pkgdesc="GSSAPI auth plugin for Dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot _gssapi
+}
+
+ldap() {
+	pkgdesc="LDAP auth plugin for Dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot ldap.so
+	_find etc/dovecot -ldap.conf
+}
+
+sql() {
+	pkgdesc="SQL plugin for dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot -sql.
+	_find etc/dovecot -sql.conf
+}
+
+_fts_solr() {
+	pkgdesc="FTS-Solr plugin for dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot fts\*solr
+}
+
+_fts_lucene() {
+	pkgdesc="FTS-Lucene plugin for dovecot"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	cd "$pkgdir"
+	_find usr/lib/dovecot fts\*lucene
+}
+
+_find() {
+	local _f
+	local _ff="$(find "$1" -name \*"$2"\*)"
+	for _f in $_ff
+	do
+		_submv "$_f"
+	done
+}
+
+_submv() {
+	local dir="$(dirname $1)"
+	mkdir -p "$subpkgdir"/"$dir"
+	mv "$pkgdir/$1" "$subpkgdir/$dir/"
+	[ "$(ls -A "$pkgdir/$dir")" ] || rmdir "$pkgdir"/"$dir"
+}
+
+sha512sums="
+ceb87a5f76b6352d28fd030aae5ad2165a133e9a8a6309891e793911203fc0ada9fb254dc05d183eaaa7e2b9851d3f1755b33f08fa6ff5b4b415ac4272bfe150  dovecot-2.3.19.1.tar.gz
+5b0a61c7711232ea3651b818a970b500b05bd340a04bcd5a5f0ea0529eda65f498912a845c8f3b3b80196d010bc22bd4a380e1f682cb42f62b80d2d43a94993a  dovecot-2.3-pigeonhole-0.5.19.tar.gz
+fe4fbeaedb377d809f105d9dbaf7c1b961aa99f246b77189a73b491dc1ae0aa9c68678dde90420ec53ec877c08f735b42d23edb13117d7268420e001aa30967a  skip-iconv-check.patch
+794875dbf0ded1e82c5c3823660cf6996a7920079149cd8eed54231a53580d931b966dfb17185ab65e565e108545ecf6591bae82f935ab1b6ff65bb8ee93d7d5  split-protocols.patch
+0d8f89c7ba6f884719b5f9fc89e8b2efbdc3e181de308abf9b1c1b0e42282f4df72c7bf62f574686967c10a8677356560c965713b9d146e2770aab17e95bcc07  default-config.patch
+733cdbfb7f6b2608470bd30a0f9190ec86099d4c8e48b7fb92d7b595be665bf749976889033e1ad438edd3f99f2e0d496dd0d667291915c80df82f7e62483f59  fix-out-of-memory-test.patch
+0fb56eb9c7fae8d8b1d794928ce2ba58d03c102cd7c3f959799c62c5d838ff535ecccb64bc1970d960f67d49388c880773e9eac5aed3bcf92e6efed3b56cc837  fix-libssl_iostream_openssl.patch
+bfa8f18cce438bbf55cfaa2164358424f04393365aa98ebc342dc2677b48bf8fb16bdb1803aba18ad74fe8494bb7d2091569c430086ed2b47d13100ae5e9ffab  fix-test-file-cache.patch
+33c6eefaaca755c7766c74cb1afdc54fa9241b3d75b1db6b1167615061b5d79b85d759746c2d1793f4a3669d493489236e89ca4278dd38dd681f537c83e81a20  test-imap-client-hibernate.patch
+9f19698ab45969f1f94dc4bddf6de59317daee93c9421c81f2dbf8a7efe6acf89689f1d30f60f536737bb9526c315215d2bce694db27e7b8d7896036a59c31f0  dovecot.logrotate
+d91951b81150d7a3ef6a674c0dc7b012f538164dac4b9d27a6801d31da6813b764995a438f69b6a680463e1b60a3b4f2959654f68e565fe116ea60312d5e5e70  dovecot.initd
+"

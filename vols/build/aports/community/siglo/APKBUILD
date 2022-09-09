@@ -1,0 +1,27 @@
+# Maintainer: Martijn Braam <martijn@brixit.nl>
+# Contributor: Martijn Braam <martijn@brixit.nl>
+# Contributor: Neil O'Fix <nlfx@paranoid.email>
+pkgname=siglo
+pkgver=0.9.6
+pkgrel=0
+pkgdesc="GTK app to sync InfiniTime watch with PinePhone"
+url="https://github.com/alexr4535/siglo"
+arch="noarch"
+license="MPL-2.0"
+depends="python3 py3-gobject3 gtk+3.0 bluez bluez-btmgmt py3-dbus py3-gatt
+	py3-requests py3-xdg"
+makedepends="glib-dev meson"
+source="https://github.com/alexr4535/siglo/archive/v$pkgver/siglo-v$pkgver.tar.gz"
+options="!check" # There's no testsuite
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="
+14b74cb25db1f5676203dbfae8b668888d3cfd493ea53267d8c0956a7e96f1cfe5457b7ce802dadcbe563d6810ac64f8f2cb49f59b579146659af28601d52681  siglo-v0.9.6.tar.gz
+"

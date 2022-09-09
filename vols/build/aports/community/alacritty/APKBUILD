@@ -1,0 +1,83 @@
+# Contributor: Drew DeVault <sir@cmpwn.com>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=alacritty
+pkgver=0.10.1
+pkgrel=1
+pkgdesc="cross-platform, GPU-accelerated terminal emulator"
+url="https://github.com/jwilm/alacritty"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le" # limited by rust/cargo
+license="Apache-2.0"
+# libxi and libcursor are both loaded via dlopen by x11-rs crate.
+depends="ncurses-terminfo-base wayland-libs-egl libxi libxcursor"
+makedepends="
+	rust
+	cargo
+	cmake
+	fontconfig-dev
+	freetype-dev
+	libxkbcommon-dev
+	libxcb-dev
+	python3
+	"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/alacritty/alacritty/archive/refs/tags/v$pkgver.tar.gz
+	"
+export CARGO_HOME="$srcdir"/cargo
+export RUSTFLAGS="-C target-feature=-crt-static"
+
+build() {
+	cargo build --release --verbose
+}
+
+check() {
+	# On x86 and aarch64, a doc test of the alacritty_terminal
+	# package fails to compile with the following error message:
+	#
+	#   error: ran out of registers during register allocation
+	#   LLVM ERROR: Cannot emit physreg copy instruction
+	#
+	# This seems to be a problem with our rustc and not with
+	# alacritty, disable the doc test for now on these architectures.
+	local _opts=""
+	case $CARCH in
+	x86|aarch64) _opts="--exclude alacritty_terminal" ;;
+	esac
+
+	cargo test --workspace --release --verbose $_opts
+}
+
+package() {
+	install -Dm755 target/release/alacritty "$pkgdir"/usr/bin/alacritty
+	install -Dm644 extra/alacritty.man "$pkgdir"/usr/share/man/man1/alacritty.1
+	install -Dm644 extra/alacritty-msg.man "$pkgdir"/usr/share/man/man1/alacritty-msg.1
+	install -Dm644 alacritty.yml "$pkgdir"/etc/alacritty/alacritty.yml
+
+	# Install addition documentation files.
+	install -Dm644 -t "$pkgdir"/usr/share/doc/$pkgname \
+		README.md CHANGELOG.md docs/*
+
+	# Install desktop files.
+	install -Dm644 extra/linux/Alacritty.desktop -t "$pkgdir"/usr/share/applications
+	install -Dm644 extra/logo/alacritty-term.svg "$pkgdir"/usr/share/pixmaps/Alacritty.svg
+	install -Dm644 extra/linux/io.alacritty.Alacritty.appdata.xml \
+		"$pkgdir"/usr/share/metainfo/io.alacritty.Alacritty.metainfo.xml
+
+	# Install completion files.
+	install -Dm644 extra/completions/alacritty.bash \
+		"$pkgdir"/usr/share/bash-completion/completions/"$pkgname"
+	install -Dm644 extra/completions/alacritty.fish \
+		"$pkgdir"/usr/share/fish/completions/"$pkgname".fish
+	install -Dm644 extra/completions/_alacritty \
+		"$pkgdir"/usr/share/zsh/site-functions/_"$pkgname"
+}
+
+
+sha512sums="
+1321cfdf1ecc7210511ed84912e0d7a06951e21931c521decd3db8d0c1f50da4e50c01d9b39b4c77ce3a7ce0187f1f81abf3d3edc27388e6ec2e42c6c679f2d6  alacritty-0.10.1.tar.gz
+"

@@ -1,0 +1,35 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=engrampa
+pkgver=1.26.0
+pkgrel=0
+pkgdesc="An archive manager for the MATE"
+url="https://github.com/mate-desktop/engrampa"
+# s390x and riscv64 blocked by caja
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="libxml2-utils"
+makedepends="glib-dev gtk+3.0-dev caja-dev itstool libsm-dev intltool"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/engrampa-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-static=no
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+8058627af19744d26f0997fca37a9a1d9902c63e4008e1af44b2a3b15ebc03e27f2018c60351ee503a28aa072836d201625074abb838e0a95071ce65c64a52bc  engrampa-1.26.0.tar.xz
+"

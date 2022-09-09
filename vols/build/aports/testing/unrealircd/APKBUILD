@@ -1,0 +1,66 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=unrealircd
+pkgver=6.0.3
+pkgrel=0
+pkgdesc="internet relay chat daemon (ircd)"
+url="https://www.unrealircd.org/"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	argon2-dev
+	c-ares-dev
+	curl-dev
+	jansson-dev
+	libnsl-dev
+	libsodium-dev
+	openssl-dev
+	pcre2-dev
+	tre-dev
+	"
+subpackages="$pkgname-doc"
+options="!check" # no test suite
+source="https://www.unrealircd.org/downloads/unrealircd-$pkgver.tar.gz
+	0001.configure-without-running-config.patch"
+
+prepare() {
+	default_prepare
+	#update_config_guess #No update needed for ./autoconf/config.guess
+	update_config_sub
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--enable-dynamic-linking \
+		--enable-ssl \
+		--with-bindir=/usr/bin \
+		--with-cachedir=/var/lib/unrealircd/cache \
+		--with-confdir=/etc/unrealircd \
+		--with-datadir=/var/lib/unrealircd/data \
+		--with-docdir=/usr/share/man/unrealircd \
+		--with-logdir=/var/log/unrealircd \
+		--with-modulesdir=/usr/lib/unrealircd/modules \
+		--with-nick-history=2000 \
+		--with-permissions=0600 \
+		--with-pidfile=/var/lib/unrealircd/run/unrealircd.pid \
+		--with-privatelibdir=/usr/lib/unrealircd/private_lib \
+		--with-scriptdir=/usr/lib/unrealircd/scripts \
+		--with-tmpdir=/var/lib/unrealircd/tmp
+	make
+}
+
+package() {
+	install -dm755 \
+		$pkgdir/var/lib/unrealircd/run \
+		$pkgdir/usr/lib/unrealircd/scripts \
+		$pkgdir/usr/lib/unrealircd/private_lib
+	make DESTDIR="$pkgdir" install
+	# remove symlink to source
+	rm -v $pkgdir/usr/lib/unrealircd/scripts/source
+}
+
+sha512sums="
+be3b823eee42e5ecf7ffbdcac0d56cf4ff4cde8aa082affa8c2f78518a3c54a2d8bb3956cf2b95060958d7c3382ca8da00e6f7b816670cf3ba48e3b8588adba3  unrealircd-6.0.3.tar.gz
+532cb2419d2b79685a391113cf1f498417ff46ad545b41e3b9e2153966ba92e21e2ef8dc9010ab491bbc10c7758d38a61a1213caf7eabe1c066ccd12c0a6f13e  0001.configure-without-running-config.patch
+"

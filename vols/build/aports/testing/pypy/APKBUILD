@@ -1,0 +1,100 @@
+# Maintainer: Thomas Liske <thomas@fiasko-nw.net>
+pkgname=pypy
+pkgver=7.3.9
+_pkgver=${pkgver/_/}
+pkgrel=1
+pkgdesc="A fast, compliant alternative implementation of Python 2.7"
+url="https://www.pypy.org/"
+arch="x86 x86_64 s390x aarch64 ppc64le"
+license="MIT"
+subpackages="$pkgname-dev $pkgname-tkinter"
+provides="pypy-bootstrap=$pkgver-r$pkgrel"
+provider_priority=100 # highest
+makedepends="
+	bzip2-dev
+	expat-dev
+	gdbm-dev
+	libc-dev
+	libffi-dev
+	linux-headers
+	ncurses-dev
+	openssl-dev
+	perl
+	pkgconf
+	py3-virtualenv
+	pypy-bootstrap
+	readline-dev
+	rsync
+	sqlite-dev
+	tk-dev
+	util-linux-misc
+	xz-dev
+	zlib-dev
+	"
+[ "$CARCH" = "x86" ] && options="textrels" # libpypy-c.so on x86 has textrels
+source="https://downloads.python.org/pypy/pypy2.7-v$_pkgver-src.tar.bz2
+	"
+
+build() {
+	cd pypy2.7-v$_pkgver-src/pypy/goal
+
+	# translate with JIT
+	[[ "$JOBS" -gt 16 ]] && export JOBS=16
+	pypy ../../rpython/bin/rpython --opt=jit --shared --make-jobs $JOBS targetpypystandalone
+
+	# compile binary modules
+	PYTHONPATH=../.. ./pypy-c ../../lib_pypy/pypy_tools/build_cffi_imports.py
+}
+
+check() {
+	# ignore failing tests on some archs for now
+	./pypy-c -u ../test_all.py \
+		../module/pypyjit/test_pypy_c || \
+		[ "$CARCH" = "aarch64" ] || \
+		[ "$CARCH" = "ppc64le" ] || \
+		[ "$CARCH" = "s390x" ] || \
+		[ "$CARCH" = "x86" ]
+}
+
+package() {
+	cd src/pypy2.7-v$_pkgver-src
+
+	install -Dm755 pypy/goal/pypy-c "$pkgdir"/usr/lib/pypy/bin/pypy-c
+	install -Dm755 pypy/goal/libpypy-c.so "$pkgdir"/usr/lib/pypy/bin/libpypy-c.so
+
+	rsync -r --exclude='__pycache__' --exclude='*.c' --exclude '*.o' lib_pypy/ "$pkgdir"/usr/lib/pypy/lib_pypy/
+
+	rsync -r --exclude='__pycache__' --exclude='test' --exclude='tests' lib-python/ "$pkgdir"/usr/lib/pypy/lib-python/
+
+	rsync -r --include='*.h' -f 'hide,! */' include/ "$pkgdir"/usr/lib/pypy/include/
+
+	# Install symlinks
+	mkdir -p "$pkgdir"/usr/bin "$pkgdir"/usr/lib
+	ln -s ../lib/pypy/bin/pypy-c "$pkgdir"/usr/bin/pypy
+	ln -s pypy/bin/libpypy-c.so "$pkgdir"/usr/lib/libpypy-c.so
+}
+
+dev() {
+	default_dev
+
+	# pyconfig.h is needed runtime so we move it back
+	mkdir -p "$pkgdir"/usr/lib/pypy/include
+	mv "$subpkgdir"/usr/lib/pypy/include/pyconfig.h \
+		"$pkgdir"/usr/lib/pypy/include/
+}
+
+tkinter() {
+	pkgdesc="Writing Tk applications with Pypy"
+
+	mkdir -p "$subpkgdir"/usr/lib/pypy/lib_pypy "$subpkgdir"/usr/lib/pypy/lib-python/2.7
+	mv "$pkgdir"/usr/lib/pypy/lib_pypy/_tkinter \
+		"$subpkgdir"/usr/lib/pypy/lib_pypy/
+	mv "$pkgdir"/usr/lib/pypy/lib-python/2.7/lib-tk \
+		"$subpkgdir"/usr/lib/pypy/lib-python/2.7/
+	mv "$pkgdir"/usr/lib/pypy/lib-python/2.7/idlelib \
+		"$subpkgdir"/usr/lib/pypy/lib-python/2.7/
+}
+
+sha512sums="
+8d7513d4efe924f2456dd65a45a82dd16171f7962c81ba90f2a168c332cdad78ceffa3ed1af379c09e61082b39d5c2a8385cd77c89b698c47cc75e9df1bb4d2a  pypy2.7-v7.3.9-src.tar.bz2
+"

@@ -1,0 +1,35 @@
+# Contributor: Olivier Mauras <olivier@mauras.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-influxdb
+_pkgname=influxdb-python
+pkgver=5.3.0
+pkgrel=0
+pkgdesc="Python bindings for InfluxDB"
+options="!check" # Requires unpackaged nose-cov
+url="https://github.com/influxdata/influxdb-python"
+arch="noarch"
+license="MIT"
+depends="python3 py3-tz py3-six py3-requests py3-dateutil"
+makedepends="py3-setuptools"
+checkdepends="py3-nose"
+source="$pkgname-$pkgver.tar.gz::https://github.com/influxdata/influxdb-python/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-influxdb" # Backwards compatibility
+provides="py-influxdb=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+87129544b5bef8062d452447626b639b675bf6ba5076f38d4616a364fa6dfea6aa73beece239aeb8f2294314c4fe6bc7e3ae5d7e463592bd0f77ed3aaaff5557  py3-influxdb-5.3.0.tar.gz
+"

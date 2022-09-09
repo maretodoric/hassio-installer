@@ -1,0 +1,39 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Contributor: Kris Reese <ktreese@gmail.com>
+# Maintainer: Paul Morgan <jumanjiman@gmail.com>
+pkgname=duo_unix
+pkgver=1.11.5
+pkgrel=0
+pkgdesc="Duo two-factor authentication for Unix systems with Pluggable Authentication Modules (PAM)"
+url="https://duo.com/docs/duounix"
+arch="all"
+license="GPL-2.0-only"
+depends="openssh openssh-server-pam"
+makedepends="openssl1.1-compat-dev linux-pam-dev libtool"
+subpackages="$pkgname-doc $pkgname-dev"
+source="https://dl.duosecurity.com/duo_unix-$pkgver.tar.gz"
+options="suid !check" #make check fails with error: redefinition of 'fopen'
+
+prepare() {
+	default_prepare
+
+	update_config_sub
+	update_config_guess
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CTARGET \
+		--with-pam=/lib/security \
+		--prefix=/usr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+f87d78a42029fc3cdb9a41fc15be2e3e83abb7408f7f667de29ac4024523642b489a64be3925016a37eff7a21e30b905f6b1c43702d3899d12173cae27c9f7a9  duo_unix-1.11.5.tar.gz
+"

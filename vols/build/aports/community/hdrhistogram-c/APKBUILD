@@ -1,0 +1,41 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=hdrhistogram-c
+_projname=HdrHistogram_c
+pkgver=0.11.5
+pkgrel=0
+pkgdesc="High Dynamic Range (HDR) Histogram in C"
+url="https://github.com/HdrHistogram/HdrHistogram_c"
+arch="all"
+license="BSD-2-Clause"
+makedepends="cmake samurai zlib-dev"
+subpackages="$pkgname-static $pkgname-dev"
+source="https://github.com/HdrHistogram/HdrHistogram_c/archive/$pkgver/$_projname-$pkgver.tar.gz"
+builddir="$srcdir/$_projname-$pkgver"
+
+build() {
+	cmake -G Ninja -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DBUILD_SHARED_LIBS=ON \
+		-DHDR_HISTOGRAM_BUILD_PROGRAMS=True
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# Don't package tests and example programs.
+	rm -rf "$pkgdir"/usr/bin
+}
+
+sha512sums="
+29a6215c05adcaa7b0e984d66e2c2dd1f7d89a0a7818d0fdd8d08537346c1e9114fa920ab4e519196db626abffd9b978db0cd265715fd0ffa8ce353817eecf0d  HdrHistogram_c-0.11.5.tar.gz
+"

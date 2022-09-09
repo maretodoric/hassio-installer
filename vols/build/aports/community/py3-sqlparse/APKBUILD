@@ -1,0 +1,46 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Maintainer: Thomas Boerger <thomas@webhippie.de>
+pkgname=py3-sqlparse
+_pkgname=sqlparse
+pkgver=0.4.2
+pkgrel=1
+pkgdesc="A non-validating SQL parser module for Python"
+url="https://sqlparse.readthedocs.io/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-sqlparse" # Backwards compatibility
+provides="py-sqlparse=$pkgver-r$pkgrel" # Backwards compatibility
+
+# secfixes:
+#   0.4.2-r0:
+#     - CVE-2021-32839
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m pytest .
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# Add version suffix to executable files.
+	local path; for path in "$pkgdir"/usr/bin/*; do
+		mv "$path" "$path-3"
+	done
+
+	mkdir -p "$pkgdir"/usr/bin
+	ln -s sqlformat-3 "$pkgdir"/usr/bin/sqlformat
+}
+
+sha512sums="
+8136e5c14650b5286616958bfb19039a6981e4c84bf955b0f668053f5427202eff9a6472f71820293ddbe55c0f793fb690d42d0e0134135aed7eb6e13edca01e  sqlparse-0.4.2.tar.gz
+"

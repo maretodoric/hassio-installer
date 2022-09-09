@@ -1,0 +1,48 @@
+# Contributor: Dermot Bradley <dermot_bradley@yahoo.com>
+# Maintainer: Laurent Bercot <ska-devel@skarnet.org>
+pkgname=s6-overlay
+pkgver=3.1.0.1
+pkgrel=0
+pkgdesc="s6 overlay for containers"
+url="https://github.com/just-containers/s6-overlay/"
+arch="noarch"
+license="ISC"
+depends="execline s6 s6-rc s6-linux-init s6-portable-utils s6-linux-utils s6-dns s6-networking s6-overlay-helpers"
+subpackages="$pkgname-doc $pkgname-syslogd"
+options="!check"
+source="$pkgname-$pkgver.tar.gz::https://github.com/just-containers/s6-overlay/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	make rootfs-overlay-noarch symlinks-overlay-noarch syslogd-overlay-noarch \
+		"VERSION=$pkgver" \
+		SHEBANGDIR=/usr/bin
+}
+
+package() {
+	mkdir -p "$pkgdir"
+	cp -a "$srcdir/$pkgname-$pkgver/output/rootfs-overlay-noarch"/* \
+		"$srcdir/$pkgname-$pkgver/output/symlinks-overlay-noarch"/* \
+		"$pkgdir/"
+}
+
+doc() {
+	default_doc
+	mkdir -p "$subpkgdir/usr/share/doc/$pkgname"
+	cp "$srcdir/$pkgname-$pkgver/AUTHORS.md" \
+		"$srcdir/$pkgname-$pkgver/CHANGELOG.md" \
+		"$srcdir/$pkgname-$pkgver/CONTRIBUTING" \
+		"$srcdir/$pkgname-$pkgver/COPYING" \
+		"$srcdir/$pkgname-$pkgver/DCO" \
+		"$srcdir/$pkgname-$pkgver/MOVING-TO-V3.md" \
+		"$srcdir/$pkgname-$pkgver/README.md" \
+		"$subpkgdir/usr/share/doc/$pkgname/"
+}
+
+syslogd() {
+	mkdir -p "$subpkgdir"
+	cp -a "$srcdir/$pkgname-$pkgver/output/syslogd-overlay-noarch"/* "$subpkgdir/"
+}
+
+sha512sums="
+857fa236b7731cde6bb276f7d7185fbaace2eff623230c171bb81778436796324b1207bfa5a659e59236e71642d16833657fab028c6b78fa07479ad87b84ca92  s6-overlay-3.1.0.1.tar.gz
+"

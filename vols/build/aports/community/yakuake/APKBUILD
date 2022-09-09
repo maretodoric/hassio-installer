@@ -1,0 +1,34 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=yakuake
+pkgver=22.04.2
+pkgrel=0
+arch="all !armhf !s390x !riscv64" # blocked by polkit -> kio
+url="https://kde.org/applications/system/org.kde.yakuake"
+pkgdesc="A drop-down terminal emulator based on KDE Konsole technology"
+license="GPL-2.0-only OR GPL-3.0-only"
+depends="konsole"
+makedepends="extra-cmake-modules qt5-qtbase-dev qt5-qtsvg-dev qt5-qtx11extras-dev karchive-dev kconfig-dev kcoreaddons-dev kcrash-dev kdbusaddons-dev kglobalaccel-dev ki18n-dev kiconthemes-dev kio-dev knewstuff-dev knotifications-dev knotifyconfig-dev kparts-dev kwidgetsaddons-dev kwindowsystem-dev kwayland-dev samurai"
+source="https://download.kde.org/stable/release-service/$pkgver/src/yakuake-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+f4048905ee11031987cd9cc0ae9a1a2a7e1bbf596199ac2092cea06118ea61f3735f36cb8c2a4b1e34dd593c3c320c6a66438bb7d2ee9c63c6bf1f2bed32c7ec  yakuake-22.04.2.tar.xz
+"

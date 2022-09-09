@@ -1,0 +1,29 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-spelling
+_pkgname=sphinxcontrib-spelling
+pkgver=7.2.1
+pkgrel=1
+pkgdesc="Sphinx spelling extension"
+url="https://pypi.python.org/pypi/sphinxcontrib-spelling"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3 py3-sphinx py3-enchant"
+makedepends="py3-setuptools py3-pbr"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-sphinxcontrib-spelling" # Backwards compatibility
+provides="py-sphinxcontrib-spelling=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+e9b9709b627545e1191d64753c97c0cf65e100d5379e7cc1da46faf9c5d5ea0eeb6c7aafe99331f9518488fb0801c245e0c1fa9853360bb6cf373515a4fed2ed  sphinxcontrib-spelling-7.2.1.tar.gz
+"

@@ -1,0 +1,71 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdelibs4support
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Porting aid from KDELibs4"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-or-later AND MIT AND LGPL-2.1-only AND LGPL-2.0-only AND (LGPL-2.1-only OR LGPL-3.0-only) AND (LGPL-2.0-only OR LGPL-3.0-only)"
+depends_dev="
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kded-dev
+	kdesignerplugin
+	kdesignerplugin-dev
+	kdoctools-dev
+	kemoticons-dev
+	kglobalaccel-dev
+	kguiaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kinit-dev
+	kio-dev
+	kitemmodels-dev
+	knotifications-dev
+	kparts-dev
+	kservice-dev
+	ktextwidgets-dev
+	kunitconversion-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	perl-uri
+	qt5-qtbase-dev
+	qt5-qttools-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	kded
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/portingAids/kdelibs4support-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+options="suid !check" # Fails due to requiring running dbus
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+28a8a78f61eda609425acc3ef76dc804774d1eba5eabf674cab9abff8fb9ef3925bb71d0a97a13eea4e578f66996660a0bf19851624ab239826dad5de2fedf14  kdelibs4support-5.95.0.tar.xz
+"

@@ -1,0 +1,53 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libnice
+pkgver=0.1.18
+pkgrel=2
+pkgdesc="GLib ICE implementation"
+options="!check" # Testsuite fails
+url="https://libnice.freedesktop.org/"
+arch="all"
+license="LGPL-2.1-or-later AND MPL-1.1"
+makedepends="
+	glib-dev
+	gnutls-dev
+	gstreamer-dev
+	gobject-introspection-dev
+	gtk-doc
+	meson"
+subpackages="
+	$pkgname-dbg
+	$pkgname-dev
+	$pkgname-gstreamer:_gst"
+source="https://nice.freedesktop.org/releases/libnice-$pkgver.tar.gz
+	libnice-meson-0.58.patch "
+
+build() {
+	# XXX: docs fail to build because of libnice not being built first,
+	# race condition
+	abuild-meson \
+		-Dgtk_doc=disabled \
+		-Dtests=disabled \
+		-Dexamples=disabled \
+		-Dintrospection=enabled \
+		-Dcrypto-library=gnutls \
+		-Dgstreamer=enabled \
+		-Dgupnp=disabled builddir
+	meson compile ${JOBS:+-j ${JOBS}} -C builddir
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C builddir
+}
+
+_gst() {
+	pkgdesc="Gstreamer 1.0 plugin for libnice"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/gstreamer-1.0 "$subpkgdir"/usr/lib/
+}
+
+sha512sums="
+08bac05874708f7e7a669d28727d8951a10c464b22dd6fada1a4644850bcf5c4cc022cce46bb24c806086a7869b274c4c7d3d6ddaa9ed0ce0bc2c47f72933227  libnice-0.1.18.tar.gz
+c59962a20d554da909a993f5d83d8d96da927d0ac94cfef2f699468326509f5715e8f7054badd25d07819b733dcea13c308b72aff170c013f7004dadba960dd7  libnice-meson-0.58.patch
+"

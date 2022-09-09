@@ -1,0 +1,41 @@
+# Maintainer:
+pkgname=py3-jsonpickle
+pkgver=2.0.0
+pkgrel=2
+pkgdesc="Serializing any arbitrary object graph into JSON"
+url="https://pypi.python.org/pypi/jsonpickle/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-numpy py3-pandas"
+makedepends="py3-setuptools py3-setuptools_scm"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/j/jsonpickle/jsonpickle-$pkgver.tar.gz
+	tests.patch
+	"
+builddir="$srcdir/jsonpickle-$pkgver"
+
+replaces="py-jsonpickle" # Backwards compatibility
+provides="py-jsonpickle=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+
+	sed -e '/setuptools_scm/d' \
+		-e "/^\[metadata\]/a verison = $pkgver" \
+		-i setup.cfg
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH=$PWD/build/lib pytest-3 -c /dev/null
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="acba11e5dfce116b27edfe0fdccdd74755e299aa43f873dd1ce547d947b58f14c1059c21d04007b5be0857f7ce69fe5355fb2edc47a99cc2217fe00297ca78d3  jsonpickle-2.0.0.tar.gz
+8df533695556bc7b329211dfbb5ad667fbd8f9b569721a054f9dead9402ac365666f50ff4343feda536e679a58f1244708ab10fa2f6f8b33b2469dfdc57c576c  tests.patch"

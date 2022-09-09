@@ -1,0 +1,27 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-psycopg2
+pkgver=2.8.6
+pkgrel=2
+pkgdesc="PostgreSQL adapter for python"
+options="!check" # Requires running database
+url="http://initd.org/psycopg"
+arch="all"
+license="LGPL-2.0-or-later"
+makedepends="libpq-dev python3-dev py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/p/psycopg2/psycopg2-$pkgver.tar.gz"
+builddir="$srcdir/psycopg2-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	make check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="1e1d5d8755c6d1a153d84210bf29902afafe853659d709e13abc6bc5772def13779d2394690af1c544384c9c607edc0fe5cf2763244fb346febf9a9e0032b45f  psycopg2-2.8.6.tar.gz"

@@ -1,0 +1,41 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=py3-usb
+_pkgname=pyusb
+pkgver=1.1.1
+pkgrel=3
+pkgdesc="easy USB devices communication in Python3"
+url="https://github.com/pyusb/pyusb"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz
+	"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-usb" # Backwards compatibility
+provides="py-usb=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+
+	sed -e 's|^setup_requires =.*||g' -i setup.cfg
+	sed -e '/setup_requires=setuptools_scm/d' \
+		-e "s/use_scm_version=.*,/version=\"$pkgver\",/" \
+		-i setup.py
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	cd tests
+	python3 testall.py || return 0 # One test will fail with 'no backend'
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="19aa82dcb9421d536063a975414855d1474f44b33dc4039e9a001be795061dbd60ed576acb605ae6bab7a0fe10834e5507408757546c7edcd50b43687a65a287  py3-usb-1.1.1.tar.gz"

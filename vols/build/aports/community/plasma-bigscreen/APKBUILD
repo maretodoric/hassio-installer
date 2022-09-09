@@ -1,0 +1,64 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-bigscreen
+pkgver=0_git20220221
+pkgrel=1
+_commit="14769c61a9492e7007ddd123d0171da71107d232"
+pkgdesc="A 10-feet interface made for TVs"
+url="https://invent.kde.org/plasma/plasma-bigscreen/"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> plasma-nano
+arch="all !armhf !s390x !riscv64"
+license="LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL"
+depends="
+	kdeconnect
+	kirigami2
+	plasma-nano
+	plasma-nm
+	plasma-pa
+	plasma-remotecontrollers
+	plasma-settings
+	plasma-workspace
+	"
+makedepends="
+	extra-cmake-modules
+	kactivities-dev
+	kactivities-stats-dev
+	kcmutils-dev
+	kdeclarative-dev
+	ki18n-dev
+	kio-dev
+	kirigami2-dev
+	knotifications-dev
+	kwayland-dev
+	kwindowsystem-dev
+	plasma-framework-dev
+	plasma-workspace-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtmultimedia-dev
+	samurai
+	"
+source="https://invent.kde.org/plasma/plasma-bigscreen/-/archive/$_commit/plasma-bigscreen-$_commit.tar.gz"
+builddir="$srcdir/plasma-bigscreen-$_commit"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+d09c5a6f7b161c42fec1c2212fdbc7b57003fbaf9e70b5e155a720960177933352c6557de942422c1fdcb1460ea386091f02c2ef580b27810de3c1c2193c18e8  plasma-bigscreen-14769c61a9492e7007ddd123d0171da71107d232.tar.gz
+"

@@ -1,0 +1,39 @@
+# Contributor: Simon Frankenberger <simon-alpine@fraho.eu>
+# Maintainer: Simon Frankenberger <simon-alpine@fraho.eu>
+pkgname=java-libsignal-client
+pkgver=0.17.0
+pkgrel=0
+pkgdesc="libsignal-client contains platform-agnostic APIs useful for Signal client apps"
+url="https://github.com/signalapp/libsignal-client"
+# * disabled on aarch64 due to:
+#    error[E0554]: #![feature] may not be used on the stable release channel
+#    --> /home/buildozer/.cargo/registry/src/github.com-1ecc6299db9ec823/polyval-0.5.3/src/lib.rs:80:5
+# * rust and cargo not available on s390x and riscv64
+arch="all !aarch64 !s390x !riscv64"
+license="AGPL-3.0-or-later"
+depends="java-jre-headless"
+makedepends="bash cargo openjdk8 protoc rust zip"
+source="$pkgname-$pkgver.tar.gz::https://github.com/signalapp/libsignal-client/archive/v$pkgver.tar.gz"
+install="$pkgname.post-install $pkgname.post-upgrade"
+builddir="$srcdir/libsignal-$pkgver/java"
+
+build() {
+	./gradlew --no-daemon :client:jar
+}
+
+check() {
+	./gradlew --no-daemon :client:test
+}
+
+package() {
+	install -D -m644 "$builddir"/client/build/libs/libsignal-client-$pkgver.jar \
+		-t "$pkgdir"/usr/share/java/libsignal-client
+	install -D -m755 "$builddir"/../target/release/libsignal_jni.so \
+		-t "$pkgdir"/usr/lib
+	zip -d "$pkgdir"/usr/share/java/libsignal-client/libsignal-client-$pkgver.jar \
+		libsignal_jni.so
+}
+
+sha512sums="
+039d572b40ba39c745d9714b7666af513212e4c679e5a43d9c30c88bc1ebea690254cf121748f560678cecfc43f05bc269dade8da95e3094c36f07a01da37383  java-libsignal-client-0.17.0.tar.gz
+"

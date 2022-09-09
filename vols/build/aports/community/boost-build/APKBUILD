@@ -1,0 +1,38 @@
+# Contributor: Pedro Filipe <xpecex@outlook.com>
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Maintainer:
+pkgname=boost-build
+pkgver=1.79.0
+pkgrel=0
+pkgdesc="Boost.Build makes it easy to build C++ projects, everywhere"
+url="https://boost.org/build"
+arch="noarch"
+options="!check"
+license="BSL-1.0"
+depends="boost python3"
+subpackages="$pkgname-doc"
+builddir="$srcdir/${pkgname#*-}-${pkgname%%-*}-$pkgver"
+source="$pkgname-$pkgver.tar.gz::https://github.com/boostorg/${pkgname#*-}/archive/${pkgname%%-*}-$pkgver.tar.gz"
+
+build() {
+	# we bootstrapped with boost already
+	local _b2="$(command -v b2)"
+	local _bjam="$(command -v bjam)"
+	cp -p "${_b2:-NOT_INSTALLED}" "$builddir"/src/engine
+	cp -p "${_bjam:-NOT_INSTALLED}" "$builddir"/src/engine
+}
+
+package() {
+	b2 install --with-python=/usr/bin/python3 --prefix="$pkgdir"/usr
+
+	# These binaries are provided by the boost package already
+	rm -v -rf "${pkgdir:?}"/usr/bin
+
+	install -Dm0644 LICENSE.txt "$pkgdir"/usr/share/licenses/"$pkgname"/LICENSE
+	mkdir -p "$pkgdir"/usr/share/doc/"$pkgname"
+	mv example "$pkgdir"/usr/share/doc/"$pkgname"/
+}
+
+sha512sums="
+638f2883b9c49265d5566eadc8c93d16cb351edeb941110bad8a17871ea7d53df8eb13c80aaefb94f354b71a22454958af1ecb9a441686dbaa9631e33682a9f2  boost-build-1.79.0.tar.gz
+"

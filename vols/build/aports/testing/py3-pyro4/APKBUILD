@@ -1,0 +1,34 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-pyro4
+_pyname=Pyro4
+pkgver=4.82
+pkgrel=0
+pkgdesc="Python remote objects"
+url="http://pyro4.readthedocs.io/"
+arch="noarch !s390x" # Limited by py3-dill
+license="MIT"
+depends="py3-serpent"
+makedepends="python3 py3-setuptools"
+checkdepends="py3-msgpack py3-dill py3-cloudpickle"
+_pypiprefix="${_pyname%"${_pyname#?}"}"
+source="https://files.pythonhosted.org/packages/source/$_pypiprefix/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir=$srcdir/$_pyname-$pkgver
+
+replaces="py-pyro4" # Backwards compatibility
+provides="py-pyro4=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+f5916ce37ec52d8cd23bece79325480140621ac8412febb4877a32b1ce54502ef17d20bf591dc30eb20e9619741548b30a78165937d5e69e8d1911d95a23b1e1  Pyro4-4.82.tar.gz
+"

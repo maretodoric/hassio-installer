@@ -1,0 +1,42 @@
+# Maintainer: Ariadne Conill <ariadne@dereferenced.org>
+pkgname=apko
+pkgver=0.4.0
+pkgrel=0
+pkgdesc="declarative APK-based container building tool with support for Sigstore signatures"
+url="https://github.com/chainguard-dev/apko"
+arch="all"
+license="Apache-2.0"
+# Explicitly depend on apk-tools, so that this package can be used without alpine-base.
+depends="apk-tools"
+makedepends="go"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/chainguard-dev/apko/archive/v$pkgver/apko-$pkgver.tar.gz"
+
+build() {
+	mkdir build
+	go build -o build/ -tags -tags=pivkey,pkcs11key "$builddir"/...
+
+	for i in bash fish zsh; do
+		"$builddir"/build/apko completion $i > "$builddir"/apko.$i
+	done
+}
+
+check() {
+	go test "$builddir"/...
+}
+
+package() {
+	install -Dm755 "$builddir"/build/apko "$pkgdir"/usr/bin/apko
+
+	install -Dm644 "$builddir"/apko.bash "$pkgdir"/usr/share/bash-completion/completions/apko
+	install -Dm644 "$builddir"/apko.fish "$pkgdir"/usr/share/fish/completions/apko.fish
+	install -Dm644 "$builddir"/apko.zsh "$pkgdir"/usr/share/zsh/site-functions/_apko
+}
+
+sha512sums="
+f7e8fd6bb68589bb3fbc9b06dda9fb0da201052c75c0d14dd1c78055a7bfd381274db82d51c86d0e0313fcb08b0c9db82fa5a3872fe251fdf789b4cba8783cb3  apko-0.4.0.tar.gz
+"

@@ -1,0 +1,32 @@
+# Maintainer: Eivind Uggedal <eu@eju.no>
+pkgname=py3-hiredis
+_pkgname=${pkgname#py3-}
+pkgver=1.1.0
+pkgrel=2
+pkgdesc="Python extension that wraps hiredis"
+url="https://github.com/redis/hiredis-py"
+arch="all"
+license="BSD-3-Clause"
+makedepends="python3-dev py3-setuptools hiredis-dev"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz
+"
+
+# keep these til after alpine v3.11
+provides="py-$_pkgname=$pkgver-r$pkgrel"  # for backward compatibility
+replaces="py-$_pkgname"  # for backward compatibility
+
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build_ext --inplace
+}
+
+check() {
+	python3 test.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="ad37868376de91303c15ffe6109dc7fadb4f458efdd44b7ddc0a410937a389b8e062ab7d36b1aec3fe324ecafe6b1e5e6b92f547cbf619251dad22a28e02ee9c  hiredis-1.1.0.tar.gz"

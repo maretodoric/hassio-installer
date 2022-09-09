@@ -1,0 +1,32 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=colordiff
+pkgver=1.0.20
+pkgrel=0
+pkgdesc="Color terminal highlighter for diff files"
+url="https://www.colordiff.org"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="diffutils less perl"
+makedepends="lynx xmlto"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/daveewart/colordiff/archive/v$pkgver.tar.gz"
+
+build() {
+	make doc
+}
+
+check() {
+	make -C verify
+}
+
+package() {
+	make install \
+		DESTDIR="$pkgdir" \
+		INSTALL_DIR=/usr/bin \
+		MAN_DIR=/usr/share/man/man1
+}
+
+sha512sums="
+a8471d0f8df1b37cb55d94e2b8d9ccd35313017dd518254007c6d73f26f6cc3d467c3abf8954c8e0c97f0b36fae75016ae66376a93a5a57497af0b72553d4125  colordiff-1.0.20.tar.gz
+"

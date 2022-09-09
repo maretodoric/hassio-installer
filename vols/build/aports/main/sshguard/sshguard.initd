@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+supervisor=supervise-daemon
+
+name="SSHGuard"
+description="Protects hosts from brute-force attacks against SSH and other services"
+command="/usr/sbin/sshguard"
+
+command_args="$SSHGUARD_OPTS"
+
+depend() {
+	after iptables
+	use logger
+}

@@ -1,0 +1,35 @@
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+pkgname=kactivities-stats
+pkgver=5.95.0
+pkgrel=1
+arch="all !armhf" # armhf blocked by qt5-qtdeclarative
+pkgdesc="A library for accessing the usage data collected by the activities system"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-only OR LGPL-3.0-only"
+depends_dev="boost-dev kconfig-dev kactivities-dev graphviz-dev qt5-qttools-dev qt5-qtdeclarative-dev"
+makedepends="$depends_dev extra-cmake-modules doxygen qt5-qtbase-dev samurai"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kactivities-stats-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+6521afdc80df8d3d4612ca220461e750f992b6a7ce2700efba8fc9e3883736a73c6707e036c63b625585ab59c88266f1115dde3578ba5a00625bb48366e1cbac  kactivities-stats-5.95.0.tar.xz
+"

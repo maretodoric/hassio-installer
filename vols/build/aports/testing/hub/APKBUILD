@@ -1,0 +1,50 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Eivind Uggedal <eu@eju.no>
+# Maintainer: Roberto Oliveira <robertoguimaraes8@gmail.com>
+pkgname=hub
+pkgver=2.14.2
+pkgrel=6
+pkgdesc="Extends git with extra features for GitHub"
+url="https://hub.github.com/"
+arch="all"
+license="MIT"
+makedepends="go util-linux bash ca-certificates groff"
+options="net chmod-clean"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	$pkgname-fish-completion
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/github/hub/archive/v$pkgver.tar.gz"
+
+builddir="$srcdir/src/github.com/github/hub"
+
+prepare() {
+	mkdir -p "${builddir%/*}"
+	mv $pkgname-$pkgver "$builddir"
+	default_prepare
+}
+
+build() {
+	export GOPATH="$srcdir"
+	make
+	make man-pages
+}
+
+check() {
+	bin/hub --version
+}
+
+package() {
+	make PREFIX="$pkgdir"/usr install
+	install -Dm644 "$builddir"/etc/hub.bash_completion.sh \
+		"$pkgdir"/usr/share/bash-completion/completions/$pkgname
+	install -Dm644 "$builddir"/etc/$pkgname.zsh_completion \
+		"$pkgdir"/usr/share/zsh/site-functions/_$pkgname
+	install -Dm644 "$builddir"/etc/$pkgname.fish_completion \
+		"$pkgdir"/usr/share/fish/completions/$pkgname.fish
+}
+
+sha512sums="4809d12966cc983f42c8aef482e07bc4226e25fc4deba838e418664ce14ac9d2ac42842d0721a46466a80c0e492392542ecfaaccc2cea0efdd60df8b60a3ca02  hub-2.14.2.tar.gz"

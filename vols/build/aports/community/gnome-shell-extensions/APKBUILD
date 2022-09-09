@@ -1,0 +1,33 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-shell-extensions
+pkgver=42.1
+pkgrel=0
+pkgdesc="collection of extensions for GNOME Shell"
+url="https://wiki.gnome.org/Projects/GnomeShell/Extensions"
+# s390x and riscv64 blocked by mozjs78
+arch="noarch !s390x !riscv64"
+license="GPL-2.0-or-later"
+makedepends="meson sassc mozjs78-dev gettext-dev"
+subpackages="$pkgname-lang"
+source="https://download.gnome.org/sources/gnome-shell-extensions/${pkgver%.*}/gnome-shell-extensions-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dextension_set=all \
+		-Dclassic_mode=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+b139400d239be2dbc7685afc666d0b17ab187b68fa2631b586b0e04bf05de3d59ac70d2f692ade8e0003fea99f207b05871deab3898ba34586521dda747970c3  gnome-shell-extensions-42.1.tar.xz
+"

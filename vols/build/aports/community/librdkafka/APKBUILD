@@ -1,0 +1,45 @@
+# Contributor: Bennett Goble <nivardus@gmail.com>
+# Contributor: Mike Milner <milner@blissisland.ca>
+# Maintainer:
+pkgname=librdkafka
+pkgver=1.9.0
+pkgrel=0
+pkgdesc="The Apache Kafka C/C++ library"
+url="https://github.com/edenhill/librdkafka"
+arch="all"
+license="BSD-2-Clause"
+makedepends="
+	bsd-compat-headers
+	cmake
+	cyrus-sasl-dev
+	lz4-dev
+	openssl-dev
+	rapidjson-dev
+	samurai
+	zlib-dev
+	zstd-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/edenhill/librdkafka/archive/v$pkgver.tar.gz"
+options="!check" # a bunch of them fail
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=RelWithDebinfo \
+		-DRDKAFKA_BUILD_EXAMPLES=OFF \
+		-DRDKAFKA_BUILD_TESTS="$(want_check && echo ON || echo OFF)"
+	cmake --build build
+}
+
+check() {
+	ctest --test-dir build --output-on-failure
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+d7bff9ef29befa2cb35b52003f7b7da4425f284600dd268b268a36fb1b915917b26cb1a3e78da40eec78cbb12e2f745d2c1e88ac82f19d2beb38aa20b511438f  librdkafka-1.9.0.tar.gz
+"

@@ -1,0 +1,34 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=cliphist
+pkgver=0.3.1
+pkgrel=3
+pkgdesc="wayland clipboard manager"
+url="https://github.com/sentriz/cliphist"
+arch="all"
+license="GPL-3.0" # does not specify if  -only
+options="!check net" # no testsuite
+depends="wl-clipboard"
+makedepends="go"
+subpackages="$pkgname-fzf::noarch"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sentriz/cliphist/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	go build
+}
+
+package() {
+	install -D -m755 cliphist -t "$pkgdir"/usr/bin/
+}
+
+fzf() {
+	pkgdesc="$pkgdesc with fzf picker"
+	depends="$pkgname=$pkgver-r$pkgrel fzf"
+
+	cd "$builddir"
+	install -D -m755 contrib/cliphist-fzf -t "$subpkgdir"/usr/bin/
+}
+
+sha512sums="
+11416933b2c7e11d271f1e618ae8d18e450212bf2ae3e6bc869c1932b5bd25d4b20aea7ef1b78d152b411fdec28b4339cf5d26a5d30a47103606e3ed128d80d2  cliphist-0.3.1.tar.gz
+"

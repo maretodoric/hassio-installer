@@ -1,0 +1,52 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=py3-lsp-server
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="python implementation of the language server protocol, fork of python-language-server"
+url="https://github.com/python-lsp/python-lsp-server"
+arch="noarch !armhf"  # no py3-qt
+license="MIT"
+depends="py3-jedi py3-pluggy py3-ujson py3-lsp-jsonrpc py3-pydocstyle
+py3-setuptools python3"
+makedepends="py3-setuptools_scm py3-wheel"
+checkdepends="
+	py3-autopep8
+	py3-flake8
+	py3-flaky
+	py3-matplotlib
+	py3-mccabe
+	py3-numpy
+	py3-pandas
+	py3-pycodestyle
+	py3-pyflakes
+	py3-pylint
+	py3-pytest
+	py3-pytest-cov
+	py3-python-versioneer
+	py3-qt5
+	py3-rope
+	py3-yapf
+	"
+source="https://files.pythonhosted.org/packages/source/p/python-lsp-server/python-lsp-server-$pkgver.tar.gz"
+builddir="$srcdir/python-lsp-server-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# deselect'ed tests are broken
+	pytest -v test/ \
+		--deselect test/plugins/test_flake8_lint.py \
+		--deselect test/plugins/test_pylint_lint.py \
+		-k "not test_jedi_completion_environment and not test_symbols_all_scopes_with_jedi_environment"
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+9f53e288b9bdb22575b06ec8a89022f533a323457746ef8e2cb52c84f06ac48b3408b4ebfbf96754ce68cdc9ddf1a745365d5ea21ba188a4372064fc87c1e6f4  python-lsp-server-1.4.0.tar.gz
+"

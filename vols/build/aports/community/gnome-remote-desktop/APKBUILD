@@ -1,0 +1,62 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-remote-desktop
+pkgver=42.2
+pkgrel=0
+pkgdesc="GNOME Remote Desktop - remove desktop server"
+url="https://gitlab.gnome.org/GNOME/gnome-remote-desktop"
+arch="all !s390x" # blocked by pipewire
+license="GPL-2.0-or-later"
+# mesa and libgudev are checkdepends, but they don't get installed
+# due to options="!check"
+makedepends="
+	cairo-dev
+	ffnvcodec-headers
+	freerdp-dev
+	fuse3-dev
+	glib-dev
+	libdrm-dev
+	libepoxy-dev
+	libnotify-dev
+	libsecret-dev
+	libvncserver-dev
+	libxkbcommon-dev
+	meson
+	pipewire-dev
+
+	libgudev-dev
+	mesa-dev
+	"
+checkdepends="
+	adwaita-icon-theme
+	bash
+	dbus
+	gnome-settings-daemon
+	mutter
+	py3-dbus
+	py3-gobject3
+	xvfb-run
+	"
+subpackages="$pkgname-lang"
+options="!check" # Needs a full fat GNOME session
+source="https://download.gnome.org/sources/gnome-remote-desktop/${pkgver%.*}/gnome-remote-desktop-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dsystemd=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	mkdir -p /tmp/runtimedir
+	GSETTINGS_SCHEMA_DIR=output/src/ XDG_RUNTIME_DIR=/tmp/runtimedir meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+620f2119bec845bf93226b1b873519c5609b7b6212232b33de2d1c420160378ad917c7b593b00c3e15a3b3c3788f3300ef89a226952afb6dae40f9fcc6782e16  gnome-remote-desktop-42.2.tar.xz
+"

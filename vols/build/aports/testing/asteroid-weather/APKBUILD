@@ -1,0 +1,39 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-weather
+pkgver=0_git20210517
+pkgrel=0
+_commit="358d8094ff99ae841c25fb563672a182d5851cc4"
+pkgdesc="Default weather app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-weather"
+# armhf blocked by qml-asteroid
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	mapplauncherd
+	nemo-qml-plugin-configuration
+	"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-weather/archive/$_commit/asteroid-weather-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+14abda266d9c1d708a5f34c002b0ff96eaa579ac0e3e69309e7eb8a37a652d8ad5f8ac0bcb9292fdb577d66c8af107e41e49b0be752d2e042c235b892ce8981f  asteroid-weather-358d8094ff99ae841c25fb563672a182d5851cc4.tar.gz
+"

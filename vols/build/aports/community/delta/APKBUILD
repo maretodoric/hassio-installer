@@ -1,0 +1,46 @@
+# Contributor: Aleks Bunin <alpinelinux@compuix.com>
+# Maintainer: Aleks Bunin <alpinelinux@compuix.com>
+pkgname=delta
+pkgver=0.13.0
+pkgrel=0
+pkgdesc="Syntax-highlighting pager for git and diff output"
+url="https://github.com/dandavison/delta"
+license="MIT"
+arch="all !s390x !riscv64" # limited by rust/cargo
+makedepends="
+	cargo
+	libgit2-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/dandavison/delta/archive/refs/tags/$pkgver.tar.gz"
+
+# secfixes:
+#   0.13.0-r0:
+#     - CVE-2022-24713
+
+# Optimize binary for size (4.9 -> 3.7 MiB in v0.12.1).
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/delta "$pkgdir"/usr/bin/delta
+}
+
+sha512sums="
+d7dbaaab345ef3a8db04fb7ce6337d4cb104d148a069d4b47ffbe46c73ebff197a083a7ac061b51196754a5046dcfc1f71b633e8bfead1ebd9324cc624ba4313  delta-0.13.0.tar.gz
+"

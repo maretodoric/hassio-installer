@@ -1,0 +1,126 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Sebastian Wicki <gandro@gmx.net>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=mpd
+pkgver=0.23.7
+case $pkgver in
+*.*.*) _branch=${pkgver%.*};;
+*.*) _branch=$pkgver;;
+esac
+pkgrel=4
+pkgdesc="Music daemon that plays MP3, FLAC, Ogg Vorbis files and Audio CDs"
+url="https://musicpd.org/"
+pkgusers="mpd"
+pkggroups="mpd audio"
+# s390x: limited by pipewire
+arch="all !s390x"
+license="GPL-2.0-or-later"
+makedepends="
+	alsa-lib-dev
+	avahi-dev
+	boost-dev
+	curl-dev
+	expat-dev
+	faad2-dev
+	ffmpeg-dev
+	flac-dev
+	glib-dev
+	gtest-dev
+	icu-dev
+	jack-dev
+	lame-dev
+	libao-dev
+	libcap
+	libcdio-paranoia-dev
+	libid3tag-dev
+	libmad-dev
+	libmodplug-dev
+	libmpdclient-dev
+	libnfs-dev
+	libogg-dev
+	libsamplerate-dev
+	libshout-dev
+	libvorbis-dev
+	meson
+	opus-dev
+	pulseaudio-dev
+	py3-attrs
+	py3-sphinx
+	samba-dev
+	soxr-dev
+	wavpack-dev
+	pipewire-dev
+	fmt-dev
+	"
+checkdepends="gtest"
+install="$pkgname.pre-install"
+subpackages="$pkgname-doc $pkgname-dbg $pkgname-openrc"
+source="https://www.musicpd.org/download/mpd/$_branch/mpd-$pkgver.tar.xz
+	stacksize.patch
+	mpd.initd
+	mpd.confd
+	"
+
+# secfixes:
+#   0:
+#     - CVE-2020-7465
+#     - CVE-2020-7466
+
+build() {
+	abuild-meson \
+		-Dshout=enabled \
+		-Dopus=enabled \
+		-Dmodplug=enabled \
+		-Dnfs=enabled \
+		-Dsmbclient=enabled \
+		-Dffmpeg=enabled \
+		-Dlibmpdclient=enabled \
+		-Dcdio_paranoia=enabled \
+		-Dzeroconf=avahi \
+		-Dtest=true \
+		-Ddocumentation=enabled \
+		-Dwavpack=enabled \
+		-Dpipewire=enabled \
+		-Dsnapcast=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	# mpd attempts to configure real-time scheduling on linux
+	# add the capability which allows doing that
+	# see: https://www.musicpd.org/doc/html/user.html#real-time-scheduling
+	setcap cap_sys_nice+ep "$pkgdir"/usr/bin/mpd
+
+	# provide a config that works by default
+	install -d "$pkgdir"/etc
+	sed	-e 's:\#user.*:user\t\t"mpd":' \
+		-e 's:\#log_file.*:log_file\t\t"syslog":' \
+		doc/mpdconf.example > "$pkgdir"/etc/mpd.conf
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+	install -d -g audio -o mpd -m775 \
+		"$pkgdir"/var/run/mpd \
+		"$pkgdir"/var/log/mpd \
+		"$pkgdir"/var/lib/mpd \
+		"$pkgdir"/var/lib/mpd/.cache \
+		"$pkgdir"/var/lib/mpd/playlists \
+		"$pkgdir"/var/lib/mpd/music
+}
+
+sha512sums="
+2a6b3eb2c8b61a22861ae75fe2f62c8ec6cd391f029438577127e309b910e99d7b735e40afae96d52ed4f161195a0ce7cb89cc51ad45df5a18e04736c16ce3a6  mpd-0.23.7.tar.xz
+f60f6f3e921d20732c1a4c31a97f28660b43fd649e767d6c39661b6a90145231a79ad3f740ae0d706380b245ad040e98b661a513463c54cea161d1f64fc261e0  stacksize.patch
+8547f685adf3cdc7b2aab7bedeed8c72242011c6f1e01750415ac21eba5ecf6b416239f527adbc904f72439c5d476249148cfb89965e33de1be69421e02c18e0  mpd.initd
+41b2467f5b03f5c4dd7003cd5f56f6cfc1f67af7a9aa2538d70360f839625222bdd0c4b04c33e8cd52eeecfc354da3ca22f5aaab8aee357a5774aaf3503594e7  mpd.confd
+"

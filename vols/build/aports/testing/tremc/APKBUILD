@@ -1,0 +1,21 @@
+# Contributor: Dmitry Zakharchenko <dmitz@disroot.org>
+# Maintainer: Dmitry Zakharchenko <dmitz@disroot.org>
+pkgname=tremc
+pkgver=0.9.3
+pkgrel=0
+pkgdesc="curses interface for transmission"
+url="https://github.com/tremc/tremc"
+arch="noarch"
+license="GPL-3.0-only"
+depends="python3"
+options="!check" # no test suite
+subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion"
+source="$pkgname-$pkgver.tar.gz::$url/archive/$pkgver.tar.gz"
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+cbc40ce36eec1f641a6754933e7b009ca3d47e9a2d5091f7677f8005c466f6d0c744023b92e6b5aa93e736828390917c2b5f2f87ba6634d74016960b764467eb  tremc-0.9.3.tar.gz
+"

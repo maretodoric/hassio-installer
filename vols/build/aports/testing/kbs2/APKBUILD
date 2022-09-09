@@ -1,0 +1,55 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=kbs2
+pkgver=0.5.1
+pkgrel=0
+pkgdesc="Secret manager backed by age"
+url="https://github.com/woodruffw/kbs2"
+arch="all !s390x !riscv64" # blocked by cargo
+license="MIT"
+makedepends="cargo libxcb-dev python3"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/woodruffw/kbs2/archive/refs/tags/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cat >> Cargo.toml <<- EOF
+		[profile.release]
+		codegen-units = 1
+		lto = true
+		opt-level = "s"
+		panic = "abort"
+	EOF
+	cargo build --release --frozen
+
+	./target/release/kbs2 --completions bash > kbs2.bash
+	./target/release/kbs2 --completions fish > kbs2.fish
+	./target/release/kbs2 --completions zsh > kbs2.zsh
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 "$builddir"/target/release/kbs2 \
+		"$pkgdir"/usr/bin/kbs2
+	install -Dm644 "$builddir"/kbs2.bash \
+		"$pkgdir"/usr/share/bash-completion/completions/kbs2
+	install -Dm644 "$builddir"/kbs2.fish \
+		"$pkgdir"/usr/share/fish/completions/kbs2.fish
+	install -Dm644 "$builddir"/kbs2.zsh \
+		"$pkgdir"/usr/share/zsh/site-functions/_kbs2
+}
+
+sha512sums="
+91a4a24eca8d0ba4b0f033cfc61e90a98ad0ecf57c5fc3b55cb44d720e45b2aa63429c2596502a30578af7b74190159b65dc47d07381030bd73859c5e24e972c  kbs2-0.5.1.tar.gz
+"

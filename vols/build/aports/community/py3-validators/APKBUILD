@@ -1,0 +1,28 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-validators
+pkgver=0.18.2
+pkgrel=3
+pkgdesc="Python3 Data Validation for Humans"
+url="https://github.com/kvesteri/validators"
+arch="noarch"
+license="MIT"
+depends="python3 py3-six py3-decorator"
+makedepends="py3-setuptools"
+checkdepends="py3-isort py3-pytest py3-flake8"
+source="https://files.pythonhosted.org/packages/source/v/validators/validators-$pkgver.tar.gz"
+builddir="$srcdir/validators-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	py.test-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="8213736508e56b5d4ddaa9c8e707a7ceb398c8b2c41b938d626459d8bf134aa113116f49cef0cd317033a683d18493448ac4107a5f50151899946bbd48197411  validators-0.18.2.tar.gz"

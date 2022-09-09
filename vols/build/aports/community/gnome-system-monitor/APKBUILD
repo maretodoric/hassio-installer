@@ -1,0 +1,34 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-system-monitor
+pkgver=42.0
+pkgrel=0
+pkgdesc="GNOME system monitor"
+url="https://www.gnome.org/"
+arch="all !s390x !riscv64" # limited by librsvg -> rust
+license="GPL-2.0-or-later"
+makedepends="gnome-desktop-dev libgtop-dev gtkmm3-dev
+	libxml2-dev librsvg-dev itstool libxml2-utils libxslt
+	meson polkit-dev libhandy1-dev"
+checkdepends="appstream-glib desktop-file-utils"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/gnome-system-monitor/${pkgver%.*}/gnome-system-monitor-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dsystemd=false \
+		output .
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+880093fd75a87993ff8def1db9f6f090edaad43c6dc08564f61b9dbfa8c10df5e6d6a9a9072737d802503b34ba70de7bf7ef5aab2bf055ea68e795ec11a48bdd  gnome-system-monitor-42.0.tar.xz
+"

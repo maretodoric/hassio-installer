@@ -1,0 +1,42 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=exempi
+pkgver=2.5.2
+pkgrel=4
+pkgdesc="A library to parse XMP metadata"
+url="https://wiki.freedesktop.org/libopenraw/Exempi/"
+arch="all !s390x"
+license="BSD-3-Clause"
+makedepends="expat-dev zlib-dev boost-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+source="https://libopenraw.freedesktop.org/download/exempi-$pkgver.tar.bz2"
+
+# secfixes:
+#   2.5.1-r0:
+#     - CVE-2018-12648
+
+prepare() {
+	default_prepare
+	update_config_sub
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="3a11453a776a379750e8731b802349405966b0b9fd9974e506ff2cf9adfcc9826a9f87f34ad861873431d2d674e437db8e96673c542583aefde8f7a88d11becc  exempi-2.5.2.tar.bz2"

@@ -1,0 +1,57 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=ocaml-findlib
+_pkgname=findlib
+pkgver=1.9.3
+pkgrel=0
+pkgdesc="OCaml package manager"
+url="http://projects.camlcity.org/projects/findlib.html"
+arch="all !riscv64" # ocaml
+license="MIT"
+depends="ocaml ocaml-runtime"
+depends_dev="$pkgname=$pkgver-r$pkgrel"
+makedepends="ocaml-compiler-libs ocaml-ocamldoc m4 ncurses-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://download.camlcity.org/download/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# 32bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	./configure \
+		-bindir /usr/bin \
+		-mandir /usr/share/man \
+		-sitelib /usr/lib/ocaml \
+		-config /etc/$_pkgname.conf \
+		-no-camlp4
+	make -j1 all opt
+}
+
+package() {
+	make install prefix="$pkgdir"
+
+	mkdir -p "$pkgdir"/usr/share/doc/$_pkgname/
+	install -m 644 doc/README doc/QUICKSTART \
+		"$pkgdir"/usr/share/doc/$_pkgname/
+}
+
+dev() {
+	local sitelib="usr/lib/ocaml/$_pkgname"
+
+	default_dev
+
+	cd "$pkgdir"
+	mkdir -p "$subpkgdir"/$sitelib
+	mv $sitelib/*.cmxa \
+		$sitelib/*.mli \
+		$sitelib/Makefile.config \
+		$sitelib/Makefile.packages \
+		"$subpkgdir"/$sitelib/
+}
+
+sha512sums="
+27cc4ce141576bf477fb9d61a82ad65f55478740eed59fb43f43edb794140829fd2ff89ad27d8a890cfc336b54c073a06de05b31100fc7c01cacbd7d88e928ea  findlib-1.9.3.tar.gz
+"

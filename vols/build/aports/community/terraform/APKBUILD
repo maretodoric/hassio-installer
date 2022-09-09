@@ -1,0 +1,45 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Contributor: Gennady Feldman <gena01@gmail.com>
+# Contributor: Sergii Sadovyi <serg.sadovoi@gmail.com>
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Thomas Boerger <thomas@webhippie.de>
+pkgname=terraform
+pkgver=1.2.3
+pkgrel=0
+pkgdesc="Building, changing and combining infrastructure safely and efficiently"
+url="https://www.terraform.io/"
+arch="all"
+license="MPL-2.0"
+makedepends="go"
+checkdepends="openssh-client"
+source="$pkgname-$pkgver.tar.gz::https://github.com/hashicorp/terraform/archive/refs/tags/v$pkgver.tar.gz"
+options="net"
+
+export GOFLAGS="$GOFLAGS -modcacherw -mod=readonly -trimpath"
+export GOPATH="$srcdir"
+
+build() {
+	go build -v -o bin/$pkgname \
+		-ldflags "-X main.GitCommit=v$pkgver -X github.com/hashicorp/terraform/version.Prerelease="
+}
+
+check() {
+	case "$CARCH" in
+	arm*|x86)
+		go list . | xargs -t -n4 \
+			go test -timeout=2m -parallel=4
+		;;
+	*)
+		go test ./...
+		;;
+	esac
+	bin/$pkgname -v
+}
+
+package() {
+	install -Dm755 "$builddir"/bin/$pkgname -t "$pkgdir"/usr/bin
+}
+
+sha512sums="
+f2aa7436ac82fad365fbae22428984c6a62cb9a7ffa339af035c06f5002fae1b3b440265fdb97e0f4a4aeaebf3838f5a05cd3c40bca1a50273f0560ad4482fda  terraform-1.2.3.tar.gz
+"

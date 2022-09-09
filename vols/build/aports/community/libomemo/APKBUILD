@@ -1,0 +1,38 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=libomemo
+pkgver=0.7.1
+pkgrel=0
+pkgdesc="Implements XMPP OMEMO (XEP-0384) in C"
+arch="all"
+url="https://github.com/gkdr/libomemo"
+license="MIT"
+makedepends="
+	glib-dev
+	libgcrypt-dev
+	mxml-dev
+	sqlite-dev
+	"
+checkdepends="cmocka-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/gkdr/libomemo/archive/v$pkgver.tar.gz
+	0001-add-pkg-config-files.patch
+	"
+subpackages="$pkgname-dev"
+
+build() {
+	CFLAGS="-fPIC $CFLAGS" make
+}
+
+check() {
+	make test
+}
+
+package() {
+	DESTDIR="$pkgdir" PREFIX=/usr make install
+	rm -f "$pkgdir"/usr/lib/*.a
+	ln -s libomemo.so.$pkgver "$pkgdir"/usr/lib/libomemo.so
+	ln -s libomemo.so.$pkgver "$pkgdir"/usr/lib/libomemo.so.${pkgver%%.*}
+}
+
+sha512sums="e5769dee4db7be246853e47e29ded9eefad2f62422951ce5dd0c1acee3bb92131c0423f09bc716be0f55fb02c747f07a6d5b2c656bdfeee0ee148252c51a1050  libomemo-0.7.1.tar.gz
+ce4b6671bdf9a2b155a0903a09c03dbc3abfe695cb01351b243d5d522c50322874f8ed67a4ebf2c4593527d4d59cf87958ed6ca9a90d4cb876a700b89e7fe576  0001-add-pkg-config-files.patch"

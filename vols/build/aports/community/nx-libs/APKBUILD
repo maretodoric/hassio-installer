@@ -1,0 +1,63 @@
+# Contributor: Jean-Charles de Longueville <jch@hellea.eu>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=nx-libs
+pkgver=3.5.99.26
+pkgrel=0
+pkgdesc="NoMachine libraries (redistributed by x2go)"
+url="http://x2go.org"
+# riscv64 is not supported
+arch="all !riscv64"
+license="GPL-2.0-or-later"
+depends="font-cursor-misc font-misc-misc"
+makedepends="libx11-dev zlib-dev libjpeg-turbo-dev
+	libpng-dev libfontenc-dev linux-headers
+	libxml2-dev xkbcomp-dev imake
+	bash automake autoconf libtool
+	libxext-dev libxdamage-dev libxrandr-dev
+	libxtst-dev pixman-dev gccmakedep
+	libxfont2-dev libxpm-dev libxcomposite-dev
+	libxinerama-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/ArcticaProject/nx-libs/archive/$pkgver/nx-libs-$pkgver.tar.gz
+	0001-fix-building-with-binutils-2.36.patch
+	xf86bigfont.patch"
+
+prepare() {
+	# Every Makefile has /usr/local as PREFIX, so replace that
+	sed -i -e 's,/usr/local,/usr,' nx-X11/config/cf/site.def
+	default_prepare
+}
+
+build() {
+	make -j1 \
+		PREFIX=/usr \
+		USRLIBDIR=/usr/lib \
+		SHLIBDIR=/usr/lib \
+		CONFIGURE="./configure --prefix=/usr --libdir=/usr/lib --includedir=/usr/include"
+}
+
+package() {
+	make \
+		PREFIX=/usr \
+		DESTDIR="$pkgdir" \
+		NXLIBDIR=/usr/lib/nx \
+		SHLIBDIR=/usr/lib \
+		CONFIGURE="./configure --prefix=/usr --libdir=/usr/lib --includedir=/usr/include" \
+		install
+
+	# remove extras, GL, and other unneeded headers
+	rm -rf "$pkgdir"/usr/include/GL
+	rm -rf "$pkgdir"/usr/include/nx-X11
+	rm -rf "$pkgdir"/usr/include/nx-X11/extensions/XK*.h
+	rm -rf "$pkgdir"/usr/include/nx-X11/extensions/*Xv*.h
+	rm -rf "$pkgdir"/usr/include/nx-X11/extensions/Xres*.h
+	rm -rf "$pkgdir"/usr/include/nx-X11/extensions/XIproto.h
+	rm -rf "$pkgdir"/usr/include/nx-X11/extensions/XI.h
+	rm -rf "$pkgdir"/usr/include/nx-X11/Xtrans
+}
+
+sha512sums="
+1aead6161e4d7b8d7229ff80937935b23ad1f87135a578ae483a00348d0df7de35e9f9b78c47c473fda3ab2cc896ef23e845cc5656344a43520b091af9663211  nx-libs-3.5.99.26.tar.gz
+47f768bf1f55971c3cc9da1c88b9d6029058569bb5990bf4f0c8bd2fa19b55726e136cb2ef4ac85a63242c92e4e536c22258a59f4cf06b256db11b026e62148a  0001-fix-building-with-binutils-2.36.patch
+904aadbf0200cb8d96e5512bcbccf7da21af553f292ce4af56df035fa33e7e4b98fcf385a281a316d0c533bc2917cc7fde523b8212c8de7f4e825d776a43c576  xf86bigfont.patch
+"

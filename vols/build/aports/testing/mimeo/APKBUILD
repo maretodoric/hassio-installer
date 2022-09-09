@@ -1,0 +1,25 @@
+# Contributor: Anjandev Momi <anjan@momi.ca>
+# Maintainer: Anjandev Momi <anjan@momi.ca>
+pkgname=mimeo
+pkgver=2021.11
+pkgrel=0
+pkgdesc="Open files by MIME-type or file name using regular expressions"
+url="https://xyne.dev/projects/mimeo/"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="python3 py3-xdg file shared-mime-info"
+makedepends="py3-setuptools"
+source="https://xyne.dev/projects/mimeo/src/mimeo-$pkgver.tar.xz"
+options="!check" # no upstream checks
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+85843acf42ef92ea1ae86cc7bc6c2291771b42714fbf06da167b7c98b944c0b413199d0c19c29dffd89f12c7ecbe43f96bde7f8da06c7831bb871d47dc35b031  mimeo-2021.11.tar.xz
+"

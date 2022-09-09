@@ -1,0 +1,85 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=prometheus
+pkgver=2.36.2
+pkgrel=0
+pkgdesc="The Prometheus monitoring system and time series database"
+url="https://github.com/prometheus/prometheus"
+arch="all !riscv64" # npm
+license="Apache-2.0"
+install="prometheus.pre-install"
+makedepends="go npm bash"
+options="!check"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/prometheus/prometheus/archive/v$pkgver.tar.gz
+	prometheus.initd
+	prometheus.confd
+	"
+
+# secfixes:
+#   2.27.1-r0:
+#     - CVE-2021-29622
+
+build() {
+	GOLDFLAGS="-X github.com/prometheus/common/version.Version=$pkgver
+		-X github.com/prometheus/common/version.Revision=AlpineLinux
+		-X github.com/prometheus/common/version.Branch=master
+		-X github.com/prometheus/common/version.BuildUser=$USER@$HOSTNAME
+		-X github.com/prometheus/common/version.BuildDate=$(date -u "+%Y%m%d-%H:%M:%S" ${SOURCE_DATE_EPOCH:+-d @$SOURCE_DATE_EPOCH})
+	"
+	if [ -n "$LDFLAGS" ]; then
+		# LDFLAGS (and only LDFLAGS) should be passed to -extldflags.
+		GOLDFLAGS="$GOLDFLAGS -extldflags $LDFLAGS"
+	fi
+
+	# set -j1 to run things in the correct order in makefile
+	# actual go building is still parallel
+	make -j1 assets-compress
+
+	go build \
+		-trimpath \
+		-mod=readonly \
+		-ldflags "$GOLDFLAGS" \
+		-tags netgo,builtinassets \
+		./cmd/prometheus
+	go build \
+		-trimpath \
+		-mod=readonly \
+		-ldflags "$GOLDFLAGS" \
+		./cmd/promtool
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm755 prometheus "$pkgdir"/usr/bin/prometheus
+	install -Dm755 promtool "$pkgdir"/usr/bin/promtool
+
+	install -Dm644 "$srcdir"/prometheus.confd \
+		"$pkgdir"/etc/conf.d/prometheus
+	install -Dm755 "$srcdir"/prometheus.initd \
+		"$pkgdir"/etc/init.d/prometheus
+	install -dm644 "$pkgdir"/var/lib/prometheus/data
+
+	install -Dm644 -t "$pkgdir"/etc/prometheus \
+		documentation/examples/prometheus.yml
+
+	mkdir -p "$pkgdir"/etc/prometheus/console_libraries
+	for file in console_libraries/*
+	do
+		install -Dm644 -t "$pkgdir"/etc/prometheus/console_libraries/ "$file"
+	done
+
+	mkdir -p "$pkgdir"/etc/prometheus/consoles
+	for file in consoles/*
+	do
+		install -Dm644 -t "$pkgdir"/etc/prometheus/consoles/ "$file"
+	done
+}
+
+sha512sums="
+e232d14fe97399badcccdb30d3146161597bcd5519a28e95a0f8e21ff67fe0bf7e1e7434f6fced00a0cef1f047d09f30fa56d03e9c40556d046b53d878744f4d  prometheus-2.36.2.tar.gz
+eb0cebe41782f90079f367832f7c9efa18b99df410506b65b2e0b11fa05f8f2956f68c0fca836664729d50b85fc969a96e99e1d32012fe3c655cddc0b16a7561  prometheus.initd
+24b34e586238d5b331639aa5c43b6a927692f251af2cea2787335eab30d2fc7d46975059595db4697ae0dc1d35b5e23cfc4e4b2e424442c209a05283ca22a239  prometheus.confd
+"

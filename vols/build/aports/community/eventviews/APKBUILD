@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=eventviews
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Library for creating events"
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by polkit -> akonadi
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org/"
+license="GPL-2.0-or-later"
+depends_dev="
+	akonadi-calendar-dev
+	akonadi-dev
+	calendarsupport-dev
+	kcalendarcore-dev
+	kcalutils-dev
+	kcodecs-dev
+	kcompletion-dev
+	kdiagram-dev
+	kguiaddons-dev
+	kholidays-dev
+	ki18n-dev
+	kiconthemes-dev
+	kmime-dev
+	kservice-dev
+	libkdepim-dev
+	qt5-qtbase-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+makedepends="$depends_dev extra-cmake-modules"
+source="https://download.kde.org/stable/release-service/$pkgver/src/eventviews-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+c9d1acbc229b9d3e5a6446fab0dab445de617e6757a160841f6fb9ccea30c8be466ff1873525e875ea68ea78e79d3f8cd0d9dd2365bbeb0b74f00cf33817d4a6  eventviews-22.04.2.tar.xz
+"

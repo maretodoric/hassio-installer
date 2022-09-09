@@ -1,0 +1,41 @@
+# Contributor: August Klein <amatcoder@gmail.com>
+# Maintainer: August Klein <amatcoder@gmail.com>
+pkgname=mednafen
+pkgver=1.27.1
+pkgrel=0
+pkgdesc="A command-line multi-system emulator"
+url="https://mednafen.github.io/"
+arch="all !s390x"
+license="GPL-2.0-only"
+makedepends="alsa-lib-dev flac-dev libogg-dev libsndfile-dev libvorbis-dev
+	lzo-dev sdl2-dev zlib-dev"
+subpackages="$pkgname-lang"
+source="https://mednafen.github.io/releases/files/mednafen-$pkgver.tar.xz"
+builddir="$srcdir"/$pkgname
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+lang() {
+	default_lang
+	mkdir -p "$subpkgdir"/usr/share/$pkgname
+	mv "$subpkgdir"/usr/share/locale "$subpkgdir"/usr/share/$pkgname
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -rf "$pkgdir"/usr/lib/charset.alias
+}
+
+sha512sums="
+f55d86baa8c77fc98aae63a38235eb64f64131f180c40ed1ac7cd2ad845230348fbba05643eb5e6af203e56c39c8011b632d2bcecbd2c9f2c19b2447f6b99e83  mednafen-1.27.1.tar.xz
+"

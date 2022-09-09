@@ -1,0 +1,80 @@
+# Contributor: Nick Black <dankamongmen@gmail.com>
+# Maintainer: Nick Black <dankamongmen@gmail.com>
+pkgname=notcurses
+pkgver=3.0.8
+pkgrel=0
+pkgdesc="blingful character graphics and TUI library"
+url="https://nick-black.com/dankwiki/index.php/Notcurses"
+arch="all"
+license="Apache-2.0"
+# FIXME gpm-libs is still in testing. once it moves to community, dep on it,
+# and add -DUSE_GPM=on to build().
+makedepends="cmake doctest-dev ffmpeg-dev libdeflate-dev libunistring-dev
+	linux-headers ncurses-dev ncurses-terminfo samurai"
+subpackages="$pkgname-dbg $pkgname-static $pkgname-dev $pkgname-doc
+	$pkgname-libs $pkgname-demo ncneofetch ncls $pkgname-view $pkgname-tetris"
+source="https://github.com/dankamongmen/notcurses/archive/v$pkgver/notcurses-$pkgver.tar.gz
+	https://github.com/dankamongmen/notcurses/releases/download/v$pkgver/notcurses-doc-$pkgver.tar.gz
+	"
+
+[ "$CARCH" = "riscv64" ] && options="textrels"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DUSE_PANDOC=off \
+		-DUSE_QRCODEGEN=off \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	env TERM=vt100 CTEST_OUTPUT_ON_FAILURE=1 \
+		ninja -C build test
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	for i in 1 3 ; do
+		find "$srcdir" -maxdepth 1 -type f -iname \*.$i -exec echo "$pkgdir"/usr/share/man/man$i {} \;
+		find "$srcdir" -maxdepth 1 -type f -iname \*.$i -exec install -Dm644 -t "$pkgdir"/usr/share/man/man$i {} \;
+	done
+}
+
+libs() {
+	amove usr/lib/libnotcurses*.so.*
+}
+
+demo() {
+	amove usr/bin/notcurses-demo
+	amove usr/bin/notcurses-tester
+	amove usr/bin/notcurses-info
+	amove usr/share/notcurses
+}
+
+ncneofetch() {
+	amove usr/bin/ncneofetch
+}
+
+ncls() {
+	amove usr/bin/ncls
+}
+
+view() {
+	amove usr/bin/ncplayer
+}
+
+tetris() {
+	amove usr/bin/nctetris
+}
+
+sha512sums="
+ed019daea4cc462043876d61c7798c7aa6a39e70671158388c8a108426172cefd7fd3dbac90d1a0eee1e26c9c1a7b16c98d49bd8be02fd39650dbdda67e545bb  notcurses-3.0.8.tar.gz
+ff2d4a5fddfd775d862b4f1b93131d4600c3e15b1044b73a0b24fe5a6ffe6298960c4caab2848c4dc2ba2872d50fba49f86f34433e36b7e3f3782e920497defb  notcurses-doc-3.0.8.tar.gz
+"

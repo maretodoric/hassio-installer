@@ -1,0 +1,46 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=lib3mf
+pkgver=2.2.0
+pkgrel=0
+pkgdesc="A C++ implementation of the 3D Manufacturing Format file standard"
+url="https://github.com/3MFConsortium/lib3mf"
+# "Generating hourglass API bindings and implementation stub" fail on ARM, s390x, and ppc64le
+arch="all !armv7 !armhf !aarch64 !s390x !ppc64le"
+license="BSD-2-Clause"
+subpackages="$pkgname-dev"
+makedepends="
+	cmake
+	libzip-dev
+	ninja
+	util-linux-dev
+	zlib-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/3MFConsortium/lib3mf/archive/v$pkgver.tar.gz"
+options="!check" # Unit tests requires source code of googletest, which is git submodule but not included in the release
+
+build() {
+	cmake -B build \
+		-G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_INCLUDEDIR=include/lib3mf \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DUSE_INCLUDED_ZLIB=OFF \
+		-DUSE_INCLUDED_LIBZIP=OFF \
+		-DLIB3MF_TESTS=FALSE
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	# fix Cflags in lib3mf.pc
+	sed -e 's!Cflags: -I${includedir}!Cflags: -I${includedir} -I${includedir}/Bindings/C -I${includedir}/Bindings/Cpp!' \
+	    -i "$pkgdir"/usr/lib/pkgconfig/lib3mf.pc
+
+	# some packages expect lib3MF.pc instead of lib3mf.pc
+	ln -s lib3mf.pc "$pkgdir"/usr/lib/pkgconfig/lib3MF.pc
+}
+
+sha512sums="
+2a9ee92312396b8966967a7ed696c58c69a77438f94432ad071659adc8c9d12fba34a3cf3d8c8d3ad3b26c12c9a89f4d8645e6f396987dc05b04952b004a1f07  lib3mf-2.2.0.tar.gz
+"

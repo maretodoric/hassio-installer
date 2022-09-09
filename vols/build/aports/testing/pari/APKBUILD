@@ -1,0 +1,36 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=pari
+pkgver=2.13.3
+pkgrel=0
+pkgdesc="computer algebra system designed for fast computations in number theory"
+url="https://pari.math.u-bordeaux.fr/"
+arch="all !x86 !armv7 !armhf" # x86/armv7/armhf failed test matsnf-sta and matsnf-dyn
+license="GPL-2.0-or-later"
+makedepends="gmp-dev readline-dev perl"
+checkdepends="diffutils" # BusyBox diff: unrecognized option: c
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://pari.math.u-bordeaux.fr/pub/pari/unix/pari-$pkgver.tar.gz"
+
+build() {
+	export CFLAGS="$CFLAGS -flto" # reduce speed losses under pthread
+	./Configure \
+		--prefix=/usr \
+		--mt=pthread \
+		--with-readline \
+		--with-gmp \
+		--graphic=svg
+	make all
+}
+
+check() {
+	make test-all
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+16cc20e44bc9b408798a86ffc31f8096e5adc01e0b8f7620e3d03201d71ddbe1d1bfecb22ab69c5b03270e9e97657042de29bb2055173b0d4cf169ec4373972b  pari-2.13.3.tar.gz
+"

@@ -1,0 +1,26 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-setuptools-lint
+pkgver=0.6.0
+pkgrel=3
+pkgdesc="Setuptools plugin for Git"
+url="https://github.com/johnnoone/setuptools-pylint"
+arch="noarch"
+license="BSD"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/s/setuptools-lint/setuptools-lint-$pkgver.tar.gz"
+builddir="$srcdir"/setuptools-lint-$pkgver
+
+replaces="py-setuptools-lint" # Backwards compatibility
+provides="py-setuptools-lint=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="d36c10bab45672b3c7d92391c8f1ae297a483500654e8b31a312587c9d9355a74beddb466ea952fa4cc8bc035c4f631536eeefd61ae159f807767f61fabc72d4  setuptools-lint-0.6.0.tar.gz"

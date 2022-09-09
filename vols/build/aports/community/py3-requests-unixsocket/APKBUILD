@@ -1,0 +1,34 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-requests-unixsocket
+pkgver=0.3.0
+pkgrel=0
+pkgdesc="Use requests to talk HTTP via a UNIX domain socket"
+url="https://github.com/msabramo/requests-unixsocket"
+arch="noarch"
+license="Apache-2.0"
+depends="py3-requests"
+makedepends="py3-pbr py3-setuptools"
+checkdepends="py3-pytest py3-waitress"
+source="https://files.pythonhosted.org/packages/source/r/requests-unixsocket/requests-unixsocket-$pkgver.tar.gz"
+builddir="$srcdir/requests-unixsocket-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# remove tests
+	rm -rf "$pkgdir"/usr/lib/python3*/site-packages/requests_unixsocket/test*
+	rm -rf "$pkgdir"/usr/lib/python3*/site-packages/requests_unixsocket/__pycache__/test*
+}
+
+sha512sums="
+21c887b0c3fa526a2debb3960e0ea4dc3b3015cdd517459b6484501176321408d1b4c87dd2840c7d8b71d08fa9114f655ae03f8bc9ff1fca33c914900ef82f5b  requests-unixsocket-0.3.0.tar.gz
+"

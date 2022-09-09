@@ -1,0 +1,44 @@
+# Contributor: Dmitry Zakharchenko <dmitz@disroot.org>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=elinks
+pkgver=0.15.0
+pkgrel=0
+pkgdesc="Advanced and well-established feature-rich text mode web browser"
+url="http://elinks.or.cz/"
+arch="all"
+license="GPL-2.0"
+makedepends="automake autoconf zlib-dev bzip2-dev openssl-dev expat-dev gettext-dev"
+subpackages="$pkgname-doc $pkgname-lang"
+source="$pkgname-$pkgver.tgz::https://github.com/rkd77/elinks/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--without-included-gettext \
+		--enable-256-colors \
+		--enable-html-highlight \
+		--with-zlib
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm "$pkgdir"/usr/lib/charset.alias
+	#fix conflict with gettext
+	rm "$pkgdir"/usr/share/locale/locale.alias
+}
+
+sha512sums="
+e54f8ffe20577d7b82498ddeeb1fe3b10c3e4c88e01a84ea70fbf0f4689e0b44b7c7f17fe8a439ec2bb1fba817acfef9a47f2c93a55bf90af4018ac81f674c17  elinks-0.15.0.tgz
+"

@@ -1,0 +1,35 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=quazip
+pkgver=1.3
+pkgrel=0
+pkgdesc="C++ wrapper for the Gilles Vollant's ZIP/UNZIP C package"
+options="!check" # Testsuite only available with qmake not cmake
+url="https://github.com/stachenov/quazip"
+arch="all"
+# Has custom static linking exception
+license="LGPL-2.1-or-later WITH custom-static-linking-exception"
+makedepends="qt5-qtbase-dev cmake"
+subpackages="$pkgname-dev $pkgname-doc"
+source="quazip-$pkgver.tar.gz::https://github.com/stachenov/quazip/archive/v$pkgver.tar.gz"
+replaces="quazip-qt5"
+
+build() {
+	cmake -B build . \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_WITH_QT4:BOOL=OFF \
+		-DCMAKE_CXX_FLAGS="$CFLAGS -fPIC"
+	make -C build
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+	install -Dm644 COPYING "$pkgdir"/usr/share/licenses/$pkgname/COPYING
+	rm -f "$pkgdir"/usr/lib/*.a
+}
+
+sha512sums="
+3861a9084059576ff2690e8b911394b0286a60542ab021a4cc588537a60ea3a186ed7903c76544698001fa383dfd0de96bdfed433abaefc44158d3b30ab16fe2  quazip-1.3.tar.gz
+"

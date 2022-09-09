@@ -1,0 +1,31 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=py3-funcy
+_pkgname=funcy
+pkgver=1.17
+pkgrel=0
+pkgdesc="A fancy and practical functional tools"
+url="https://github.com/Suor/funcy"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+checkdepends="py3-pytest py3-whatever"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Suor/funcy/archive/$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m pytest .
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1205c4f9fb70f82e7ce90afdef892647284f69ece94a44991aca75ac640ad11ea8c11a6288330a01d8cac1f9587531a3ed5c2cf55af920456f93226bf31ba494  py3-funcy-1.17.tar.gz
+"

@@ -1,0 +1,96 @@
+# Contributor: Henrik Riomar <henrik.riomar@gmail.com>
+# Contributor: Antoine Fontaine <antoine.fontaine@epfl.ch>
+# Contributor: Drew DeVault <sir@cmpwn.com>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=sway
+pkgver=1.7
+pkgrel=2
+pkgdesc="i3 compatible window manager for Wayland"
+url="https://swaywm.org"
+arch="all"
+license="MIT"
+options="!check" # no test suite
+depends="swaybg"
+makedepends="cairo-dev
+	gdk-pixbuf-dev
+	json-c-dev
+	libevdev-dev
+	libinput-dev
+	libxkbcommon-dev
+	linux-pam-dev
+	meson
+	ninja
+	pango-dev
+	pcre2-dev
+	scdoc
+	wayland-dev
+	wayland-protocols
+	wlroots-dev
+	eudev-dev
+	"
+subpackages="
+	$pkgname-dbg
+	$pkgname-doc
+	$pkgname-wallpapers::noarch
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	$pkgname-fish-completion
+	grimshot::noarch
+	grimshot-doc:grimshot_doc:noarch
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/swaywm/sway/archive/$pkgver.tar.gz
+	sway.desktop
+	remove-aports-git-version.patch
+	"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	install -D -m644 "$srcdir"/sway.desktop \
+		"$pkgdir"/usr/share/wayland-sessions/sway.desktop
+
+	# move fish completion files where they are expected
+	mv "$pkgdir"/usr/share/fish/vendor_completions.d "$pkgdir"/usr/share/fish/completions
+}
+
+wallpapers() {
+	pkgdesc="Wallpapers for Sway"
+	license="CC0-1.0"
+	install_if="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/share/backgrounds
+}
+
+grimshot() {
+	pkgdesc="Script for taking screenshots with grim and slurp on Sway"
+	depends="
+		cmd:grim
+		cmd:jq
+		cmd:notify-send
+		cmd:slurp
+		cmd:wl-copy
+		"
+
+	install -Dm755 "$builddir"/contrib/grimshot \
+		-t "$subpkgdir"/usr/bin
+}
+
+grimshot_doc() {
+	install -Dm644 "$builddir"/contrib/grimshot.1 \
+		-t "$subpkgdir"/usr/share/man/man1
+
+	default_doc
+	pkgdesc="Documentation for grimshot"
+	install_if="docs ${subpkgname%-doc}=$pkgver-r$pkgrel"
+}
+
+sha512sums="
+028cf5d504d5914bfb78d44156d6a290de660c5ed0638f4e2c56e5be76db9b0baeda035e1fa1ae23559016bd7e4312f7ff70c2fb4904df25358577c1a3d21243  sway-1.7.tar.gz
+c9bc08fbd9d059c037ad1e3b7ab5e91bcde27dce248cc558c1f126b01c85b1d0d4ed4bb10e3f27bc818a06e60a81f19478b95529d4eeb32036e2c6ea9f29db36  sway.desktop
+3081f34ff88be38889ace94489ff4dc97a3d2d8402a6f2e83e968b991db478b7d3329d1685697898d8e43761e83be0d7c348a5fee45fe41dbb77521cda7b5a72  remove-aports-git-version.patch
+"

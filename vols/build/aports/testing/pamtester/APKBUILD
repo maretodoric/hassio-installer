@@ -1,0 +1,35 @@
+# Contributor: Fabio Napoleoni <f.napoleoni@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=pamtester
+pkgver=0.1.2
+pkgrel=2
+pkgdesc="Command line tool to test PAM configuration"
+url="http://pamtester.sourceforge.net/"
+arch="all"
+license="BSD-3-Clause"
+depends="linux-pam"
+makedepends="$depends_dev linux-pam-dev"
+subpackages="$pkgname-doc"
+source="https://netix.dl.sourceforge.net/project/pamtester/pamtester/$pkgver/pamtester-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	update_config_sub
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="baf4786ad735d73bce8f351071e658cffa5fa45dcf67045827f998555e6cff2bd7ff88dd751ab0198b7b1ecfb9c37ffc8ad0bcc5def098ea7143241a3d501168  pamtester-0.1.2.tar.gz"

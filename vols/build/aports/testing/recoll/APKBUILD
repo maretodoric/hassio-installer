@@ -1,0 +1,59 @@
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=recoll
+pkgver=1.31.0
+pkgrel=1
+pkgdesc="Desktop full-text search tool"
+url="https://www.lesbonscomptes.com/recoll/"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	file
+	libx11-dev
+	libxslt-dev
+	qt5-qtbase-dev
+	xapian-core-dev
+	zlib-dev
+	aspell-dev
+	"
+subpackages="$pkgname-doc"
+source="http://www.lesbonscomptes.com/recoll/recoll-$pkgver.tar.gz
+	xattrs.patch
+	fstreewalk.diff
+	"
+
+prepare() {
+	default_prepare
+	patch -p2 -i "$srcdir/fstreewalk.diff"
+	for file_ext in h cpp; do
+		sed -i 's/u_int64_t/uint64_t/g' utils/md5.$file_ext
+		sed -i 's/u_int32_t/uint32_t/g' utils/md5.$file_ext
+		sed -i 's/u_int8_t/uint8_t/g' utils/md5.$file_ext
+	done
+}
+
+build() {
+	QMAKE=qmake-qt5 \
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--disable-python-module \
+		--disable-python-chm \
+		--disable-webkit
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+check() {
+	make check
+}
+
+sha512sums="
+1a740cdabab158737461ab8f097ece79844e1f0b64285871217049c0619df400d99db18eac8942e1986def555c5ab8364f3320eb403d150b061126cbc3be2116  recoll-1.31.0.tar.gz
+ad482352fb92077284a87ebb9bc2cd0c9aa093358d43c4d768cb6cd9a2c610e215263d555bd3d23aadbf2e1025e3b886723e7b50edfab6974328931b3b194188  xattrs.patch
+35b7de8f0b869f83f87b83b7b05edb935c50ec5d216e5d1b60027f4f960e16f2725b0950b4290c532707e47914a6065a72b96504772593a5fb0b2b96d4e75d0d  fstreewalk.diff
+"

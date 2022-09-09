@@ -1,0 +1,75 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ktorrent
+pkgver=22.04.2
+pkgrel=1
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by polkit -> plasma-workspace
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kde.org/applications/internet/org.kde.ktorrent"
+pkgdesc="A powerful BitTorrent client for KDE"
+license="GPL-2.0-or-later"
+makedepends="
+	boost-dev
+	extra-cmake-modules
+	karchive-dev
+	kcmutils-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdnssd-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kitemviews-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kparts-dev
+	kplotting-dev
+	kross-dev
+	ktextwidgets-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libktorrent-dev
+	phonon-dev
+	plasma-workspace-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	samurai
+	solid-dev
+	syndication-dev
+	taglib-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/ktorrent-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	# The infowidget plugin is disabled due to an incompatibility with musl
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DENABLE_INFOWIDGET_PLUGIN=FALSE
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# ipblocklisttest requires itself installed
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "ipblocklisttest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+8953e7bed3b24031941b1eb8bd09f0b62f6efd6b9bca228ba773f260c76f716f7535947f0fc01e285e257ed71e82a740cd976c41b4e9de76e54e75d7f7ffe076  ktorrent-22.04.2.tar.xz
+"

@@ -1,0 +1,40 @@
+# Contributor: Tiago Ilieve <tiago.myhro@gmail.com>
+# Maintainer: Tiago Ilieve <tiago.myhro@gmail.com>
+pkgname=gron
+pkgver=0.7.1
+pkgrel=1
+pkgdesc="Make JSON greppable"
+url="https://github.com/tomnomnom/gron"
+arch="all"
+license="MIT"
+makedepends="go>=1.11"
+source="gron-$pkgver.tar.gz::https://github.com/tomnomnom/gron/archive/v$pkgver.tar.gz"
+
+export GOPATH="$srcdir/go"
+export GOCACHE="$srcdir/go-build"
+export GOTEMPDIR="$srcdir/go"
+
+export GOFLAGS="$GOFLAGS -modcacherw"
+
+prepare() {
+	default_prepare
+
+	# required for ppc64le
+	go get -d golang.org/x/sys/unix@v0.0.0-20210603125802-9665404d3644
+}
+
+build() {
+	go build -v -ldflags "-s -w -X main.gronVersion=$pkgver" -o gron
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 ./gron "$pkgdir"/usr/bin/gron
+}
+
+sha512sums="
+8bce1915577b12cdd4105874368a8c71240a8437c402fc515598b204f8d84ade3ecc6d3bccac820683bf6fea8cf6dad2e3be7f3a3b2281af35d07524975f51ee  gron-0.7.1.tar.gz
+"

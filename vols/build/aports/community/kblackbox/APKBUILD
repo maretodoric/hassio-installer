@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kblackbox
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kxmlgui
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/games/org.kde.kblackbox"
+pkgdesc="A game of hide and seek played on a grid of boxes"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	karchive-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	ki18n-dev
+	ktextwidgets-dev
+	kxmlgui-dev
+	libkdegames-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kblackbox-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+2bd7ec2f2907aaaeefcc2adcef63751bec8a482c41a06a20d69872086d420bec64602ba81410ff3f85e77ba5f77f84d2cd02ffde42c6dec6919cb236ee868ce6  kblackbox-22.04.2.tar.xz
+"

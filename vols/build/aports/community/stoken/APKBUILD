@@ -1,0 +1,46 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=stoken
+pkgver=0.92
+pkgrel=3
+pkgdesc="RSA SecurID-compatible software token for Linux/UNIX systems"
+url="https://github.com/cernekee/stoken"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="autoconf automake bash libtool libxml2-dev nettle-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/cernekee/stoken/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	sed -i s:/bin/bash:/bin/sh:g ./autogen.sh
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--datadir=/usr/share \
+		--disable-static
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR=$pkgdir install
+}
+
+dev() {
+	default_dev
+	cd "$builddir"
+	rm "$subpkgdir"/usr/share/doc/stoken/*
+	rmdir "$subpkgdir"/usr/share/doc/stoken
+	rmdir "$subpkgdir"/usr/share/doc
+}
+
+sha512sums="
+b41262320c24e487ece884fc431d835c787f057947a92e3d57ed2047bc02b576b072e8a69f4b58b47ab1f913b5ae8c3ee8108d3b55c1477f15848420b668fea3  stoken-0.92.tar.gz
+"

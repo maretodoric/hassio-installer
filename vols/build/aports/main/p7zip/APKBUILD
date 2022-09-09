@@ -1,0 +1,69 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=p7zip
+pkgver=17.04
+pkgrel=2
+pkgdesc="Command-line port of the 7zip compression utility"
+url="https://github.com/jinfeihan57/p7zip"
+# armhf: ftbfs, sigbus
+arch="all !armhf"
+license="LGPL-2.0-or-later"
+subpackages="$pkgname-doc"
+makedepends="
+	bash
+	nasm
+	yasm
+	"
+source="https://github.com/jinfeihan57/p7zip/archive/v$pkgver/p7zip-v$pkgver.tar.gz"
+
+case "$CARCH" in
+	s390x) options="$options !check";; # dealocks on s390x
+esac
+
+# secfixes:
+#   16.02-r3:
+#     - CVE-2018-5996
+#     - CVE-2018-10115
+#   16.02-r2:
+#     - CVE-2017-17969
+#   16.02-r1:
+#     - CVE-2016-9296
+
+prepare() {
+	default_prepare
+
+	local makefile="makefile.linux_any_cpu_gcc_4.X"
+	case "$CARCH" in
+		x86)    makefile="makefile.linux_x86_asm_gcc_4.X" ;;
+		x86_64) makefile="makefile.linux_amd64_asm" ;;
+	esac
+
+	ln -sf $makefile makefile.machine
+
+	sed -e "s,g++,${CXX:-g++}," -i makefile.machine
+	sed -e "s,gcc,${CC:-gcc}," -i makefile.machine
+}
+
+build() {
+	make all3 OPTFLAGS="$CXXFLAGS -O2"
+}
+
+check() {
+	make test
+}
+
+package() {
+	make install DEST_DIR="$pkgdir" DEST_HOME="/usr" \
+		DEST_MAN="/usr/share/man" \
+		DEST_SHARE_DOC="/usr/share/doc/$pkgname"
+
+	install -Dm755 contrib/gzip-like_CLI_wrapper_for_7z/$pkgname \
+		"$pkgdir"/usr/bin/$pkgname
+	install -Dm644 contrib/gzip-like_CLI_wrapper_for_7z/man1/$pkgname.1 \
+		"$pkgdir"/usr/share/man/man1/$pkgname.1
+}
+
+sha512sums="
+ad176db5b657b1c39584f6792c47978d94f2f1ccb1cf5bdb0f52ab31a7356b3822f4a922152c4253f4aa7e79166ba052b6592530b7a38f548cd555fe9c008be3  p7zip-v17.04.tar.gz
+"

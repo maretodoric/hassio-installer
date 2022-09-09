@@ -1,0 +1,34 @@
+#!/sbin/openrc-run
+supervisor=supervise-daemon
+
+name="ulogd"
+description="Netfilter userspace logging daemon"
+command="/usr/sbin/ulogd"
+
+extra_started_commands="reload"
+description_reload="Reload configuration"
+
+command_args="$ulogd_opts"
+command_user=root:wheel
+umask=027
+
+depend() {
+	before firewall
+}
+
+checkconfig() {
+	if [ ! -e /etc/ulogd.conf ]; then
+		eerror "/etc/ulogd.conf is missing"
+		return 1
+	fi
+}
+
+reload() {
+	ebegin "Reloading $name"
+	supervise-daemon $RC_SVCNAME --signal HUP
+	eend $?
+}
+
+start_pre() {
+	checkconfig || return $?
+}

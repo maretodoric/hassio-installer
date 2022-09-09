@@ -1,0 +1,99 @@
+# Contributor: Newbyte <newbie13xd@gmail.com>
+# Contributor: Nulo <alpine@nulo.in>
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: Nulo <alpine@nulo.in>
+pkgname=tg_owt
+pkgver=20220623
+pkgrel=0
+_commit="10d5f4bf77333ef6b43516f90d2ce13273255f41"
+_libyuv_commit="fe4a50df8e2a787e2919a8321dbe1412b94b20c6"
+_crc32c_commit="21fc8ef30415a635e7351ffa0e5d5367943d4a94"
+pkgdesc="Telegram Desktop's fork of Google's WebRTC"
+url="https://github.com/desktop-app/tg_owt"
+
+# s390x: due to alleged issues on Big Endian platforms
+# ppc64le: undefined sse2 optimizations
+arch="all !ppc64le !s390x"
+
+license="BSD-3-Clause"
+
+# Sorted according to
+# https://github.com/telegramdesktop/tdesktop/wiki/The-Packaged-Building-Mode
+# https://github.com/desktop-app/tg_owt/pull/55#discussion_r599718405
+# openh264 bundled because packaged is in testing
+# Not specified in the wiki page (see
+# https://github.com/desktop-app/tg_owt/pull/55):
+# pffft bundled because there's no stable ABI and patched
+# rnnoise bundled because "all remaining files are custom"
+# libsrtp bundled because tg_owt uses private APIs
+# libyuv bundled because there's no stable ABI and has many breaking updates
+# crc32c bundled because it isn't packaged and it is unclear if it will work
+# packaged
+depends_dev="
+	abseil-cpp-dev
+	libdrm-dev
+	libepoxy-dev
+	ffmpeg4-dev
+	mesa-dev
+	glib-dev
+	jpeg-dev
+	openssl1.1-compat-dev
+	opus-dev
+	pipewire-dev
+	libvpx-dev
+	libx11-dev
+	libxcomposite-dev
+	libxdamage-dev
+	libxext-dev
+	libxfixes-dev
+	libxrender-dev
+	libxrandr-dev
+	libxtst-dev
+	"
+makedepends="
+	$depends_dev
+	cmake
+	yasm
+	samurai
+	"
+
+subpackages="$pkgname-dev"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/desktop-app/tg_owt/archive/$_commit.tar.gz
+	libyuv-$_libyuv_commit.zip::https://codeload.github.com/catdevnull/libyuv/zip/$_libyuv_commit
+	crc32c-$_crc32c_commit.zip::https://codeload.github.com/google/crc32c/zip/$_crc32c_commit
+	"
+builddir="$srcdir/$pkgname-$_commit"
+
+prepare() {
+	default_prepare
+	mv ../libyuv-$_libyuv_commit/* src/third_party/libyuv
+	mv ../crc32c-$_crc32c_commit/* src/third_party/crc32c/src
+}
+
+build() {
+	# dynamic version has broken linking
+	cmake -B build -G Ninja . \
+		-DTG_OWT_PACKAGED_BUILD=True \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel
+
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6902c65a1be0bcf300f08c274109ed53cdf92b7aff35915045c3989899fc2584cce3fe9df0e8ac29e708fcc575453fe5a6affaea85787f9c4fcc3bcde3b85711  tg_owt-10d5f4bf77333ef6b43516f90d2ce13273255f41.tar.gz
+9c805fcc16a67c25c730d7bb422e467ac673126611fc46f45a06e616801eedf6e47c14fe56dcb36d0cd6fd38ec6376f40fcbe5103617745c6f026d467794b69d  libyuv-fe4a50df8e2a787e2919a8321dbe1412b94b20c6.zip
+f1ceac058fa5be9fbd73f1e97d0cf873703f70f5343bc3de5faca59d8e7f93436d5ba2b02e7348c20298aa0945995c075feb79756ccbc88db0a9cb305a0d9f30  crc32c-21fc8ef30415a635e7351ffa0e5d5367943d4a94.zip
+"

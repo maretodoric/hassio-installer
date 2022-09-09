@@ -1,0 +1,49 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kservice
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Advanced plugin and service introspection"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-only AND LGPL-2.1-or-later"
+depends_dev="kconfig-dev kcoreaddons-dev kcrash-dev kdbusaddons-dev ki18n-dev"
+makedepends="$depends_dev extra-cmake-modules kdoctools-dev doxygen qt5-qttools-dev flex-dev bison samurai"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kservice-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# ksycoca_xdgdirstest, kmimeassociationstest kapplicationtradertest and ksycocathreadtest are broken
+	# ksycocatest requires running X
+	local skipped_tests="("
+	local tests="
+		kapplicationtrader
+		kmimeassociations
+		ksycoca
+		ksycoca_xdgdirs
+		ksyscocathread
+		"
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)test"
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+ce88817238bb8a671b5dc94d934a7dd4df8ce794452968836e60d6ad3781b1d3a25908f82c997a918ed99243579d394fad4a40955653881ac03484e054e8a763  kservice-5.95.0.tar.xz
+"

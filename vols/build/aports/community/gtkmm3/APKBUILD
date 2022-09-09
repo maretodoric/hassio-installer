@@ -1,0 +1,42 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=gtkmm3
+pkgver=3.24.6
+pkgrel=0
+pkgdesc="C++ wrappers for GTK+"
+url="https://www.gtkmm.org/"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="
+	meson
+	gtk+3.0-dev
+	cairomm-dev
+	pangomm-dev
+	gdk-pixbuf-dev
+	atkmm-dev
+	glibmm-dev
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dev"
+source="https://download.gnome.org/sources/gtkmm/${pkgver%.*}/gtkmm-$pkgver.tar.xz"
+builddir="$srcdir/gtkmm-$pkgver"
+
+build() {
+	abuild-meson \
+		-Dbuild-demos=false \
+		-Dbuild-tests=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+d6fc2d0689baca2b968820d1af86cc0b175b6f38f720d315bc50663d30bd0a841da57ac4336abec236542fb2893b28b2de84087419b73aba58b41f07568d4d93  gtkmm-3.24.6.tar.xz
+"

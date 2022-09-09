@@ -1,0 +1,62 @@
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=tvheadend
+pkgver=4.3
+pkgrel=0
+pkgdesc="TV Streaming server for linux"
+url="https://tvheadend.org/"
+arch="all"
+license="GPL-3.0-only"
+makedepends="wget findutils bash git python3 linux-headers bsd-compat-headers
+	coreutils openssl1.1-compat-dev ffmpeg4-dev gettext-dev zlib-dev cmake uriparser-dev"
+pkgusers="tvheadend"
+pkggroups="video"
+install="$pkgname.pre-install"
+options="!check" # no testsuites
+subpackages="$pkgname-doc $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/tvheadend/tvheadend/archive/v$pkgver.tar.gz
+	$pkgname.initd
+	gcc-10.patch
+	update-vendored-libhdhomerun.patch
+	ffmpeg-4.0.patch
+	"
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+build() {
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--enable-libav \
+		--disable-ffmpeg_static \
+		--disable-libx264_static \
+		--disable-libx265_static \
+		--disable-libvpx_static \
+		--disable-libtheora_static \
+		--disable-libvorbis_static \
+		--disable-libfdkaac_static \
+		--disable-libmfx_static \
+		--python=python3 \
+		--nowerror
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -m 755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -d -m 755 -o $pkgusers -g $pkggroups \
+		"$pkgdir"/etc/tvheadend
+	install -d -m 755 -o $pkgusers -g $pkggroups \
+		"$pkgdir"/var/lib/tvheadend \
+		"$pkgdir"/var/log/tvheadend
+}
+
+sha512sums="
+45c1144ad2c7f4a46c1748063115850e7d754427247718a9b93ad523fc5e4128d27eed1fc3376b785aa9109df8a5f37295086859312462c9b0c915fb63b02140  tvheadend-4.3.tar.gz
+8b6463996b9635654cba4458e58cef2970e31c98c1469ccc694276e5542eec451a0859a972b6c056b53d97deb2cef55d701fb1ee3ca980b1606f9126a88ab64f  tvheadend.initd
+34ea7d896c68428a73e8a4e31f898c638f9b9867bc0a9e8a32dd6bbda7ffd3527889d8469113c2897020ceecb989020baf56cf7db99beadc19e6710e388007b4  gcc-10.patch
+46466f10c7d3f9cb743314f905c44e97ffd2f3001eb2b2b1c4c4bde54955896e42531a33cb5fcc1c623a28a3da6404d85b90359c17cb3623d0aef45314ea9b42  update-vendored-libhdhomerun.patch
+d7b4130949712ec3d0d5702f00175628ddee6fc4df983e121135d9caf3c920141d1a4778f91f0a75f12f44e6a98fbbe682a47cd5fb8db5c0c6dfc10fddb73c2a  ffmpeg-4.0.patch
+"

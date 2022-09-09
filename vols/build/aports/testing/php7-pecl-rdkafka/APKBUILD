@@ -1,0 +1,38 @@
+# Contributor: Gennady Feldman <gena01@gmail.com>
+# Maintainer: Gennady Feldman <gena01@gmail.com>
+pkgname=php7-pecl-rdkafka
+_extname=rdkafka
+pkgver=6.0.2
+pkgrel=0
+pkgdesc="A librdkafka bindings for PHP 7 providing a working client for Kafka - PECL"
+url="https://pecl.php.net/package/rdkafka"
+arch="all"
+license="MIT"
+depends="php7-common"
+makedepends="php7-dev file librdkafka-dev"
+source="php-pecl-$_extname-$pkgver.tgz::https://pecl.php.net/get/$_extname-$pkgver.tgz"
+builddir="$srcdir/$_extname-$pkgver"
+
+provides="php7-rdkafka=$pkgver-r$pkgrel" # for backward compatibility
+replaces="php7-rdkafka" # for backward compatibility
+
+build() {
+	phpize7
+	./configure --prefix=/usr --with-php-config=/usr/bin/php-config7
+	make
+}
+
+check() {
+	make NO_INTERACTION=1 REPORT_EXIT_STATUS=1 test TESTS=--show-diff
+}
+
+package() {
+	make INSTALL_ROOT="$pkgdir" install
+	local _confdir="$pkgdir"/etc/php7/conf.d
+	install -d $_confdir
+	echo "extension=$_extname" > $_confdir/$_extname.ini
+}
+
+sha512sums="
+50ef2e2090df81294531f9e1db1389f3d2c509cae271630e241baae255eb45b045150c77c307d7d1cfdda0eef29e674eddbf8666758799637492cf27cb559176  php-pecl-rdkafka-6.0.2.tgz
+"

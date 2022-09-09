@@ -1,0 +1,29 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xdg-dbus-proxy
+pkgver=0.1.4
+pkgrel=0
+pkgdesc="Filtering proxy for D-Bus connections"
+url="https://github.com/flatpak/xdg-dbus-proxy/"
+arch="all"
+license="LGPL-2.1-or-later"
+depends="dbus"
+makedepends="glib-dev docbook-xsl libxslt meson"
+subpackages="$pkgname-doc"
+source="https://github.com/flatpak/xdg-dbus-proxy/releases/download/$pkgver/xdg-dbus-proxy-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+check() {
+	meson test --no-rebuild -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C output
+}
+
+sha512sums="
+d50fa916d07f23e080ab53cf290b5d6db73cfd8262253a48b9f012ce6c182e201d0a67efaeb7f28a844d3ef146aa48936dfbe4279a59b909a6dc4419d5f15b04  xdg-dbus-proxy-0.1.4.tar.xz
+"

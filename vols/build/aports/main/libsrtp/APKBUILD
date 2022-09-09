@@ -1,0 +1,42 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libsrtp
+pkgver=2.4.2
+pkgrel=2
+pkgdesc="implementation of the Secure Real-time Transport Protocol (SRTP)"
+url="https://github.com/cisco/libsrtp"
+arch="all"
+license="BSD-3-Clause"
+makedepends="doxygen libpcap-dev meson ninja openssl-dev"
+subpackages="$pkgname-static $pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/cisco/libsrtp/archive/v$pkgver.tar.gz"
+
+case "$CARCH" in
+	s390x) options="$options !check" ;;
+esac
+
+build() {
+	abuild-meson \
+		-Dcrypto-library=openssl \
+		builddir .
+	meson compile -C builddir
+}
+
+check() {
+	meson test --no-rebuild -v -C builddir
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C builddir
+}
+
+static() {
+	depends=""
+	pkgdesc="$pkgdesc (static library)"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$builddir"/builddir/*.a "$subpkgdir"/usr/lib
+}
+
+sha512sums="
+6e4805e6d34b2050a6f68f629b0b42356b1d27f2cbaa6cc6166e56957609c3d9aa6b723dcc674e5c74180d122d27badd2f9496639ccb1e0c210b9e1f7949d0e2  libsrtp-2.4.2.tar.gz
+"

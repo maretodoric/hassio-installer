@@ -1,0 +1,34 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: André Klitzing <aklitzing@gmail.com>
+pkgname=pngquant
+pkgver=2.17.0
+pkgrel=0
+pkgdesc="Lossy PNG compressor"
+url="https://pngquant.org/"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="libpng-dev lcms2-dev libimagequant-dev bash"
+subpackages="$pkgname-doc"
+source="https://github.com/kornelski/pngquant/archive/$pkgver/pngquant-$pkgver.tar.gz"
+
+[ "$CARCH" = "riscv64" ] && _sse="--disable-sse"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--with-openmp \
+		$_sse
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+7054cb6bdc547a6e00be1ab2363e2fa5367598593359ef23a91f3af8ff210b281e10f8721bc74d86f208f45336cd61292946c17dc5f26d292998eba95978dc0b  pngquant-2.17.0.tar.gz
+"

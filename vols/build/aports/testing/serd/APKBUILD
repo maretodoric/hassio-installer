@@ -1,0 +1,24 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=serd
+pkgver=0.30.10
+pkgrel=0
+pkgdesc="lightweight C library for RDF syntax"
+url="http://drobilla.net/software/serd"
+arch="all"
+license="ISC"
+makedepends="python3"
+subpackages="$pkgname-dev $pkgname-doc"
+source="http://download.drobilla.net/serd-$pkgver.tar.bz2"
+options="!check" # No tests
+
+build() {
+	python3 waf configure --prefix=/usr
+	python3 waf build
+}
+
+package() {
+	python3 waf install --destdir="$pkgdir"
+}
+
+sha512sums="ed7b49abfd3dc3a724b047f5f0cd07b811596330c96d91c0ce90540440f03260e05daee76c3ccccc3d4ca39afbbd4f3d07decbb601730e90c133a09c640c0006  serd-0.30.10.tar.bz2"

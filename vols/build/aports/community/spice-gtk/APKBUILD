@@ -1,0 +1,97 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=spice-gtk
+pkgver=0.40
+pkgrel=0
+pkgdesc="GTK+ widget for SPICE clients"
+url="https://www.spice-space.org/spice-gtk.html"
+arch="all !s390x !riscv64"  # no polkit
+license="LGPL-2.1-or-later"
+depends="libcap-ng"
+makedepends="
+	meson
+	gstreamer-dev
+	gst-plugins-base-dev
+	spice-protocol
+	json-glib-dev
+	gtk+3.0-dev
+	usbredir-dev
+	libusb-dev
+	asciidoc
+	lz4-dev
+	opus-dev
+	glib-dev
+	cyrus-sasl-dev
+	gobject-introspection-dev
+	vala
+	libjpeg-turbo-dev
+	cairo-dev
+	zlib-dev
+	pixman-dev
+	openssl1.1-compat-dev
+	libx11-dev
+	libepoxy-dev
+	libva-dev
+	py3-six
+	py3-parsing
+	perl
+	acl-dev
+	polkit-dev
+	"
+options="suid"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-tools
+	spice-glib:glib"
+source="https://www.spice-space.org/download/gtk/spice-gtk-$pkgver.tar.xz
+	disable-test-relying-on-usb.patch
+	fix-pkgconfig-version.patch
+	"
+
+build() {
+	abuild-meson \
+		-Dgtk=enabled \
+		-Dwebdav=disabled \
+		-Dbuiltin-mjpeg=false \
+		-Dusbredir=enabled \
+		-Dpolkit=enabled\
+		-Dpie=true \
+		-Dintrospection=enabled \
+		-Dvapi=enabled \
+		-Dlz4=enabled \
+		-Dsasl=enabled \
+		-Dopus=enabled \
+		-Dsmartcard=disabled \
+		-Dgtk_doc=disabled \
+		-Dcoroutine=gthread \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+tools() {
+	pkgdesc="$pkgdesc (tooling)"
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+}
+
+glib() {
+	pkgdesc="$pkgdesc (glib library)"
+	mkdir -p "$subpkgdir"/usr/lib \
+		"$subpkgdir"/usr/lib/girepository-1.0/
+	mv "$pkgdir"/usr/lib/*-glib-*.so* \
+		"$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/lib/girepository-1.0/SpiceClientGLib-*.typelib \
+		"$subpkgdir"/usr/lib/girepository-1.0/
+}
+
+sha512sums="
+b6db8b56c5c36158d97b3f7690d18883c4d6076e4ed1de1763fc704f9a2397b60d6170b70882d7d0a977b32be334756b7a27d66849f53e4d3b82abb8a54a0892  spice-gtk-0.40.tar.xz
+49af336eb9c4a785b557b3e0e4e9781bccc9fbfd85d2d98bff6bd57c80d9e49f17b27915c720f49da8670f7ab197496f5a7e2a85cc478a9cb0051b0a11a2bf5f  disable-test-relying-on-usb.patch
+0126de8c1dad557d33c3e70c8c281d4515ef54df99ac282046a7b543cfd765fca7b94ed7f1b27ae48f3b62492936feb74e59e5c653f193515d07267497b740d7  fix-pkgconfig-version.patch
+"

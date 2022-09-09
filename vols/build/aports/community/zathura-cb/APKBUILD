@@ -1,0 +1,33 @@
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=zathura-cb
+pkgver=0.1.10
+pkgrel=0
+pkgdesc="Comic book support for zathura"
+url="https://git.pwmt.org/pwmt/zathura-cb"
+arch="all"
+license="Zlib"
+depends="
+	desktop-file-utils
+	zathura
+	"
+makedepends="
+	libarchive-dev
+	meson
+	ninja
+	zathura-dev
+	"
+source="https://git.pwmt.org/pwmt/zathura-cb/-/archive/$pkgver/zathura-cb-$pkgver.tar.gz"
+options="!check" # no test suite
+
+build() {
+	abuild-meson build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+sha512sums="
+5f0de7b6991ca35996b9fc1d32527618b3d0df813d7803ceb7bfcd24762262ab780b01cc8f8aac5ffeb7ca42fac2ba65fd90f74000c9b1bc686d4c4af6ad2a69  zathura-cb-0.1.10.tar.gz
+"

@@ -1,0 +1,35 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=baobab
+pkgver=42.0
+pkgrel=0
+pkgdesc="A graphical application to analyse disk usage in any Gnome environment"
+url="https://wiki.gnome.org/action/show/Apps/DiskUsageAnalyzer"
+# s390x and riscv64 blocked by rust -> libhandy1
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+makedepends="
+	gettext-dev
+	glib-dev
+	gtk4.0-dev
+	itstool
+	libadwaita-dev
+	meson
+	vala
+	"
+options="!check" # no tests
+subpackages="$pkgname-lang $pkgname-doc"
+source="https://download.gnome.org/sources/baobab/${pkgver%.*}/baobab-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+21837bfe901034ed3450f6937d3ede1e567d16a5ae308db91029dc2ff4bb523b36f9408f7489c6798140de039e928f49969a1ed741027da0ae8377be6352ba08  baobab-42.0.tar.xz
+"

@@ -1,0 +1,46 @@
+# Contributor: Peter Bui <pnutzh4x0r@gmail.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Timo Teräs <timo.teras@iki.fi>
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Sodface <sod@sodface.com>
+pkgname=yt-dlp
+pkgver=2022.06.22.1
+pkgrel=0
+pkgdesc="Command-line program to download videos from YouTube"
+url="https://github.com/yt-dlp/yt-dlp"
+arch="noarch"
+license="Unlicense"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-flake8 py3-nose py3-pytest"
+subpackages="
+	$pkgname-doc
+	$pkgname-zsh-completion
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/yt-dlp/yt-dlp/releases/download/$pkgver/yt-dlp.tar.gz"
+builddir="$srcdir/$pkgname"
+
+build() {
+	python3 setup.py build
+
+	make completions
+}
+
+check() {
+	PYTHON=/usr/bin/python3 make offlinetest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# Install fish completion to the correct directory
+	rm -r "$pkgdir"/usr/share/fish/vendor_completions.d
+	install -Dm644 completions/fish/yt-dlp.fish \
+		-t "$pkgdir"/usr/share/fish/completions
+}
+
+sha512sums="
+a16cb8d8ab894621d00a339301af1377e881a75513a4bfc0f3e11455c4d89db3d408937a90de3a2ef31059db125487a330aa2cc0e574a6b0a6da413c836934ab  yt-dlp-2022.06.22.1.tar.gz
+"

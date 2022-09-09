@@ -1,0 +1,68 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=keyd
+pkgver=2.4.1
+pkgrel=1
+pkgdesc="A key remapping daemon for Linux"
+url="https://github.com/rvaiya/keyd"
+arch="all"
+license="MIT"
+makedepends="cmd:scdoc linux-headers"
+install="$pkgname.pre-install $pkgname.pre-upgrade"
+subpackages="
+	$pkgname-application-mapper:application_mapper:noarch
+	$pkgname-doc
+	$pkgname-openrc
+	"
+source="https://github.com/rvaiya/keyd/archive/v$pkgver/keyd-$pkgver.tar.gz
+	musl-time64.patch
+	fix-makefile.patch
+	$pkgname.initd
+	"
+options="!check"  # doesn't work on CI
+
+prepare() {
+	default_prepare
+
+	sed -i 's/\bsudo systemctl restart keyd\b/doas rc-service keyd restart/' \
+		docs/keyd.scdoc
+
+	sed -i 's|/var/run/|/run/|g' \
+		docs/keyd-application-mapper.scdoc \
+		src/keyd.c
+
+	sed -i '/\bgroupadd keyd\b/d' Makefile
+}
+
+build() {
+	make
+	make man
+}
+
+check() {
+	make test
+}
+
+package() {
+	# Enable installation of quirks file.
+	mkdir -p "$pkgdir"/usr/share/libinput
+
+	make install DESTDIR="$pkgdir"
+
+	install -D -m755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	echo uinput | install -D -m644 /dev/stdin "$pkgdir"/usr/lib/modules-load.d/$pkgname.conf
+}
+
+application_mapper() {
+	pkgdesc="$pkgdesc - application specific remapping"
+	depends="$pkgname=$pkgver-r$pkgrel python3"
+
+	amove usr/bin/keyd-application-mapper
+}
+
+sha512sums="
+164fcd48587b581a546071ea7859a8c37765626e015e02ec99a5707ccdb3df0febc4bcd8f480bc77e8f1e5feec836d07fb6c71a98ee573f7c1a75349e53f6073  keyd-2.4.1.tar.gz
+5c072715b194f0305fdb7d130a2189b4a6fee00ff005321fbf70f4b6b63cb8d0add7e70730b5b0d79ffdd56d6e8eb090b698d45000d1d7cd105a685e9a1be7fe  musl-time64.patch
+733263d8fce869dc52f0c7c28ff7badde718f9191690a3e7252078af5f17b411494ab645be7576157e38209f4ca494fcd043604493515e017a6cf1e85a617006  fix-makefile.patch
+9e909d7d5468e717d8ca3c165bb3846f17f03bb7d1f19c424d7cc0e5ac282f1bad156c34c12b019a00100574e53b21d4245c028e13c662cad7048b3a956ede2c  keyd.initd
+"

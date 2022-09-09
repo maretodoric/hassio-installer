@@ -1,0 +1,49 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=calindori
+pkgver=22.06
+pkgrel=0
+pkgdesc="Calendar for Plasma Mobile"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> plasma-framework
+arch="all !armhf !s390x !riscv64"
+url="https://invent.kde.org/plasma-mobile/calindori"
+license="GPL-3.0-or-later AND LGPL-3.0-or-later AND BSD-2-Clause AND CC-BY-SA-4.0 AND CC0-1.0"
+depends="
+	kirigami2
+	qt5-qtquickcontrols
+	qt5-qtquickcontrols2
+	"
+makedepends="
+	extra-cmake-modules
+	kcalendarcore-dev
+	kconfig-dev
+	ki18n-dev
+	kirigami2-dev
+	kpeople-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	qt5-qttools-dev
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/calindori-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6a56354892431da03f7bcf7f89158f95e27f6ea5c1b9a109ae7d6d04983a38e2aaa41edf2b10e387876f3c590cc0c8c66c4168f7a43d4e4f39f9d733664f6946  calindori-22.06.tar.xz
+"

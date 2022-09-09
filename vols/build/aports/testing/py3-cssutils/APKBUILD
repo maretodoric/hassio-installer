@@ -1,0 +1,33 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-cssutils
+_pkgname=cssutils
+pkgver=2.3.0
+pkgrel=1
+pkgdesc="CSS Cascading Style Sheets library for Python"
+url="http://cthedot.de/cssutils/"
+arch="noarch"
+license="LGPL-3.0-or-later"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/c/cssutils/cssutils-$pkgver.tar.gz
+	remove-setuptools_scm.patch"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+prepare() {
+	default_prepare
+	sed -i "s/%VERSION%/$pkgver/" setup.cfg
+}
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+9919224a61222e860a99ec80e6375a472b89c52af72272c1de7bcd5fd31cf8570a04da7762c62a17a85bef2c41b1c67447583087df4c86c1f8969ad4875a76d2  cssutils-2.3.0.tar.gz
+28ba0759d4cba7ca959b6262bf387b6861e49578351d0b82713ba515c0d7705fa3c134ddad2a2b2c5ca2cc4405c76b0fb370c0145162bb7abf263c0afd8d0651  remove-setuptools_scm.patch
+"

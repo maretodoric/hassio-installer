@@ -1,0 +1,37 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=mate-system-monitor
+pkgver=1.26.0
+pkgrel=0
+pkgdesc="A system monitor for MATE"
+url="https://github.com/mate-desktop/mate-system-monitor"
+arch="all !s390x !riscv64" # limited by librsvg -> rust
+license="GPL-2.0-or-later"
+depends="mate-icon-theme"
+makedepends="gtk+3.0-dev libwnck3-dev gtkmm3-dev libgtop-dev
+	librsvg-dev glibmm-dev itstool linux-headers libxml2-dev
+	libxml2-utils intltool polkit-dev"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/mate-system-monitor-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--enable-static=no \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+90919af4808348f6d6a66a4dddb02f2b9d2dc2ee42100b28baa104a504b0b0a6d488814381a657d682b3f53e0a5cdf99fc0a6142eab86d77ca1d5147da526c58  mate-system-monitor-1.26.0.tar.xz
+"

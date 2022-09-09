@@ -1,0 +1,33 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=dasel
+pkgver=1.24.3
+pkgrel=1
+pkgdesc="Query and modify data structures using selector strings"
+url="https://daseldocs.tomwright.me/"
+license="MIT"
+arch="all"
+makedepends="go"
+source="https://github.com/TomWright/dasel/archive/v$pkgver/dasel-$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+export GOFLAGS="$GOFLAGS -trimpath -modcacherw"
+export CGO_ENABLED=0
+
+build() {
+	go build -ldflags "-s -w
+		-X github.com/tomwright/dasel/internal.Version=$pkgver
+		" ./cmd/dasel
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 dasel "$pkgdir"/usr/bin/dasel
+}
+
+sha512sums="
+fc836413e0e6538102e63f08fb0030ed93fde048d11e98291f22f02ee5d5cff51523f25052b8ef7f268d52c2487086408ddc8547d2e12fb3a672d3a754838ce9  dasel-1.24.3.tar.gz
+"

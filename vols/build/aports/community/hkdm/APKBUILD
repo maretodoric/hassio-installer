@@ -1,0 +1,39 @@
+# Maintainer: Caleb Connolly <caleb@connolly.tech>
+pkgname=hkdm
+pkgver=0.1.8
+pkgrel=0
+pkgdesc="Lighter-weight hotkey daemon"
+url="https://gitlab.com/postmarketOS/hkdm"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le"  # limited by rust/cargo
+license="GPL-3.0-only"
+source="https://gitlab.com/postmarketOS/hkdm/-/archive/$pkgver/hkdm-$pkgver.tar.gz
+	hkdm.openrc
+	hkdm.conf"
+makedepends="cargo libevdev-dev"
+_cargo_opts="--frozen --no-default-features"
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cargo build $_cargo_opts --release
+}
+
+check() {
+	cargo test $_cargo_opts
+}
+
+package() {
+	install -Dm644 "$builddir"/hkdm.example.toml "$pkgdir"/etc/hkdm/config.d/hkdm.toml.example
+	install -Dm644 "$srcdir"/hkdm.conf "$pkgdir"/etc/conf.d/hkdm
+	install -Dm755 target/release/hkdm -t "$pkgdir"/usr/sbin/
+	install -Dm755 "$srcdir"/hkdm.openrc "$pkgdir"/etc/init.d/hkdm
+}
+
+sha512sums="
+baadb5a21498f3d748dc46a9d0e25204fc3b7965dde2b2d54edc54b8cc48020251ade00a6ee274fe0ea5b824e8fe23f3c5188b0de3ef4227c5fef00120c5a5b8  hkdm-0.1.8.tar.gz
+be538eeebeccc2454817a1df11b8ce6063f51df888c852f2e361aa2ebd9ad94b9c82c7c71fa1215be426aa5fa59993e1bb6132c9b2ff352cadc1e2b4125cb392  hkdm.openrc
+8dac666f468bc27fc9b8083f61a6bc0cac493784cd74ac1103fd44daa00103676ea836c48c82bd8cb5772cae07cc42f283b7ff326172cd40e7f91191577788ad  hkdm.conf
+"

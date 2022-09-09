@@ -1,0 +1,41 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-qtwebengine
+pkgver=5.15.5
+pkgrel=0
+pkgdesc="Python 3 bindings for QtWebEngine"
+url="https://www.riverbankcomputing.com/software/pyqtwebengine/intro"
+# ppc64le and s390x are not supported
+# armhf blocked by py3-qt5 -> qt5-qtdeclarative
+# riscv64 blocked by qt5-qtwebengine
+arch="all !ppc64le !s390x !armhf !riscv64"
+license="GPL-2.0-or-later"
+depends="python3"
+makedepends="
+	py3-pyqt-builder
+	py3-qt5
+	py3-sip
+	python3-dev
+	qt5-qtwebengine-dev
+	"
+source="https://pypi.python.org/packages/source/P/PyQtWebEngine/PyQtWebEngine-$pkgver.tar.gz"
+builddir="$srcdir"/PyQtWebEngine-"$pkgver"
+
+build() {
+	sip-build \
+		--no-make \
+		--qmake /usr/lib/qt5/bin/qmake \
+		--api-dir /usr/share/qt5/qsci/api/python
+	make -C build
+}
+
+check() {
+	make -C build check
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" INSTALL_ROOT="$pkgdir" -C build install
+}
+
+sha512sums="
+20eecd479ea757e3bf9855c7dafe0bbbc0cbc61be26509605a5c9a8026e54bb6e362069ecf4be74733dcf6eec154f6ed13933e334e4455b080e687abfd2659fa  PyQtWebEngine-5.15.5.tar.gz
+"

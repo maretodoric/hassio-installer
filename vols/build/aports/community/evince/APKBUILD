@@ -1,0 +1,89 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=evince
+pkgver=42.3
+pkgrel=0
+pkgdesc="simple document viewer for GTK+"
+url="https://wiki.gnome.org/Apps/Evince"
+# s390x and riscv64 blocked by librsvg -> adwaita-icon-theme
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="$pkgname-libs=$pkgver-r$pkgrel adwaita-icon-theme gsettings-desktop-schemas"
+depends_dev="
+	gobject-introspection-dev
+	gtk+3.0-dev
+	libspectre-dev
+	libxml2-dev
+	poppler-dev
+	tiff-dev
+	"
+makedepends="
+	$depends_dev
+	adwaita-icon-theme-dev
+	cairo-dev
+	dbus-dev
+	djvulibre-dev
+	gdk-pixbuf-dev
+	glib-dev
+	gnome-desktop-dev
+	gspell-dev
+	gst-plugins-base-dev
+	gstreamer-dev
+	itstool
+	libarchive-dev
+	libgxps-dev
+	libhandy1-dev
+	libsecret-dev
+	meson
+	nautilus-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-nautilus $pkgname-libs"
+source="https://download.gnome.org/sources/evince/${pkgver%.*}/evince-$pkgver.tar.xz
+	"
+
+# secfixes:
+#   3.32.0-r1:
+#     - CVE-2019-11459
+#   3.24.0-r2:
+#     - CVE-2017-1000083
+
+build() {
+	abuild-meson \
+		-Dsystemduserunitdir=no \
+		-Dgtk_doc=false \
+		output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+nautilus() {
+	pkgdesc="$pkgname (Nautilus extension)"
+	install_if="$pkgname=$pkgver-r$pkgrel nautilus"
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/nautilus "$subpkgdir"/usr/lib
+}
+
+libs() {
+	default_libs
+	mv "$pkgdir"/usr/lib/* "$subpkgdir"/usr/lib/
+}
+
+doc() {
+	default_doc
+	if [ -d "$pkgdir"/usr/share/help ]; then
+		mv "$pkgdir"/usr/share/help "$subpkgdir"/usr/share/
+	fi
+}
+
+sha512sums="
+4ec212e90c3fd259a2afe191592c135938766b11c6891297a10dc34152f69bba9350a467c394ec6cacde5bd16ced02d0c38b7a112dd7d676f53b12fd1b29a62e  evince-42.3.tar.xz
+"

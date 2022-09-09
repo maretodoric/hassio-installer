@@ -1,0 +1,36 @@
+# Contributor: André Klitzing <aklitzing@gmail.com>
+# Maintainer: André Klitzing <aklitzing@gmail.com>
+pkgname=ausweisapp2
+pkgver=1.22.7
+pkgrel=0
+pkgdesc="Official authentication app for German ID card and residence permit"
+url="https://www.ausweisapp.bund.de/"
+arch="all"
+license="EUPL-1.2"
+depends="pcsc-lite pcsc-cyberjack ccid acsccid"
+makedepends="cmake pkgconf pcsc-lite-dev http-parser-dev openssl1.1-compat-dev
+			qt5-qtbase-dev qt5-qtsvg-dev qt5-qtwebsockets-dev qt5-qttools-dev
+			qt5-qtdeclarative-dev qt5-qtquickcontrols2-dev"
+subpackages="$pkgname-doc"
+source="https://github.com/Governikus/AusweisApp2/releases/download/$pkgver/AusweisApp2-$pkgver.tar.gz"
+options="!check" # no upstream tests in release build
+builddir="$srcdir/AusweisApp2-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+ac59ee6d400a41fc8e07b0a9caf962dbd5c0e808036d857c386ca9b5d57b75d79458d3a8d944606312652cc65ac548a8a57a74a6a1b357f97cbcc53ae80af101  AusweisApp2-1.22.7.tar.gz
+"

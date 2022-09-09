@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kopete
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kcmutils
+arch="all !armhf !s390x !riscv64"
+url="https://userbase.kde.org/Kopete"
+pkgdesc="An instant messenger supporting AIM, ICQ, Jabber, Gadu-Gadu, Novell GroupWise Messenger, and more"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	gpgme-dev
+	kcmutils-dev
+	kconfig-dev
+	kcontacts-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdelibs4support-dev
+	kdnssd-dev
+	kdoctools-dev
+	kemoticons-dev
+	khtml-dev
+	ki18n-dev
+	kidentitymanagement-dev
+	kitemmodels-dev
+	knotifyconfig-dev
+	kparts-dev
+	ktexteditor-dev
+	kwallet-dev
+	libkleo-dev
+	qt5-qtbase-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kopete-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+f0e2d50f3e4f408d603721747945fef5bd6eb1034cd7a29058e77dc04edccbf29760dead8e8a7200bc74488b6a36bebbbd0f682677ca815c16aa93faffea4c50  kopete-22.04.2.tar.xz
+"

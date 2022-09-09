@@ -1,0 +1,25 @@
+# Contributor: Sascha Paunovic <azarus@posteo.net>
+# Maintainer: Sascha Paunovic <azarus@posteo.net>
+pkgname=sacc
+pkgver=1.06
+pkgrel=0
+pkgdesc="saccomys, simple console gopher client"
+url="gopher://bitreich.org/1/scm/sacc"
+arch="all"
+license="ISC"
+options="!check" # sacc does not have checks
+makedepends="ncurses-dev libretls-dev"
+subpackages="$pkgname-doc"
+source="ftp://bitreich.org/releases/sacc/sacc-$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make install PREFIX=/usr DESTDIR="$pkgdir"
+}
+
+sha512sums="
+7a895e432e1d28b7d9b2bb2a5326ca32350876a2c80d39dc6c19e75347d72a4847f1aa4ff11f07e8a9adea14ea71b84d70890dcc170ff6ce0b779e1d6586b4fa  sacc-1.06.tar.gz
+"

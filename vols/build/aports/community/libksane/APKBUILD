@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libksane
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x blocked by ktextwidgest, kwallet
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/applications/graphics/"
+pkgdesc="An image scanning library"
+license="LGPL-2.1-only OR LGPL-3.0-only"
+makedepends="
+	extra-cmake-modules
+	ki18n-dev
+	ktextwidgets-dev
+	kwallet-dev
+	kwidgetsaddons-dev
+	qt5-qtbase-dev
+	samurai
+	sane-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/libksane-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+8089670b1fb4926e6e599e5cf4eeaac2f5cabb3d0f00feb7c3a175f8c5238cc82ea30619fc2d0b159d50fa7635b81f95112bca6ead2f0a87ed11d13d01b21f27  libksane-22.04.2.tar.xz
+"

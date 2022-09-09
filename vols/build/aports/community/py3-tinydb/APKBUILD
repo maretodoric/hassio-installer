@@ -1,0 +1,37 @@
+# Contributor: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=py3-tinydb
+pkgver=4.4.0
+pkgrel=1
+pkgdesc="a tiny, document oriented database"
+url="https://github.com/msiemens/tinydb"
+arch="noarch"
+license="MIT"
+makedepends="
+	py3-pytest-runner
+	py3-setuptools
+	"
+checkdepends="
+	py3-pytest
+	py3-pytest-cov
+	py3-yaml
+	"
+source="https://pypi.python.org/packages/source/t/tinydb/tinydb-$pkgver.tar.gz"
+options="!check" # No tests in pypi package
+builddir="$srcdir/tinydb-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+4a7ec7ba0a20136425261ae33f9fd003fcdef796db3bf006b8b20fe5b4dce6f1d5c4ba172034bd5520d577c5517777cd8368084b6646bf978f8987c81ee98a07  tinydb-4.4.0.tar.gz
+"

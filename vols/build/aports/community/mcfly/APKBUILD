@@ -1,0 +1,54 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=mcfly
+pkgver=0.6.0
+pkgrel=0
+pkgdesc="Fly through your shell history"
+url="https://github.com/cantino/mcfly"
+# ppc64le fails to build
+# others are limited by rust/cargo
+arch="x86_64 armv7 armhf aarch64 x86"
+license="MIT"
+makedepends="cargo sqlite-dev"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/cantino/mcfly/archive/v$pkgver/mcfly-$pkgver.tar.gz
+	unbundle-sqlite.patch
+	"
+
+# Reduce size of the mcfly binary.
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="z"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	cargo install --locked --offline --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	install -Dm 644 mcfly.bash "$pkgdir"/usr/share/bash-completion/completions/mcfly
+	install -Dm 644 mcfly.fish "$pkgdir"/usr/share/fish/completions/mcfly.fish
+	install -Dm 644 mcfly.zsh "$pkgdir"/usr/share/zsh/site-functions/_mcfly
+}
+
+sha512sums="
+3ef03edc2478d8f42d3b2bb441e8e7bfd463f47f8e1a7afd8f8d40192f72c3b489b1f1982215c7d902514ee43cd657d5b6a237fd1b2d1329c46d612802b5c2c7  mcfly-0.6.0.tar.gz
+2db998e10b9bb53499176023bb4a2cdcb01b8309a8a510dbf88760fd90ba72c4370b1788dc6fc76c57e80c85154d6921949d9c2bdd2b37a79f349a0da4f4cd1e  unbundle-sqlite.patch
+"

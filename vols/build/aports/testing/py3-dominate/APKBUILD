@@ -1,0 +1,28 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-dominate
+pkgver=2.6.0
+pkgrel=2
+pkgdesc="Library for creating and manipulating HTML documents using an elegant DOM API"
+url="https://github.com/Knio/dominate/"
+arch="noarch"
+license="LGPL-3.0-only"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Knio/dominate/archive/$pkgver.tar.gz"
+builddir="$srcdir/dominate-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	py.test-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="ce32146ab105b5f53e5b1281d3da1166d5704c6972ff294cdb8ecfa69bc88ec49c62998e9e3e58f303389cb6002ae6042e956037a521b118de2d6de35ea712af  py3-dominate-2.6.0.tar.gz"

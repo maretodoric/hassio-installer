@@ -1,0 +1,29 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-hidapi
+pkgver=0.11.2
+pkgrel=0
+pkgdesc="Cython interface for hidapi"
+url="https://github.com/trezor/cython-hidapi"
+arch="all"
+license="GPL-3.0-or-later"
+depends="python3"
+makedepends="py3-setuptools cython libusb-dev python3-dev eudev-dev hidapi-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/trezor/cython-hidapi/archive/$pkgver.tar.gz"
+builddir="$srcdir/cython-hidapi-$pkgver"
+
+build() {
+	python3 setup.py build --with-system-hidapi
+}
+
+check() {
+	python3 setup.py test --with-system-hidapi
+}
+
+package() {
+	python3 setup.py install --with-system-hidapi --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7fadd6368f9ed1bbdc427104f2bf3193cf2fcbdee2972c9d7d61a4457f11b79621f69c858423b43468d990378b6c658e275b21715b61c1361388f3a4a4f55fbf  py3-hidapi-0.11.2.tar.gz
+"

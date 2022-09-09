@@ -1,0 +1,46 @@
+# Contributor: Peter Shkenev <santurysim@gmail.com>
+# Maintainer: Peter Shkenev <santurysim@gmail.com>
+pkgname=care
+pkgver=2.2
+_prootver=5.3.1
+pkgrel=1
+pkgdesc="Comprehensive Archiver for Reproducible Execution"
+url="https://proot-me.github.io/care/"
+arch="aarch64 armhf armv7 x86 x86_64"
+license="GPL-2.0-or-later"
+depends="proot"
+makedepends="
+	bsd-compat-headers
+	libarchive-dev
+	linux-headers
+	py3-docutils
+	talloc-dev
+	talloc-static
+	uthash-dev
+	"
+checkdepends="bash coreutils grep lzop mcookie pythonispython3 strace"
+subpackages="$pkgname-doc"
+source="https://github.com/proot-me/proot/archive/v$_prootver/proot-$_prootver.tar.gz
+	10-tests-musl-compat.patch
+	"
+options="!check"
+builddir="$srcdir"/proot-"$_prootver"
+
+build() {
+	make -C src care GIT=false
+	make -C doc care/man.1
+}
+
+check() {
+	make -C test
+}
+
+package() {
+	install -Dm 0755 "$builddir"/src/care "$pkgdir"/usr/bin/care
+	install -Dm 0644 ./doc/care/man.1 "$pkgdir"/usr/share/man/man1/care.1
+}
+
+sha512sums="
+fdeaa55bda71e4444c8f88160d89b91577b531d37b9e0f9317a983dfefabe154a4f2dc34f389e9fd89da53fe0789e93b156b3e01f75919bcd6e5ca9006b7a288  proot-5.3.1.tar.gz
+d09de6d776072e9991abd04e294e6d36bd1634b9e972294a112526ebf3f63e919d01755de1ecd7253d614b41b07fe6882df8787c638b8576bcf2555abcafa466  10-tests-musl-compat.patch
+"

@@ -1,0 +1,36 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-psutil
+_pkgname=psutil
+pkgver=5.9.1
+pkgrel=0
+pkgdesc="A cross-platform process and system utilities module for Python"
+url="https://github.com/giampaolo/psutil"
+arch="all"
+license="BSD-3-Clause"
+makedepends="linux-headers python3-dev"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-psutil" # Backwards compatibility
+provides="py-psutil=$pkgver-r$pkgrel" # Backwards compatibility
+
+# secfixes:
+#   5.6.7-r0:
+#     - CVE-2019-18874
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1ddb119a10243d17d808417817ec8659d22447f12a4bbc0366c13f6587a4b0b59f4e74f6ac5d1e1a908bb5fd287be630466d32beabcb5008f6a19c24a1557c27  psutil-5.9.1.tar.gz
+"

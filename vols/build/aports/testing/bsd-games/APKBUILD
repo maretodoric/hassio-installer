@@ -1,0 +1,33 @@
+# Contributor: Maxim Karasev <begs@disroot.org>
+# Maintainer: Maxim Karasev <begs@disroot.org>
+pkgname=bsd-games
+pkgver=3.2
+pkgrel=0
+pkgdesc="traditional text mode games from BSD"
+url="https://github.com/msharov/bsd-games"
+arch="all"
+license="BSD-3-Clause"
+makedepends="ncurses-dev coreutils" # configure causes busybox expr error
+subpackages="$pkgname-doc"
+source="https://github.com/msharov/bsd-games/archive/v$pkgver/bsd-games-$pkgver.tar.gz"
+options="!check" # no tests
+
+build() {
+	# some GNU autoconf options are ignored, but it works
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var/lib # it really shouldn't be in /var
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+cf5f5a9e5d215ee553486580f9a7dfc9801d254a2806172df201dfc42ecbb05326db7bc25b7624eb8a8e541ad61ec319d258687609bddae2bc07edcbade2291a  bsd-games-3.2.tar.gz
+"

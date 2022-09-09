@@ -1,0 +1,32 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=lsof
+pkgver=4.95.0
+pkgrel=0
+pkgdesc="LiSt Open Files"
+url="https://github.com/lsof-org/lsof"
+arch="all"
+license="lsof"
+subpackages="$pkgname-doc"
+makedepends="linux-headers"
+source="$pkgname-$pkgver.tar.gz::https://github.com/lsof-org/lsof/archive/$pkgver/lsof-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	sed -i "s|/\* #define\tHASSECURITY\t1 \*/|#define\tHASSECURITY\t1|" \
+		dialects/linux/machine.h
+}
+
+build() {
+	./Configure -n linux
+	make
+}
+
+package() {
+	install -Dm0755 lsof "$pkgdir"/usr/bin/lsof
+	install -Dm0644 Lsof.8 "$pkgdir"/usr/share/man/man8/lsof.8
+}
+
+sha512sums="
+09c5c4b0ea0530e23b98b96df8485f37c2594028b604097a816aee216a8b1a7bc887071e8727cbaf3c765d0992314a5aa49723572cfe926f88806be18a6b8aef  lsof-4.95.0.tar.gz
+"

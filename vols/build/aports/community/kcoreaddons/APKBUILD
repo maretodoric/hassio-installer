@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kcoreaddons
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Addons to QtCore"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-or-later AND (LGPL-2.1-only OR LGPL-3.0-only)"
+depends_dev="qt5-qtbase-dev"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	graphviz
+	qt5-qttools-dev
+	samurai
+	shared-mime-info
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kcoreaddons-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# klistopenfilesjobtest_unix requires >8000 open files
+	local disabled_tests="klistopenfilesjobtest_unix|kdirwatch_qfswatch_unittest|kdirwatch_stat_unittest"
+	case "$CARCH" in
+		s390x) disabled_tests="$disabled_tests|kdirwatch_inotify_unittest";;
+	esac
+
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "($disabled_tests)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+b9b4337a09a600e808ff66a7a4c5de81149213bef7ae420cd71206577c21009539b45e2bd424314c998671e65eee9e3be0d0b7768cc16dcc39c2cd1162df53e8  kcoreaddons-5.95.0.tar.xz
+"

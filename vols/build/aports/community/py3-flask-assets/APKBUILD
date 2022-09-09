@@ -1,0 +1,33 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer:
+pkgname=py3-flask-assets
+pkgver=2.0
+pkgrel=3
+pkgdesc="Flask asset management"
+options="!check" # testsuite doesn't run
+url="https://pypi.python.org/pypi/Flask-Assets"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-flask py3-webassets"
+makedepends="py3-setuptools"
+checkdepends="py3-tox"
+source="https://files.pythonhosted.org/packages/source/F/Flask-Assets/Flask-Assets-$pkgver.tar.gz"
+builddir="$srcdir"/Flask-Assets-$pkgver
+
+replaces="py-flask-assets" # Backwards compatibility
+provides="py-flask-assets=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	tox --sitepackages
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="14823d9b31043a225c049f21e8f58abf5b57cf204690210adbbe4324fbebb423ffaeddefabb0aad2bf21945d084fb9d404f9d0bdaedc6305877275a01d6e8c3b  Flask-Assets-2.0.tar.gz"

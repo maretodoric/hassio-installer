@@ -1,0 +1,37 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gjs
+pkgver=1.72.0
+pkgrel=0
+pkgdesc="GNOME javascript library"
+url="https://wiki.gnome.org/Projects/Gjs"
+# s390x and riscv64 blocked by mozjs91
+arch="all !s390x !riscv64"
+license="MIT AND LGPL-2.0-or-later"
+makedepends="dbus gobject-introspection-dev mozjs91-dev mozjs91
+	gtk+3.0-dev cairo-dev meson libffi>=3.3"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dev"
+options="!check" # test suite does not always pass on all architectures
+source="https://download.gnome.org/sources/gjs/${pkgver%.*}/gjs-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dprofiler=disabled \
+		-Dinstalled_tests=false \
+		output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	# Tests can take a while on armv7
+	xvfb-run meson test -C output -t 10
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+224934eed511052d013cc7c2a29ccf79b14e5ed8c01db8071f07858387d7794b9156abd43ac494a13294248d9b6f2956d21c4e9581a41f5161043dff374f72f9  gjs-1.72.0.tar.xz
+"

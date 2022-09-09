@@ -1,0 +1,54 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=hydrogen
+pkgver=1.1.1
+pkgrel=0
+pkgdesc="Advanced drum machine for GNU/Linux"
+url="http://www.hydrogen-music.org/"
+arch="aarch64 armv7 ppc64le x86 x86_64" # armhf limited by qt5-qtxmlpatterns
+license="GPL-2.0-or-later"
+makedepends="
+	alsa-lib-dev
+	cmake
+	cppunit-dev
+	flac-dev
+	jack-dev
+	ladspa-dev
+	libarchive-dev
+	libsndfile-dev
+	portaudio-dev
+	pulseaudio-dev
+	qt5-qtbase-dev
+	qt5-qttools-dev
+	qt5-qtxmlpatterns-dev
+	samurai
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="hydrogen-$pkgver.tar.gz::https://github.com/hydrogen-music/hydrogen/archive/$pkgver.tar.gz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -G Ninja -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=1 ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+
+sha512sums="
+c5e6bd713a0f9ef3b30bf0ae00bc41fea7494c20342c14c9f41ec05d1fdd3be721ffc3ff92bacd011e3b39a68022ea04daf55e60d334f64a00abef17d892cd37  hydrogen-1.1.1.tar.gz
+"

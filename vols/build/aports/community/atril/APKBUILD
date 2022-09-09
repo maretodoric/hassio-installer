@@ -1,0 +1,42 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=atril
+pkgver=1.26.0
+pkgrel=1
+pkgdesc="A document viewer for MATE"
+url="https://github.com/mate-desktop/atril"
+# s390x and riscv64 blocked by librsvg -> mate-desktop
+# ppc64le blocked by texlive
+arch="all !s390x !riscv64 !ppc64le"
+license="GPL-2.0-or-later"
+depends="mate-icon-theme"
+# make check is broken: https://github.com/mate-desktop/atril/issues/167
+options="!check"
+makedepends="intltool glib-dev gtk+3.0-dev mate-desktop-dev dconf-dev
+	libsm-dev libsecret-dev caja-extensions-dev caja-dev djvulibre-dev
+	poppler-dev tiff-dev itstool libgxps-dev libxml2-utils libxml2-dev
+	libspectre-dev python3-dev webkit2gtk-dev texlive-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/atril-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--enable-static=no \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+9c4e8b1c45959136c8fc4c5db47117e45e8afca8be2294418e6c1a0f8098c162ccaa4a60e5baea34db91d45d345a3953afe95281782986e7046b87a34c8f7dbd  atril-1.26.0.tar.xz
+"

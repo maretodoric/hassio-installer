@@ -1,0 +1,39 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=perl-datetime-format-natural
+_pkgreal=DateTime-Format-Natural
+pkgver=1.13
+pkgrel=0
+pkgdesc="Create machine readable date/time with natural parsing logic"
+url="https://metacpan.org/release/DateTime-Format-Natural"
+arch="noarch"
+license="GPL-1.0-or-later OR Artistic-1.0-Perl"
+depends="
+	perl perl-datetime-timezone perl-clone perl-params-validate perl-list-moreutils perl-datetime
+	perl-boolean
+	"
+makedepends="perl-module-util perl-test-mocktime perl-date-calc perl-mro-compat perl-role-tiny"
+subpackages="$pkgname-doc"
+source="https://cpan.metacpan.org/authors/id/S/SC/SCHUBIGER/DateTime-Format-Natural-$pkgver.tar.gz"
+
+builddir="$srcdir/$_pkgreal-$pkgver"
+
+build() {
+	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+	make
+}
+
+check() {
+	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+}
+
+sha512sums="
+1fb1862232ba32558c573b17a1d167b13c49eb3e118c9a068baf303e627d79f5dc448dbd7d4b402a8de88b9d987c5b798176b5aacdbef3d4a96c5ce33d3aff32  DateTime-Format-Natural-1.13.tar.gz
+"

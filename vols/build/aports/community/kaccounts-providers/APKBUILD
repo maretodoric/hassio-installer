@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kaccounts-providers
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x, ppc64le and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kde.org/applications/internet/"
+pkgdesc="Small system to administer web accounts for the sites and services across the KDE desktop"
+license="GPL-2.0-or-later"
+depends="
+	signon-plugin-oauth2
+	"
+makedepends="
+	extra-cmake-modules
+	intltool
+	kaccounts-integration-dev
+	kdeclarative-dev
+	ki18n-dev
+	kio-dev
+	kpackage-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtwebengine-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kaccounts-providers-$pkgver.tar.xz"
+options="!check" # No tests
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6058eebdc001853cfe0daa6997cbe77757a7f5f20a2fab567aca53f3c2b421ce119b47f9757916d5b25f6147c111f4c2a8065c863f566682541842c4eae9aabd  kaccounts-providers-22.04.2.tar.xz
+"

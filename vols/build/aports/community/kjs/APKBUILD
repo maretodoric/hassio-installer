@@ -1,0 +1,34 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kjs
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Support for JS scripting in applications"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-or-later AND BSD-3-Clause AND MIT"
+depends_dev="qt5-qtbase-dev perl-dev pcre-dev"
+makedepends="$depends_dev extra-cmake-modules kdoctools-dev samurai"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/portingAids/kjs-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+3992b9ea1f8a4b59e549d1345d04b3c1c04462d86d2e5635deed8882fd63b690f63d02909f0400bb4e101f7df1d289b1efc030cf265a712a4f39962e018792a3  kjs-5.95.0.tar.xz
+"

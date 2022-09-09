@@ -1,0 +1,57 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=maliit-framework
+pkgver=2.2.1
+pkgrel=0
+pkgdesc="Core libraries of Maliit and server"
+arch="all !armhf" # Blocked by qt5-qtdeclarative
+url="https://github.com/maliit/framework"
+license="LGPL-2.1-only"
+depends_dev="
+	eudev-dev
+	gtk+3.0-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtwayland-dev
+	wayland-dev
+	"
+makedepends="$depends_dev
+	cmake
+	doxygen
+	graphviz
+	wayland-protocols
+	"
+checkdepends="xvfb-run"
+source="$pkgname-$pkgver.tar.gz::https://github.com/maliit/framework/archive/$pkgver/framework-$pkgver.tar.gz"
+subpackages="$pkgname-dev $pkgname-doc"
+builddir="$srcdir/framework-$pkgver"
+
+prepare() {
+	default_prepare
+
+	# Hack to make CMake find qtwaylandscanner
+	export PATH="$PATH:/usr/lib/qt5/bin"
+}
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-Denable-wayland-gtk=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# ut_minputmethodquickplugin requires working OpenGL
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "ut_minputmethodquickplugin"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+f8595ef6f21cbe5792a1a690f309e29ff34d2419fa7f5c1fb310fe5f1be07059089e7e9d4015b46cef8a7bf4a4ef2b2e8ab68ff233ee714b0fd70ee99c46d02c  maliit-framework-2.2.1.tar.gz
+"

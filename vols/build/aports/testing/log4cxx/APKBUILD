@@ -1,0 +1,46 @@
+# Contributor: Russ Webber <russ@rw.id.au>
+# Maintainer: Russ Webber <russ@rw.id.au>
+pkgname=log4cxx
+pkgver=0.12.1
+pkgrel=1
+pkgdesc="C++ port of the Log4j logging framework"
+url="http://logging.apache.org/log4cxx"
+license="Apache-2.0"
+options="!check"  # testsuite in 0.10.0 does not work on alpine
+subpackages="$pkgname-dev"
+arch="all"
+makedepends="cmake zip libxml2-dev apr-util-dev samurai"
+source="https://archive.apache.org/dist/logging/log4cxx/$pkgver/apache-log4cxx-$pkgver.tar.gz
+	fix-pkgconfig-install-dir.patch
+	"
+builddir="$srcdir/apache-$pkgname-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DBUILD_SHARED_LIBS=ON \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DCMAKE_INSTALL_SYSCONFDIR=/etc \
+		-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+		"$CMAKE_CROSSOPTS"
+	cmake --build build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest --test-dir build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+807058734cebf7c92e99484313becbc6be63e48bd930889c733318bb78dfec498b66aaa12255ed30879abb005b32e2b965f9dd87ec50d0421ca067f3f66280d9  apache-log4cxx-0.12.1.tar.gz
+a77f5a03c388d3cf21f568424084148725b746b51fb9cebc5cf318abc2267bac31d6d55315d10537a74c541dc26f8ea226a573e41e891fe660df96877c330e36  fix-pkgconfig-install-dir.patch
+"

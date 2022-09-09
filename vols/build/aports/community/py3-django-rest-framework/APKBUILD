@@ -1,0 +1,31 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer:
+pkgname=py3-django-rest-framework
+_pkgname=django-rest-framework
+pkgver=3.12.4
+pkgrel=3
+pkgdesc="Web APIs for Django"
+options="!check" # fails with "OperationalError: no such table: auth_user"
+url="https://github.com/encode/django-rest-framework"
+arch="noarch"
+license="Custom"
+depends="py3-django"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-tz py3-core-api py3-jinja2 py3-uritemplate"
+source="$pkgname-$pkgver.tar.gz::https://github.com/encode/$_pkgname/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py --quiet build
+}
+
+check() {
+	python3 runtests.py
+}
+
+package() {
+	python3 setup.py --quiet install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="406b5354809b94e371a2c7d4b62ce66c18a1f60bd02574cba603ad4c44faa4297bdbbd6ee50de63fe21d2aae18386e05d46983a506bddd17f06ce610d5b727c9  py3-django-rest-framework-3.12.4.tar.gz"

@@ -1,0 +1,31 @@
+# Contributor: Sodface <sod@sodface.com>
+# Maintainer: Sodface <sod@sodface.com>
+pkgname=clifm
+pkgver=1.5.1
+pkgrel=0
+pkgdesc="CLI file manager"
+url="https://github.com/leo-arch/clifm"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	acl-dev
+	file-dev
+	gettext-tiny-dev
+	libcap-dev
+	readline-dev
+	"
+options="!check" # no test suite
+subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion"
+source="https://github.com/leo-arch/clifm/releases/download/v$pkgver/clifm-$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make PREFIX=/usr MANDIR=/usr/share/man DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+5f4d32f369ae97e8dd5de089b1dc1adaffcefa19ab237f6056174615be5566b8a995c3e2a4452da8ca4ede3d58bcb5e626970e3040ba59bfefb493c3309c1285  clifm-1.5.1.tar.gz
+"

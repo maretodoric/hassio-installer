@@ -1,0 +1,55 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=guvcview
+pkgver=2.0.8
+pkgrel=1
+pkgdesc="Webcam viewer"
+url="http://guvcview.sourceforge.net/"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="
+	autoconf
+	automake
+	eudev-dev
+	ffmpeg-dev
+	gsl-dev
+	gtk+3.0-dev
+	intltool
+	libtool
+	libusb-dev
+	linux-headers
+	portaudio-dev
+	v4l-utils-dev
+	"
+subpackages="$pkgname-static $pkgname-libs $pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://downloads.sourceforge.net/project/guvcview/source/guvcview-src-$pkgver.tar.bz2
+	0001-fix-building-with-musl-libc.patch
+	fix-include.patch
+	"
+builddir="$srcdir/guvcview-src-$pkgver/"
+options="!check"
+
+prepare() {
+	default_prepare
+	autoreconf -i
+}
+
+build() {
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-sdl2
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+ba959602bc5518426906786416e433cc8b6de1e0fd73b91378aa231ae4e469935921e87dd37827c3c6b409f0f9551e3e29d0cd3d30afd0e08ad3eb2e6bf5150a  guvcview-src-2.0.8.tar.bz2
+9ab9575bc41acc79581da8d43ef52fc9cf2bf46ef7df97951202e47f5516c38b42ebb715a4e8d6010ac9875c2c9c8cb1912d39282d4a632123424ab516632c98  0001-fix-building-with-musl-libc.patch
+1e75688ccefdcda3183163f4859b072ebd2ece009e8d665fa21c783020949ed79b53fa4c70a46fe77efa1e047ce9765abb2ef92d2d48b1e120cd9ab528e15391  fix-include.patch
+"

@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ffmpegthumbs
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/applications/multimedia/"
+pkgdesc="FFmpeg-based thumbnail creator for video files"
+license="GPL-2.0-or-later"
+makedepends="
+	extra-cmake-modules
+	ffmpeg-dev
+	kconfig-dev
+	ki18n-dev
+	kio-dev
+	qt5-qtbase-dev
+	samurai
+	taglib-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/ffmpegthumbs-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+63d1d6cdde0ecc0a7e3145331762466f6a743c97f2efd245d3b3193e8faf1addc55938d754dad22fda14f5b90bb05e60247f7ee5f12cfc4dcf859acd534615cd  ffmpegthumbs-22.04.2.tar.xz
+"

@@ -1,0 +1,38 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=tuigreet
+pkgver=0.7.2
+pkgrel=0
+pkgdesc="Graphical console greeter for greetd"
+url="https://github.com/apognu/tuigreet"
+arch="aarch64 armhf armv7 ppc64le x86 x86_64"  # limited by rust/cargo
+license="GPL-3.0"
+depends="greetd"
+makedepends="cargo scdoc"
+subpackages="$pkgname-doc"
+source="https://github.com/apognu/tuigreet/archive/$pkgver/tuigreet-$pkgver.tar.gz
+	minimize-size.patch
+	"
+options="!check"  # no tests provided
+
+build() {
+	cargo build --release --locked
+
+	scdoc < contrib/man/tuigreet-1.scd > contrib/man/tuigreet.1
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	install -D -m644 contrib/man/tuigreet.1 -t "$pkgdir"/usr/share/man/man1/
+}
+
+sha512sums="
+15eb7798d530e1aaf93f09e97462f5a985325ece71b24c74d4321290eb4e5295c1d08900f069a1bc6e8447e083d3ca0be2dc35e347baacdb51a02b693ec1ad56  tuigreet-0.7.2.tar.gz
+cb9fe9598812c23ed62a1c52e01dd8a23fdb4cd8b55d303bc925ec3249e568b38b8771ef7eac82098b3f67584bf81d52058a9cf29c854286df4d8216d9ec1869  minimize-size.patch
+"

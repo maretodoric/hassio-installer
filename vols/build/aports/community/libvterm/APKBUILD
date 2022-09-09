@@ -1,0 +1,31 @@
+# Contributor: Daniel Sabogal <dsabogalcc@gmail.com>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=libvterm
+pkgver=0.1.4
+pkgrel=0
+pkgdesc="Abstract library implementation of a VT220/xterm/ECMA-48 terminal emulator"
+url="http://www.leonerd.org.uk/code/libvterm/"
+arch="all"
+license="MIT"
+makedepends="libtool perl"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::http://www.leonerd.org.uk/code/libvterm/libvterm-0.1.4.tar.gz"
+
+# secfixes:
+#   0.1.4-r0:
+#     - CVE-2018-20786
+
+build() {
+	make PREFIX=/usr
+}
+
+check() {
+	make test
+}
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir/" install
+	rm -f "$pkgdir"/usr/lib/*.a
+}
+
+sha512sums="90b5d47417e3f469df5c6574a27d12bd6bd1571d17cab7c4ac0ee61b1dbcb6361987f6fdfd11e314ea32f8958ec165c319a34d0f77288947c7cbc11de697d524  libvterm-0.1.4.tar.gz"

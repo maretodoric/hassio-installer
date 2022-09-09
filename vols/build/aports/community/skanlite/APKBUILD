@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=skanlite
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/graphics/skanlite"
+pkgdesc="Lite image scanning application"
+license="LicenseRef-KDE-Accepted-GPL"
+makedepends="
+	extra-cmake-modules
+	kcoreaddons-dev
+	kdoctools-dev
+	ki18n-dev
+	kio-dev
+	kxmlgui-dev
+	libksane-dev
+	qt5-qtbase-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/skanlite-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+8d83fab908d6580f6cb3e3e5c3ee9aa681f4e92245e6bc46f98de19470a1b2bdb4e6d1448b1b7b582a1d5833f87f9c54b6b37289693467aa4ade2ff06f80e92c  skanlite-22.04.2.tar.xz
+"

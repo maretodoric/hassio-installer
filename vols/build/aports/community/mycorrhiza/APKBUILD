@@ -1,0 +1,35 @@
+# Contributor: Umar Getagazov <umar@handlerug.me>
+# Maintainer: Umar Getagazov <umar@handlerug.me>
+pkgname=mycorrhiza
+pkgver=1.10.0
+pkgrel=0
+pkgdesc="Lightweight wiki engine based on Git"
+url="https://mycorrhiza.wiki/"
+arch="all"
+license="AGPL-3.0-only"
+depends="git"
+makedepends="go libcap"
+install="$pkgname.pre-install"
+subpackages="$pkgname-doc $pkgname-openrc"
+options="!check net"  # no test suite, needs to download go modules
+source="$pkgname-$pkgver.tar.gz::https://github.com/bouncepaw/mycorrhiza/archive/refs/tags/v$pkgver.tar.gz
+	mycorrhiza.initd
+	mycorrhiza.confd
+	"
+
+build() {
+	make
+}
+
+package() {
+	make PREFIX="$pkgdir"/usr install
+	setcap cap_net_bind_service=+ep "$pkgdir"/usr/bin/$pkgname
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+}
+
+sha512sums="
+763f1f3d6cfbacafa8ea5d26c36e6dad0a7dcf82efdbf7ba2e4773740504ea9949f58422a1ecdae1ca95708ada91a5790b1c5d7eb49415027ec1e7be9e633bbd  mycorrhiza-1.10.0.tar.gz
+7e3f789189f190e934cb3279f037e7c6a2a93fae406cb93f2f2e7cc97eb764472a26b57d26f115a837761542c6538c632269cbb2d55aa75af33b91f5389f8e80  mycorrhiza.initd
+a8cce20285b037371dae0ceae316d0dd21a22eb42150fbe08cd58ed83772b51896b5f9bc691f3c3ffb9155375d5d87832d66330a1167fd9d926d3658ccbe1e9f  mycorrhiza.confd
+"

@@ -1,0 +1,134 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=materia-kde
+pkgver=20220207
+pkgrel=0
+pkgdesc="Materia theme from GNOME for KDE Plasma 5"
+options="!check" # It is a theme
+url="https://github.com/PapirusDevelopmentTeam/materia-kde"
+arch="noarch"
+license="GPL-3.0-only"
+subpackages="
+	materia-kde-plasma:_plasma:noarch
+	materia-dark-kde-plasma:_dark_plasma:noarch
+	materia-light-kde-plasma:_light_plasma:noarch
+
+	materia-kde-konsole:_konsole:noarch
+	materia-dark-kde-konsole:_dark_konsole:noarch
+
+	materia-dark-kde-yakuake:_dark_yakuake:noarch
+	materia-light-kde-yakuake:_light_yakuake:noarch
+
+	materia-kde-kvantum:_kvantum:noarch
+	materia-dark-kde-kvantum:_dark_kvantum:noarch
+	materia-dark-compact-kde-kvantum:_dark_compact_kvantum:noarch
+	materia-light-kde-kvantum:_light_kvantum:noarch
+	materia-light-compact-kde-kvantum:_light_compact_kvantum:noarch
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/PapirusDevelopmentTeam/materia-kde/archive/$pkgver/materia-kde-$pkgver.tar.gz"
+
+package() {
+	install -d "$pkgdir"/usr/share
+
+	for dir in plasma aurorae color-schemes konsole yakuake Kvantum; do
+		cp -r "$dir" "$pkgdir"/usr/share
+	done
+}
+
+_plasma() {
+	pkgdesc="Plasma assets for KDE version of Materia"
+	install_if="materia plasma-desktop"
+
+	amove usr/share/plasma/desktoptheme/Materia
+	amove usr/share/plasma/desktoptheme/Materia-Color
+	amove usr/share/plasma/look-and-feel/com.github.varlesh.materia
+	amove usr/share/plasma/look-and-feel/com.github.varlesh.materia-light
+}
+
+_dark_plasma() {
+	pkgdesc="Plasma assets for dark KDE version of Materia"
+	depends="materia-kde-plasma"
+	install_if="materia-dark plasma-desktop"
+
+	amove usr/share/aurorae/themes/Materia-Dark
+	amove usr/share/color-schemes/MateriaDark.colors
+	amove usr/share/plasma/look-and-feel/com.github.varlesh.materia-dark
+}
+
+_light_plasma() {
+	pkgdesc="Plasma assets for light KDE version of Materia"
+	depends="materia-kde-plasma"
+	install_if="materia-light plasma-desktop"
+
+	amove usr/share/aurorae/themes/Materia-Light
+	amove usr/share/color-schemes/MateriaLight.colors
+}
+
+_konsole() {
+	pkgdesc="Konsole assets for KDE version of Materia"
+	install_if="materia konsole"
+
+	amove usr/share/konsole/Materia.colorscheme
+}
+
+_dark_konsole() {
+	pkgdesc="Konsole assets for dark KDE version of Materia"
+	install_if="materia-dark konsole"
+
+	amove usr/share/konsole/MateriaDark.colorscheme
+}
+
+_dark_yakuake() {
+	pkgdesc="Yakuake assets for dark KDE version of Materia"
+	install_if="materia-dark yakuake"
+
+	amove usr/share/yakuake/skins/materia-dark
+}
+
+_light_yakuake() {
+	pkgdesc="Yakuake assets for light KDE version of Materia"
+	install_if="materia-light yakuake"
+
+	amove usr/share/yakuake/skins/materia-light
+}
+
+_kvantum() {
+	pkgdesc="Kvantum assets for KDE version of Materia"
+	install_if="materia kvantum"
+
+	amove usr/share/Kvantum/Materia
+}
+
+_dark_kvantum() {
+	pkgdesc="Kvantum assets for dark KDE version of Materia"
+	install_if="materia-dark kvantum"
+
+	amove usr/share/Kvantum/MateriaDark
+}
+
+_dark_compact_kvantum() {
+	pkgdesc="Kvantum assets for dark KDE version of Materia"
+	depends="materia-dark-kde-kvantum"
+	install_if="materia-dark-compact kvantum"
+
+	mkdir -p "$subpkgdir"
+}
+
+_light_kvantum() {
+	pkgdesc="Kvantum assets for light KDE version of Materia"
+	install_if="materia-light kvantum"
+
+	amove usr/share/Kvantum/MateriaLight
+}
+
+_light_compact_kvantum() {
+	pkgdesc="Kvantum assets for light KDE version of Materia"
+	depends="materia-light-kde-kvantum"
+	install_if="materia-light-compact kvantum"
+
+	mkdir -p "$subpkgdir"
+}
+
+sha512sums="
+6becaf71a6b574885d307152c6b9de2ab743b54a40559836f52f5c97d64748bb4c02f5dee7562702a2dc99aa73cabca1d985c650ba321477ffa4b5447238d970  materia-kde-20220207.tar.gz
+"

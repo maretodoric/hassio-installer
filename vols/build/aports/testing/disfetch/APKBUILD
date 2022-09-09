@@ -1,0 +1,20 @@
+# Contributor: Maxim Karasev <begs@disroot.org>
+# Contributor: Dmitry Kruchko <corg@disroot.org>
+# Maintainer: Dmitry Kruchko <corg@disroot.org>
+pkgname=disfetch
+pkgver=3.6
+pkgrel=0
+pkgdesc="Yet another *nix distro fetching program, but less complex"
+url="https://github.com/q60/disfetch"
+arch="noarch"
+options="!check" # no tests
+license="MIT"
+source="$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz"
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+c9c9ad603a22532c96a891f18a1f2f38a9f52c4304c5be51ac6240754c1bb1d79ffbd48ccacae56f8b2df73a1ac91519cfd741fc15164a9f94d8c2d9cc55c9c2  disfetch-3.6.tar.gz
+"

@@ -1,0 +1,57 @@
+# Contributor: kpcyrd <git@rxv.cc>
+# Maintainer: kpcyrd <git@rxv.cc>
+pkgname=cargo-edit
+pkgver=0.9.0
+pkgrel=0
+pkgdesc="Managing cargo dependencies from the command line"
+url="https://github.com/killercup/cargo-edit"
+# s390x and riscv64 blocked by cargo
+# ppc64le blocked by ring crate
+arch="all !s390x !ppc64le !riscv64"
+license="MIT OR Apache-2.0"
+makedepends="
+	cargo
+	libgit2-dev
+	libssh2-dev
+	"
+subpackages="$pkgname-doc"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/killercup/cargo-edit/archive/v$pkgver.tar.gz
+	$pkgname-39c1d03-fix-test.patch::https://github.com/killercup/cargo-edit/commit/39c1d0381f81c8b35afbec7cd5daae9d2896c7da.patch
+	"
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="z"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+export LIBSSH2_SYS_USE_PKG_CONFIG=1  # use system libssh2
+
+# Exclude vendored-libgit2 feature.
+_cargo_opts="--frozen --no-default-features --features add,rm,upgrade,set-version"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build $_cargo_opts --release
+}
+
+check() {
+	cargo test $_cargo_opts
+}
+
+package() {
+	cargo install $_cargo_opts --offline --path . --root "$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	install -Dm 644 -t "$pkgdir/usr/share/doc/cargo-edit" README.md
+}
+
+sha512sums="
+45422d3a3393cb3a1ebbc155543c3ede5a5aa37c49361ee4cc57b404374381b8a5527383dc4c91ed501894b1410decff254d9e471ae21ad06209c5269831fed9  cargo-edit-0.9.0.tar.gz
+faf6f8d045ae22193beb24ccf372f50f90bcf69419789b83cf573480f8c98deff01da2fabfa1552963e3c7421723cfc066394de030325f16e104bbedf97a24ad  cargo-edit-39c1d03-fix-test.patch
+"

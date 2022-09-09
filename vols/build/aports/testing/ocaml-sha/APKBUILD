@@ -1,0 +1,61 @@
+# Contributor: Andy Li <andy@onthewings.net>
+# Maintainer: Andy Li <andy@onthewings.net>
+pkgname=ocaml-sha
+_pkgname=sha
+pkgver=1.15.2
+pkgrel=1
+pkgdesc="Binding to the SHA cryptographic functions"
+url="https://github.com/djs55/ocaml-sha"
+arch="all !riscv64"  # limited by ocaml aport
+license="ISC"
+depends="ocaml-runtime"
+depends_dev="$pkgname=$pkgver-r$pkgrel"
+makedepends="dune ocaml ocaml-findlib ocaml-ounit-dev ocaml-stdlib-shims ocaml-seq-dev"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/djs55/ocaml-sha/archive/$pkgver.tar.gz"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	export OCAMLPATH=/usr/lib/ocaml
+	dune build @install --no-buffer --verbose
+}
+
+check() {
+	dune runtest --verbose
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--prefix=/usr \
+		--libdir=/usr/lib/ocaml
+
+	# There are just CHANGES, README, and LICENSE.
+	rm -Rf "$pkgdir"/usr/doc
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+7ea47377747ef4c36791c4ed9ff88fe138ee14d012cc3f7b41fcc28776e57ea54c5ee5cc033adc6288177ed834afb73c44e60cfff01f1be28492a992f97a1d06  ocaml-sha-1.15.2.tar.gz
+"

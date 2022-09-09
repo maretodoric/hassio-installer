@@ -1,0 +1,97 @@
+# Contributor: Bradley J Chambers <brad.chambers@gmail.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=pdal
+pkgver=2.4.0
+pkgrel=1
+pkgdesc="PDAL is a C++ BSD library for translating and manipulating point cloud data."
+url="https://pdal.io/"
+arch="all"
+license="BSD-2-Clause"
+depends="python3 py3-numpy>=1.14.3-r1"
+makedepends="
+	cmake
+	eigen-dev
+	gdal-dev
+	libgeotiff-dev
+	libxml2-dev
+	python3-dev
+	py3-numpy-dev
+	hdf5-dev
+	cpd-dev
+	fgt-dev
+	sqlite-dev
+	libpq-dev
+	curl-dev
+	laszip-dev
+	linux-headers
+	libexecinfo-dev
+	samurai
+	zstd-dev
+	"
+checkdepends="gdal-tools"
+subpackages="$pkgname-dev"
+source="https://github.com/PDAL/PDAL/releases/download/$pkgver/PDAL-$pkgver-src.tar.gz"
+builddir="$srcdir/PDAL-$pkgver-src"
+
+_with_lazperf="OFF"
+case "$CARCH" in
+	arm*) ;;
+	s390x)
+		# 95% tests passed, 6 tests failed out of 110
+		options="!check"
+		;;
+	*)
+		makedepends="$makedepends laz-perf laz-perf-dev"
+		_with_lazperf="ON"
+		;;
+esac
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=None \
+		-DBUILD_PLUGIN_CPD=ON \
+		-DBUILD_PLUGIN_ICEBRIDGE=ON \
+		-DBUILD_PLUGIN_PGPOINTCLOUD=ON \
+		-DBUILD_PGPOINTCLOUD_TESTS=OFF \
+		-DWITH_LASZIP=ON \
+		-DWITH_LAZPERF=$_with_lazperf \
+		-DWITH_TESTS=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# skipped tests are broken
+	local skipped_tests="pdal_("
+	local tests="
+		filters_cpd
+		filters_crop
+		filters_stats
+		io_ept_reader
+		io_las_writer
+		io_optech
+		"
+	case "$CARCH" in
+		arm*|s390x|x86) tests="$tests
+			utils
+			filters_icp
+			" ;;
+	esac
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)_test"
+	msg "$skipped_tests"
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "$skipped_tests"
+}
+
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+655fadd2b435ed1cb801ba542028bcc15156da9266eedde93b2210dbadbc50d36b0b6a151062113f2adfb68a2938e2b867438a5a94952a7b3e46f59a53b47623  PDAL-2.4.0-src.tar.gz
+"

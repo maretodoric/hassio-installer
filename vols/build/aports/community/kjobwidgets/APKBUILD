@@ -1,0 +1,45 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kjobwidgets
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Widgets for tracking KJob instances"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-only AND (LGPL-2.1-only OR LGPL-3.0-only)"
+depends_dev="
+	kcoreaddons-dev
+	kwidgetsaddons-dev
+	qt5-qtx11extras-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	graphviz
+	qt5-qttools-dev
+	samurai
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kjobwidgets-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6768bb076762a7e7cf223e0e73a9db10fb81bc3d48aebc095521a4dc18e74783468cba07a95b693f98011c22d1eac81d1bd0483d282347bc4978959718c15d76  kjobwidgets-5.95.0.tar.xz
+"

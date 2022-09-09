@@ -1,0 +1,38 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=opusfile
+pkgver=0.12
+pkgrel=2
+pkgdesc="High-level API for decoding and seeking within .opus files"
+url="https://www.opus-codec.org/"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="openssl1.1-compat-dev"
+makedepends="$depends_dev libogg-dev opus-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://downloads.xiph.org/releases/opus/opusfile-$pkgver.tar.gz
+	fix-conflict.patch
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-static
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="e25e6968a3183ac0628ce1000840fd6f9f636e92ba984d6a72b76fb2a98ec632d2de4c66a8e4c05ef30655c2a4a13ab35f89606fa7d79a54cfa8506543ca57af  opusfile-0.12.tar.gz
+b902b8c25506d3730a2a3bafcc5542671df8f35c588d05e54e883071c853c2e6e572dde80a8f7f39a58780a509c2d14b963040a3cab633edfc400cfca08060de  fix-conflict.patch"

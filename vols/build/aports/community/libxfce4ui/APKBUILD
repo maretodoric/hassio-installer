@@ -1,0 +1,44 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libxfce4ui
+pkgver=4.16.1
+pkgrel=0
+pkgdesc="Widgets library for the Xfce desktop environment"
+url="https://xfce.org/"
+arch="all"
+license="GPL-2.0-only"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+depends_dev="startup-notification-dev intltool"
+makedepends="$depends_dev gtk+3.0-dev libxfce4util-dev xfconf-dev
+	glade-dev gtk-doc gobject-introspection-dev libgtop-dev
+	libepoxy-dev"
+source="https://archive.xfce.org/src/xfce/libxfce4ui/${pkgver%.*}/libxfce4ui-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib \
+		--localstatedir=/var \
+		--with-vendor-info="${DISTRO_NAME:-Alpine Linux}" \
+		--disable-static \
+		--enable-introspection \
+		--enable-gtk-doc \
+		--enable-glibtop \
+		--enable-epoxy
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+c183bbc75539c777fe704d0a1c4e533fdd2efb6cbc980cfedc2eaa80d0e6223db038498774ffcdc720d7f991dd8d9634183a757a4c4d1728cc9956a33cb187d0  libxfce4ui-4.16.1.tar.bz2
+"

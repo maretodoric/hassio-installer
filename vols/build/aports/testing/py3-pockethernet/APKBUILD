@@ -1,0 +1,30 @@
+# Maintainer: Martijn Braam <martijn@brixit.nl>
+# Contributor: Martijn Braam <martijn@brixit.nl>
+pkgname=py3-pockethernet
+_pyname=pockethernet
+pkgver=0.7.0
+pkgrel=0
+pkgdesc="Library for controlling the Pockethernet"
+url="https://gitlab.com/MartijnBraam/pockethernet-protocol"
+arch="noarch"
+license="MIT"
+depends="python3 py3-cobs py3-crc16"
+makedepends="py3-setuptools"
+_pypiprefix="${_pyname%${_pyname#?}}"
+source="https://gitlab.com/MartijnBraam/pockethernet-protocol/-/archive/$pkgver/pockethernet-protocol-$pkgver.tar.gz"
+builddir=$srcdir/pockethernet-protocol-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+e312f712b8ca914d307a9d2a4a82d5c954f210c1fb7936442e0c5608a8bab92a5b2e100a8e5be24a249f9ca15e6de2086c50bebd48ba6dcf69f70bf50e7b2c4d  pockethernet-protocol-0.7.0.tar.gz
+"

@@ -1,0 +1,73 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libkdegames
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/games"
+pkgdesc="Common code and data for many KDE games"
+license="LGPL-2.0-only AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	karchive-dev
+	kbookmarks-dev
+	kcodecs-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	kdnssd-dev
+	kglobalaccel-dev
+	kguiaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kitemviews-dev
+	kjobwidgets-dev
+	knewstuff-dev
+	kservice-dev
+	ktextwidgets-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libsndfile-dev
+	openal-soft-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/libkdegames-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang carddecks::noarch"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+carddecks() {
+	pkgdesc="Contains all carddecks for KDE cardgames"
+	depends="$pkgname"
+
+	amove usr/share/carddecks
+}
+
+sha512sums="
+f775cbfe427c9841116617c9513894637713415f0c4dd7bb0295391eeb08bf384f83d3d8cc32f24cc660a55816c928a5547aeefa57fc3e53a228ff87763bfc11  libkdegames-22.04.2.tar.xz
+"

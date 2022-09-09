@@ -1,0 +1,34 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=devhelp
+pkgver=41.2
+pkgrel=0
+pkgdesc="API documentation browser for GTK+ and GNOME"
+url="https://wiki.gnome.org/Apps/Devhelp"
+arch="all"
+license="GPL-2.0-or-later"
+depends="gsettings-desktop-schemas"
+makedepends="meson gobject-introspection-dev gsettings-desktop-schemas-dev
+	webkit2gtk-dev amtk-dev glib-dev itstool"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/devhelp/${pkgver%.*}/devhelp-$pkgver.tar.xz
+	merge_file-args.patch
+	"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+99a75ff19bf1b4613c312921452f190334e3e2036c28cda070169e3d1d352a5d2e7a56a393326efd679076257412e281dc94b628429119fcad58060d1a88ea98  devhelp-41.2.tar.xz
+4bc50969d663a247d20633ab401ea8f5976f25fdf7a913cdfd86fd0a4d5cfbe3190840edebae9ec47c123c663dcf0c1d61805bebd9ecab901ffc3208049d4c67  merge_file-args.patch
+"

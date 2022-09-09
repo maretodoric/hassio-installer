@@ -1,0 +1,42 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=git-warp-time
+pkgver=0.4.5
+pkgrel=0
+pkgdesc="Reset timestamps of Git repository files to the time of the last modifying commit"
+url="https://github.com/alerque/git-warp-time"
+license="GPL-3.0-only"
+arch="all !s390x !riscv64" # blocked by rust/cargo
+makedepends="cargo"
+subpackages="$pkgname-bash-completion $pkgname-fish-completion $pkgname-zsh-completion"
+source="https://github.com/alerque/git-warp-time/archive/v$pkgver/git-warp-time-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --release
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/git-warp-time "$pkgdir"/usr/bin/git-warp-time
+
+	# shell completions
+	find target/release -name $pkgname.bash \
+		-exec install -Dm644 {} "$pkgdir"/usr/share/bash-completion/completions/$pkgname \;
+	find target/release -name $pkgname.fish \
+		-exec install -Dm644 {} "$pkgdir"/usr/share/fish/completions/$pkgname.fish \;
+	find target/release -name _$pkgname \
+		-exec install -Dm644 {} "$pkgdir"/usr/share/zsh/site-functions/_$pkgname \;
+}
+
+sha512sums="
+609acee135f7c244369c31c3b802fc96c91375c222e194377ec8fab3afe6ea66300f8dff867a9481042fa38bfd8dea1051a70f4032a42f6e98924777215ee4dc  git-warp-time-0.4.5.tar.gz
+"

@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-podman
+pkgver=4.0.0
+pkgrel=0
+pkgdesc="Python bindings for Podman's RESTful API"
+url="https://github.com/containers/podman-py"
+license="Apache-2.0"
+arch="noarch"
+depends="python3 py3-requests py3-toml py3-xdg"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-requests-mock py3-fixtures py3-testtools"
+source="https://github.com/containers/podman-py/archive/v$pkgver/py3-podman-$pkgver.tar.gz"
+builddir="$srcdir/podman-py-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest podman/tests/unit
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+e1dd48c931871206aae11fbcc31a711eecda89e9c60f62d5616dc3219e073d3ba74d38f63a05d4688e97fb678d2e03f8cd883456f7e75f2d7e313aa859ca3e8f  py3-podman-4.0.0.tar.gz
+"

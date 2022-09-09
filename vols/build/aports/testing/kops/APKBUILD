@@ -1,0 +1,40 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=kops
+pkgver=1.23.0
+pkgrel=2
+pkgdesc="Kubernetes Operations"
+url="https://github.com/kubernetes/kops"
+arch="x86_64"
+license="Apache-2.0"
+depends="kubernetes"
+makedepends="go"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/kubernetes/kops/archive/v$pkgver.tar.gz"
+
+export GOMODCACHE="$srcdir"/go
+export GOFLAGS="$GOFLAGS -modcacherw -mod=readonly"
+
+prepare() {
+	default_prepare
+
+	# v0.1.6 is broken with go1.18
+	go mod edit -replace golang.org/x/tools=golang.org/x/tools@v0.1.8
+	go mod tidy
+}
+
+build() {
+	make kops
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm0755 .build/local/kops "$pkgdir"/usr/bin/kops
+}
+
+sha512sums="
+99550f34a617a5ff8316a9c360f45a3c946e3f1dd7b5d067aaa6de9b8fc6b1108c78bc5db83b45cc2586ff28e0a41c89c7f2d0a1aedf2173c5dc6f545a83b0ff  kops-1.23.0.tar.gz
+"

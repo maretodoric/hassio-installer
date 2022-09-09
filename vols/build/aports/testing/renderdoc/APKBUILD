@@ -1,0 +1,41 @@
+# Contributor: Simon Zeni <simon@bl4ckb0ne.ca>
+# Maintainer: Simon Zeni <simon@bl4ckb0ne.ca>
+pkgname=renderdoc
+pkgver=1.17
+pkgrel=0
+pkgdesc="Stand-alone graphics debugging tool for Vulkan and OpenGL"
+url="https://renderdoc.org/"
+# limited by vendored plthook version
+arch="all !s390x !ppc64le !riscv64"
+license="MIT"
+makedepends="cmake libx11-dev libxcb-dev xcb-util-keysyms-dev python3-dev
+	qt5-qtbase-dev qt5-qtsvg-dev qtchooser libexecinfo-dev wayland-dev
+	bison flex automake autoconf qt5-qtx11extras-dev"
+options="!check net" # no tests
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/baldurk/renderdoc/archive/refs/tags/v$pkgver.tar.gz
+	musl-fix.patch
+	"
+
+prepare() {
+	default_prepare
+}
+
+build() {
+	cmake -B build -H. \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX="/usr" \
+		-DVULKAN_LAYER_FOLDER="/usr/share/vulkan/implicit_layer.d" \
+		-DENABLE_WAYLAND=ON \
+		-DBUILD_VERSION_STABLE=ON
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+0f608f9bd5dfca58fd7d39529dcb49ef4df3af508cc1a90b9d327809cf47908731d0175f6b7510db6380f7e4041806d4d727005ff53ef4860f88db938ebc4c2d  renderdoc-1.17.tar.gz
+99828b704eff63d5a71143e867bbceca11606bf7f0677a30115b1432fcde0c121f1090824ac2f727e143e474b8c5ca472ba05e377e658651d723f90fd9e99e0a  musl-fix.patch
+"

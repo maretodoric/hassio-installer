@@ -1,0 +1,21 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-openntpd
+pkgver=0.9.0
+pkgrel=4
+pkgdesc="Web-based system administration interface for openntpd"
+url="https://gitlab.alpinelinux.org/acf/acf-openntpd"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core openntpd"
+source="https://gitlab.alpinelinux.org/acf/acf-openntpd/-/archive/v$pkgver/acf-openntpd-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a81894ecc0735e37a0c40182bf5b6bfc862bda215828f497bc30311b682d5c2bbebbe5604d705dd05dc163622fbbca8197b3a3fc1319fbd4633949ed50eddb28  acf-openntpd-v0.9.0.tar.gz
+"

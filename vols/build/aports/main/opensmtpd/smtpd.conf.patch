@@ -1,0 +1,21 @@
+"listen on localhost" and "listen on all" doesn't work on Linux
+
+--- a/usr.sbin/smtpd/smtpd.conf
++++ b/usr.sbin/smtpd/smtpd.conf
+@@ -1,13 +1,11 @@
+-#	$OpenBSD: smtpd.conf,v 1.10 2018/05/24 11:40:17 gilles Exp $
+-
+ # This is the smtpd server system-wide configuration file.
+ # See smtpd.conf(5) for more information.
+ 
+-table aliases file:/etc/mail/aliases
++table aliases file:/etc/smtpd/aliases
+ 
+-# To accept external mail, replace with: listen on all
++# To accept external mail, add something like: listen on eth0
+ #
+-listen on localhost
++listen on lo
+ 
+ action "local" maildir alias <aliases>
+ action "relay" relay

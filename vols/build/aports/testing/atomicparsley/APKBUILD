@@ -1,0 +1,27 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=atomicparsley
+pkgver=20210715
+_pkgtag=151551.e7ad03a
+pkgrel=0
+pkgdesc="A command line program for reading, parsing and setting iTunes-style metadata in MPEG4 files"
+url="http://atomicparsley.sourceforge.net/"
+arch="all"
+options="!check" # no test/check available
+license="GPL-2.0-or-later"
+makedepends="cmake automake autoconf libtool zlib-dev linux-headers"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wez/atomicparsley/archive/${pkgver}.${_pkgtag}.tar.gz"
+builddir="$srcdir/$pkgname-${pkgver}.${_pkgtag}"
+
+build() {
+	cmake .
+	cmake --build . --config Release
+}
+
+package() {
+	install -Dm755 AtomicParsley "$pkgdir"/usr/bin/$pkgname
+}
+
+sha512sums="
+9f58fe7426c9728f8e5624250ff57d7707a4b040365135fa5149909d84c536ecbddaa3820dae85ca8a4c31fc8009685bf56875f1d4ff6f5c854f05a30da6974a  atomicparsley-20210715.tar.gz
+"

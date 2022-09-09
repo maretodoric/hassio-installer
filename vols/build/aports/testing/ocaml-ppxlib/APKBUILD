@@ -1,0 +1,78 @@
+# Contributor: rubicon <rubicon@mailo.com>
+# Maintainer:
+pkgname=ocaml-ppxlib
+_pkgname=ppxlib
+pkgver=0.26.0
+pkgrel=0
+pkgdesc="Standard library for ppx rewriters"
+url="https://github.com/ocaml-ppx/ppxlib"
+arch="all !riscv64"  # limited by ocaml aport
+license="MIT"
+depends="
+	ocaml-runtime
+	ocaml-compiler-libs-repackaged
+	ocaml-ppx_derivers
+	ocaml-sexplib0
+	ocaml-stdlib-shims
+	"
+depends_dev="
+	$pkgname=$pkgver-r$pkgrel
+	ocaml-compiler-libs-repackaged-dev
+	ocaml-ppx_derivers-dev
+	ocaml-sexplib0-dev
+	"
+makedepends="$depends_dev dune ocaml"
+checkdepends="
+	ocaml-base-dev
+	ocaml-cinaps-dev
+	ocaml-findlib
+	ocaml-re-dev
+	ocaml-stdio-dev
+	"
+options="!check"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.bz2::https://github.com/ocaml-ppx/ppxlib/releases/download/$pkgver/ppxlib-$pkgver.tbz"
+builddir="$srcdir/$_pkgname-$pkgver"
+_ocamldir=usr/lib/ocaml
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	dune build --release --verbose
+}
+
+check() {
+	dune runtest --verbose
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--docdir=/.omit
+	rm -Rf "$pkgdir"/.omit
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find $_ocamldir \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+9cfc9587657d17cdee5483e2a03292f872c42886e512bcc7442652e6418ce74c0135c731d8a68288c7fecae7f1b2defd93fe5acf8edb41e25144a8cec2806227  ocaml-ppxlib-0.26.0.tar.bz2
+"

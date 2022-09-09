@@ -1,0 +1,64 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=librsvg
+pkgver=2.54.4
+pkgrel=0
+pkgdesc="SAX-based renderer for SVG files into a GdkPixbuf"
+url="https://wiki.gnome.org/Projects/LibRsvg"
+arch="all !s390x !riscv64" # rust
+license="LGPL-2.1-or-later"
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-doc"
+makedepends="
+	bzip2-dev
+	cairo-dev
+	cargo
+	gi-docgen
+	glib-dev
+	gobject-introspection-dev
+	gtk+3.0-dev
+	libgsf-dev
+	py3-docutils
+	rust
+	ttf-dejavu
+	vala
+	"
+source="https://download.gnome.org/sources/librsvg/${pkgver%.*}/librsvg-$pkgver.tar.xz
+	target.patch
+	"
+# tests are very dependent on versions of pango/cairo/freetype
+options="!check"
+
+# secfixes:
+#   2.50.4-r0:
+#     - RUSTSEC-2020-0146
+#   2.46.2-r0:
+#     - CVE-2019-20446
+
+export RUSTFLAGS="$RUSTFLAGS -C debuginfo=2"
+export CARGO_PROFILE_RELEASE_LTO=true
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--libexecdir=/usr/lib/$pkgname \
+		--disable-static \
+		--enable-vala
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+e3415044a4faa48ec83e25cbd86dfbe7bc997286269298fb913a61a13d55195f660bcef459950979c2b8d60b144b29e33b278b2c4da0c376de65c34f39687e9a  librsvg-2.54.4.tar.xz
+8cc9b9dd70a6dedb550a50e12a1bf0ca12f87487f432dcc2568d47412752565d563d7f488390108f49bda324b47387fec9386cf20be47e75d56fb482ecf0bb67  target.patch
+"

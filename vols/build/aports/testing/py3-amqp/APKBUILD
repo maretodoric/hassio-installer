@@ -1,0 +1,31 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-amqp
+pkgver=2.6.1
+pkgrel=2
+pkgdesc="an AMQP implementation"
+url="https://pypi.python.org/pypi/amqp/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-vine python3"
+makedepends="py3-setuptools"
+checkdepends="py3-vine py3-case py3-nose py2py3-mock"
+source="https://files.pythonhosted.org/packages/source/a/amqp/amqp-$pkgver.tar.gz"
+options="!check" # requires a running rabbitmq sever
+builddir="$srcdir"/amqp-$pkgver
+
+replaces="py-amqp" # Backwards compatibility
+provides="py-amqp=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="e2c628cfe8075a3014a9fe991ae3e6f49198db2ecd46dd48f980730da692e4d25d9f055b1ccd4743917fc38a8afa69a5902a64275f8f45ef68113c6756f3a17b  amqp-2.6.1.tar.gz"

@@ -1,0 +1,26 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=yelp-tools
+pkgver=42.0
+pkgrel=0
+pkgdesc="Collection of utilities to help create documentation"
+url="https://wiki.gnome.org/Apps/Yelp/Tools"
+arch="noarch"
+license="GPL-2.0-or-later"
+makedepends="yelp-xsl libxml2-utils libxslt meson itstool"
+depends="py3-lxml"
+options="!check" # no tests
+source="https://download.gnome.org/sources/yelp-tools/${pkgver%.*}/yelp-tools-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+ff6168a33b2dedd12f7fb5d5aa6394a554b7ad8956cc7121e5f1a520f9fb20bd4cad93e22b5e8b2f8aa82ca5a1711a0634d8619c731e46730084e28f29725786  yelp-tools-42.0.tar.xz
+"

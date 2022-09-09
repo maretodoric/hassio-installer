@@ -1,0 +1,58 @@
+# Contributor: Chloe Kudryavtsev <toast@toast.cafe>
+# Maintainer: Chloe Kudryavtsev <toast@toast.cafe>
+pkgname=bat
+pkgver=0.21.0
+pkgrel=0
+pkgdesc="cat(1) clone with wings"
+url="https://github.com/sharkdp/bat"
+arch="x86_64 x86 armhf armv7 aarch64 ppc64le" # limited by rust/cargo
+license="Apache-2.0"
+depends="less" # Required for RAW-CONTROL-CHARS
+makedepends="cargo libgit2-dev"
+checkdepends="bash"
+options="net"
+subpackages="$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/sharkdp/bat/archive/v$pkgver/bat-$pkgver.tar.gz
+	minimize-size.patch
+	"
+
+# secfixes:
+#   0.21.0-r0:
+#     - CVE-2022-24713
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --release
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/bat "$pkgdir"/usr/bin/bat
+	find "$srcdir" -name bat.1 -exec install -Dm644 {} \
+		"$pkgdir"/usr/share/man/man1/bat.1 \;
+
+	find "$srcdir" -name bat.bash -exec install -Dm644 {} \
+		"$pkgdir"/usr/share/bash-completion/completions/bat \;
+
+	find "$srcdir" -name bat.fish -exec install -Dm644 {} \
+		"$pkgdir"/usr/share/fish/completions/bat.fish \;
+
+	find "$srcdir" -name bat.zsh -exec install -Dm644 {} \
+		"$pkgdir"/usr/share/zsh/site-functions/_bat \;
+}
+
+sha512sums="
+113a8225bd297d9a18ad620c5509db1c4028d92387b70fb3eacc34b0ab9dabdd01a206d1b3062632830d8cf34cb12ea8ca6788a8ea985c5e5de57bf71306be70  bat-0.21.0.tar.gz
+efa83937c5704bfa91d3d12a31aa2a798279ce4572259eb3b87ffdbb7dd873a9a480626f01db2aeac489c277d9fc64a97938ca4bcc5d964951f1f52c752556fb  minimize-size.patch
+"

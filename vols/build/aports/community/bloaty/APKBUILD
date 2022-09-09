@@ -1,0 +1,50 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=bloaty
+pkgver=1.1
+pkgrel=9
+pkgdesc="Bloaty McBloatface: a size profiler for binaries"
+options="!check" # no test suite
+url="https://github.com/google/bloaty"
+arch="all"
+license="Apache-2.0"
+depends_dev="$pkgname"
+makedepends="cmake protobuf-dev re2-dev capstone-dev samurai"
+subpackages="$pkgname-dev"
+source="https://github.com/google/bloaty/releases/download/v$pkgver/bloaty-$pkgver.tar.bz2"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_SHARED_LIBS=True \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	cd build
+	# Upstream forgot to install this via CMake.
+	install -m755 liblibbloaty.so "$pkgdir"/usr/lib/liblibbloaty.so.1.0.0
+	ln -s liblibbloaty.so.1.0.0 "$pkgdir"/usr/lib/liblibbloaty.so.1
+	ln -s liblibbloaty.so.1 "$pkgdir"/usr/lib/liblibbloaty.so
+
+	mkdir -p "$pkgdir"/usr/lib/cmake
+	mv "$pkgdir"/usr/lib/Bloaty "$pkgdir"/usr/lib/cmake
+}
+
+dev() {
+	default_dev
+
+	# the linking is broken and links to this, fix by moving back for now
+	mv "$subpkgdir"/usr/lib/liblibbloaty.so "$pkgdir"/usr/lib
+}
+
+sha512sums="
+142d0dd58fc0aadce3aee6e9260c6ed792a18cf5fe260c89051d51b9357c7527ba352c3d6c9e23a3494796fba3d88314b6ed8a3a76c6c0d111d4c509cae6b216  bloaty-1.1.tar.bz2
+"

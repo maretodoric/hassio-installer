@@ -1,0 +1,62 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-launcher
+pkgver=0_git20220430
+pkgrel=0
+_commit="3a1935426ae285a516dc82ab760da32e443199fb"
+pkgdesc="AsteroidOS launcher and Wayland compositor based on Qt5, QML and QtWayland via Lipstick"
+url="https://github.com/AsteroidOS/asteroid-launcher"
+# armhf blocked by nemo-qml-plugin-calendar
+# riscv64 blocked by mce
+arch="all !armhf !riscv64"
+license="BSD-3-Clause AND MIT"
+depends="
+	asteroid-icons-ion
+	asteroid-languages
+	asteroid-wallpapers
+	lipstick-asteroidos
+	mce
+	nemo-qml-plugin-calendar
+	nemo-qml-plugin-configuration
+	nemo-qml-plugin-systemsettings
+	nemo-qml-plugin-time
+	qml-asteroid
+	qt5-qtgraphicaleffects
+	"
+# Normally we shouldn't hard depend on fonts, but in this case these fonts are
+# hardcoded for some supported watchfaces
+depends="$depends
+	font-noto-emoji
+	font-raleway-otf
+	font-roboto
+	ttf-opensans
+	"
+makedepends="
+	lipstick-asteroidos-dev
+	qt5-qtbase-dev
+	"
+subpackages="$pkgname-dbg"
+source="https://github.com/AsteroidOS/asteroid-launcher/archive/$_commit/asteroid-launcher-$_commit.tar.gz"
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	qmake-qt5 \
+		PREFIX=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	INSTALL_ROOT="$pkgdir" make install
+
+	install -dm755 "$pkgdir"/usr/share/translations
+	lrelease-qt5 -idbased i18n/asteroid-launcher.*.ts
+	cp i18n/asteroid-launcher.*.qm "$pkgdir"/usr/share/translations/
+}
+
+sha512sums="
+86bfaac065ca0974e2a124c2d434caf161809a9c4195050ee41598c6aa89ed59c88ce66c5851c883b7a0b9663d777049967975db741db4630c1ea6a1a01f7649  asteroid-launcher-3a1935426ae285a516dc82ab760da32e443199fb.tar.gz
+"

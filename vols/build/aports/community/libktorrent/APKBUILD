@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libktorrent
+pkgver=22.04.2
+pkgrel=1
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/internet/org.kde.ktorrent"
+pkgdesc="A powerful BitTorrent client for KDE"
+license="GPL-2.0-or-later"
+depends_dev="
+	boost-dev
+	gmp-dev
+	karchive-dev
+	kcrash-dev
+	ki18n-dev
+	kio-dev
+	qca-dev
+	qt5-qtbase-dev
+	solid-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	graphviz
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/libktorrent-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# utppolltest requires network access
+	# superseedtest is broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "(utppoll|superseed)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+b5ef82b2d2c9235e0760fff0c4b30339abb076f47c75bee85379d247c4b0d0fffd7d194b90ba4594d4ac6461d8045570f0bcf56dd484527338afd94a6ea2eeda  libktorrent-22.04.2.tar.xz
+"

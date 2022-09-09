@@ -1,0 +1,63 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=profanity
+pkgver=0.12.1
+pkgrel=1
+pkgdesc="Ncurses based XMPP client"
+url="https://github.com/profanity-im/profanity"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="
+	autoconf
+	autoconf-archive
+	automake
+	libtool
+	pkgconf
+	libmesode-dev
+	ncurses-dev
+	glib-dev
+	curl-dev
+	readline-dev
+	libotr-dev
+	libsignal-protocol-c-dev
+	libgcrypt-dev
+	libstrophe-dev
+	cmocka-dev
+	sqlite-dev
+"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/profanity-im/profanity/archive/$pkgver.tar.gz
+	"
+
+prepare() {
+	default_prepare
+	./bootstrap.sh
+}
+
+build() {
+	# GPG is "suboptimal" for chat, since it doesn't provide forward secrecy, deniability, ...
+	# Its usage/support is currently discouraged in XMPP.
+	# Users are encouraged to use OTR, or even better, OMEMO.
+	./configure \
+		--disable-plugins \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-pgp=no
+	make
+}
+
+check() {
+	LANG=en_US.UTF-8 make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+399105dfe49e3bc711426e77d45f92b347cca6ba47059e33e0ffb3997adf7c223b2959096bbb2419891f061eb2cf63da3b90d2d2b13dcd5a0d06046e851b5c69  profanity-0.12.1.tar.gz
+"

@@ -1,0 +1,22 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-postgresql
+pkgver=0.11.0
+pkgrel=4
+pkgdesc="ACF module for postgresql"
+url="https://gitlab.alpinelinux.org/acf/acf-postgresql"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core postgresql acf-db-lib lua-sql-postgres"
+makedepends="acf-db-lib"
+source="https://gitlab.alpinelinux.org/acf/acf-postgresql/-/archive/v$pkgver/acf-postgresql-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+86edb5f1218171c053e54f196430fa3e38b9259c7ae3c1d548333f8ae3abec869b030ca534f8b780b5dc13ea66d031916db3c066102293562d6f9a23d3c1986a  acf-postgresql-v0.11.0.tar.gz
+"

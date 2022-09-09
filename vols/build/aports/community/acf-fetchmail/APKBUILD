@@ -1,0 +1,21 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-fetchmail
+pkgver=0.9.0
+pkgrel=4
+pkgdesc="Web-based system administration interface for fetchmail"
+url="https://gitlab.alpinelinux.org/acf/acf-fetchmail"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core fetchmail"
+source="https://gitlab.alpinelinux.org/acf/acf-fetchmail/-/archive/v$pkgver/acf-fetchmail-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+898be281a51d09a956779b930109e400e6d534902a7a74d295281cd086b39156de2c74292b8dfa55e28646a3cd4bc68fd73804dc01ae2634e4f77cb1aea7119f  acf-fetchmail-v0.9.0.tar.gz
+"

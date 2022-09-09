@@ -1,0 +1,54 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=babl
+pkgver=0.1.92
+pkgrel=0
+pkgdesc="Dynamic, any to any, pixel format conversion library"
+url="https://gegl.org/babl"
+arch="all"
+license="LGPL-3.0-or-later"
+makedepends="meson gobject-introspection-dev lcms2-dev vala"
+subpackages="$pkgname-dev"
+source="https://ftp.gimp.org/pub/babl/${pkgver%.*}/babl-$pkgver.tar.xz
+	meson-0.60.patch
+	"
+
+prepare() {
+	default_prepare
+
+	# disable some tests
+	case $CARCH in
+	aarch64)
+		sed -i \
+			-e "/float-to-8bit/d" \
+			tests/meson.build
+		;;
+	armv7|armhf)
+		sed -i \
+			-e "/cairo_cmyk_hack/d" \
+			-e "/cairo-RGB24/d" \
+			-e "/format_with_space/d" \
+			-e "/srgb_to_lab_u8/d" \
+			-e "/conversions/d" \
+			-e "/xyz_to_lab/d" \
+			tests/meson.build
+		;;
+	esac
+}
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+c2baf39f576bf7f57786c59f2de0818257f4d1d62cadf44fdd802c9a534ed94390dd1616e7e72fcc9de1fb85a24a10fbacdbbabbe376a45ae598be46817e3bc0  babl-0.1.92.tar.xz
+d10f58c24e15b0c5648b5b763f8a978bc7c24892185ce41ec69918d5f9d8d00ccc37d9ac21bc1657fd921d3a31d23c285dc806b073466ef2790a6af4c0b2e07d  meson-0.60.patch
+"

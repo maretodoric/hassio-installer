@@ -1,0 +1,29 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xfce4-wavelan-plugin
+pkgver=0.6.2
+pkgrel=0
+pkgdesc="plugin to monitor wifi connectivity for the Xfce4 panel"
+url="http://goodies.xfce.org/projects/panel-plugins/xfce4-wavelan-plugin/"
+arch="all"
+license="BSD-2-Clause"
+subpackages="$pkgname-lang"
+makedepends="xfce4-panel-dev libxfce4ui-dev linux-headers"
+source="https://archive.xfce.org/src/panel-plugins/xfce4-wavelan-plugin/${pkgver%.*}/xfce4-wavelan-plugin-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib \
+		--localstatedir=/var \
+		--disable-static
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="90e0d5f2e9add1f177f0f69e537ccdeeaf518a122feb776cb8bce139b9af6ea7d248e758ae381b69041bbdefe2d38f2162d08b25fd246d98c3a028d743892123  xfce4-wavelan-plugin-0.6.2.tar.bz2"

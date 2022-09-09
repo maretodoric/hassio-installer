@@ -1,0 +1,58 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-dns-lexicon
+pkgver=3.11.3
+pkgrel=0
+pkgdesc="Manipulate DNS records on various DNS providers in a standardized/agnostic way"
+url="https://github.com/AnalogJ/lexicon"
+arch="noarch"
+license="MIT"
+depends="
+	py3-beautifulsoup4
+	py3-cryptography
+	py3-future
+	py3-requests
+	py3-tldextract
+	py3-yaml
+	"
+makedepends="py3-build py3-installer py3-setuptools py3-poetry-core"
+_providerdepends="
+	py3-boto3
+	py3-localzone
+	py3-oci
+	py3-softlayer
+	py3-xmltodict
+	py3-zeep
+	"
+checkdepends="
+	py3-filelock
+	py3-pytest
+	py3-pytest-mock
+	py3-requests-file
+	py3-vcrpy
+	$_providerdepends
+	"
+source="$pkgname-github-$pkgver.zip::https://github.com/AnalogJ/lexicon/archive/refs/tags/v$pkgver.zip"
+builddir="$srcdir/lexicon-$pkgver"
+
+build() {
+	# XXX: hack for poetry to not ignore files
+	GIT_DIR=. python3 -m build --no-isolation --wheel
+}
+
+check() {
+	python3 -m installer -d testenv \
+		dist/dns_lexicon-$pkgver-py3-none-any.whl
+	local sitedir="$(python3 -c 'import site;print(site.getsitepackages()[0])')"
+	PYTHONPATH="$PWD/testenv/$sitedir" python3 -m pytest --ignore lexicon/tests/providers/test_localzone.py lexicon
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		dist/dns_lexicon-$pkgver-py3-none-any.whl
+	rm -rf "$pkgdir"/usr/lib/python3*/site-packages/lexicon/tests
+}
+
+sha512sums="
+ead1bbf093a369b9ddc1deb2be0bbc114daeaf88a4ccb54f1a198e2baee30e3c4d46e793a4fd68de47bd5ef609852367570fb2357172bf59355ed2bb1ac2b901  py3-dns-lexicon-github-3.11.3.zip
+"

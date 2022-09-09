@@ -1,0 +1,32 @@
+# Contributor: rahmanshaber <rahmanshaber@yahoo.com>
+# Maintainer: rahmanshaber <rahmanshaber@yahoo.com>
+pkgname=libcsys
+pkgver=4.3.0
+pkgrel=0
+pkgdesc="Library for managing drive and getting system resource information in real time"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+url="https://gitlab.com/cubocore"
+license="GPL-3.0-or-later"
+depends="udisks2"
+makedepends="qt5-qtbase-dev cmake ninja"
+source="https://gitlab.com/cubocore/libcsys/-/archive/v$pkgver/libcsys-v$pkgver.tar.gz"
+subpackages="$pkgname-dev"
+builddir="$srcdir/$pkgname-v$pkgver"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+2fdbc963a14fdd1ef46eef2a4897f3abfc4e623b73058289f8cd5932b143de77e99d200c4462f90f986791692bfed942ebdbc4b7dc68d7f1cba35ffbeb8d4ea2  libcsys-v4.3.0.tar.gz
+"

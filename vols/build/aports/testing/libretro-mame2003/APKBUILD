@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-mame2003
+pkgver=0_git20220206
+pkgrel=0
+_commit="3eb27d5f161522cf873c0642f14b8e2267b3820f"
+pkgdesc="Multiple Arcade Machine Emulator for libretro (2003)"
+url="https://github.com/libretro/mame2003-libretro"
+arch="all"
+license="custom"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/mame2003-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/mame2003-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 mame2003_libretro.so "$pkgdir"/usr/lib/libretro/mame2003_libretro.so
+}
+
+sha512sums="
+3c97fd688b9cac8379e0d4474ea12416c61043671af84b342d295cadd66e8f8f113715fbf933fd1c4fe9018c0da9bb492af55e3d4564b506a4db83b7874ab8fe  libretro-mame2003-3eb27d5f161522cf873c0642f14b8e2267b3820f.tar.gz
+"

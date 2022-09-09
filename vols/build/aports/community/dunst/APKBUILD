@@ -1,0 +1,45 @@
+# Contributor: Dmitry Zakharchenko <dmitz@disroot.org>
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Stefan Wagner <stw@bit-strickerei.de>
+pkgname=dunst
+pkgver=1.8.1
+pkgrel=0
+pkgdesc="Customizable and lightweight notification-daemon"
+url="https://dunst-project.org/"
+license="BSD-3-Clause"
+arch="all"
+depends="dunstify"
+makedepends="libxscrnsaver-dev libxinerama-dev libxrandr-dev
+	libnotify-dev dbus-dev wayland-dev perl pango-dev wayland-protocols"
+subpackages="$pkgname-doc dunstify"
+source="$pkgname-$pkgver.tar.gz::https://github.com/dunst-project/dunst/archive/v$pkgver.tar.gz"
+
+case "$CARCH" in
+	s390x|riscv64)
+		options="!check" ;; # tests depend on librsvg
+	*)
+		checkdepends="$checkdepends dbus librsvg bash" ;;
+esac
+
+build() {
+	make all dunstify
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" SYSCONFDIR=/etc PREFIX=/usr install
+	install -Dm755 dunstify "$pkgdir"/usr/bin/dunstify
+}
+
+dunstify() {
+	pkgdesc="notify-send compatible command with additional features"
+	amove usr/bin/dunstify
+}
+
+sha512sums="
+bd8605844eacb24ec1beafbd62be1defa8ff9f6fc2e93a4746acaba483e86d0fa3937045c20dbba71c46310102d8878c8ec987a3081328b02a09d7f9fde974d9  dunst-1.8.1.tar.gz
+"

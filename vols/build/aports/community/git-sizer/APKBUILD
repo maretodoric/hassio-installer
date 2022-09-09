@@ -1,0 +1,36 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=git-sizer
+pkgver=1.5.0
+pkgrel=4
+pkgdesc="Compute various size metrics for a Git repository"
+url="https://github.com/github/git-sizer"
+license="MIT"
+arch="all"
+makedepends="go"
+source="https://github.com/github/git-sizer/archive/v$pkgver/git-sizer-$pkgver.tar.gz
+	skip-test-exec.patch
+	"
+
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+export GOPATH="$srcdir"
+export CGO_ENABLED=0
+
+build() {
+	go build \
+		-ldflags="-s -w -X main.ReleaseVersion=$pkgver" \
+		-v -o bin/git-sizer
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 bin/git-sizer "$pkgdir"/usr/bin/git-sizer
+}
+
+sha512sums="
+64591c0f0b2cc35e78796ac9e4e9693453a4c1ce7d89d23d69c2d84b786586aaf63253f0d3d8e9561f0ef0c9a8ba04c67d6f066b75fb08e1f0eab51123d07d6d  git-sizer-1.5.0.tar.gz
+5582360e17504b418393513700e3cfe582abfe041e1213beb3760ba493badbddf9008087940651fb1efd79bf4b289050e560607f712ef67b3fc4a7e9f64e7c20  skip-test-exec.patch
+"

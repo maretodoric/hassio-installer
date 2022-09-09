@@ -1,0 +1,25 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=py3-subtesthack
+_pyname=pytest-subtesthack
+pkgver=0.1.2
+pkgrel=2
+pkgdesc="Explicitly set up and tear down fixtures"
+url="https://github.com/untitaker/pytest-subtesthack"
+arch="noarch"
+license="Unlicense"
+options="!check"  # no tests
+depends="python3 py3-pytest"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pyname%${_pyname#?}}/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="2d57b30de711692da90318d07c8d0ed1fc3cb9638780ff4499c49fbbc2c7e4bf79dd5355b34114cdf7332730c23820b18e68c50dcdda0eff061e5965d2fc7755  pytest-subtesthack-0.1.2.tar.gz"

@@ -1,0 +1,36 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-fixtures
+pkgver=4.0.0
+pkgrel=0
+pkgdesc="Fixtures, reusable state for writing clean tests and more."
+url="https://pypi.python.org/pypi/fixtures/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-pbr
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-testtools py3-mock"
+source="https://files.pythonhosted.org/packages/source/f/fixtures/fixtures-$pkgver.tar.gz"
+builddir="$srcdir/fixtures-$pkgver"
+options="!check" # py3-testtools depends on this
+
+replaces="py-fixtures" # Backwards compatibility
+provides="py-fixtures=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m testtools.run
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+dcd67c3df9efc16f2a21b6d2917a5b7e45ecc09d1ddbd1de98a5b4b717ea7da0fc82e1054f494255b419a792e841145110c77a1772444f4019fc02e9917c5b80  fixtures-4.0.0.tar.gz
+"

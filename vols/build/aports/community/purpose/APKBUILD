@@ -1,0 +1,53 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=purpose
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Framework for providing abstractions to get the developer's purposes fulfilled"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+# ppc64le blocked by kaccounts-integration
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-or-later"
+depends_dev="
+	kaccounts-integration-dev
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kio-dev
+	kirigami2-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	samurai
+	"
+checkdepends="xvfb-run"
+options="!check" # fails on builders
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/purpose-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_TESTING=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# This is 1 of 2 tests
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E 'menutest'
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+b0ea8e506d9d8f4162ee61cd6f946620d20e9d39c3d750952aac1d328164d5d3364cf8d605a28af78833cd75c654462d62c0dcd7425d237623ddc0f19a69679f  purpose-5.95.0.tar.xz
+"

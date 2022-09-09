@@ -1,0 +1,46 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=restic
+pkgver=0.13.1
+pkgrel=2
+pkgdesc="Fast, secure, efficient backup program"
+url="https://restic.net/"
+# armhf: https://github.com/restic/restic/issues/3505
+arch="all !armhf"
+license="BSD-2-Clause"
+makedepends="go"
+options="net chmod-clean"
+subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion"
+source="https://github.com/restic/restic/releases/download/v$pkgver/restic-$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+
+build() {
+	go build -v ./cmd/...
+}
+
+check() {
+	# Remove test that no longer applies to us
+	rm internal/backend/rest/rest_int_go114_test.go
+
+	RESTIC_TEST_FUSE=0 make test
+}
+
+package() {
+	install -Dm755 $pkgname "$pkgdir"/usr/bin/$pkgname
+
+	local man
+	for man in doc/man/*.?; do
+		install -Dm644 "$man" \
+			"$pkgdir"/usr/share/man/man${man##*.}/${man##*/}
+	done
+
+	install -Dm644 doc/bash-completion.sh \
+		"$pkgdir"/usr/share/bash-completion/completions/$pkgname
+	install -Dm644 doc/zsh-completion.zsh \
+		"$pkgdir"/usr/share/zsh/site-functions/_$pkgname
+}
+
+sha512sums="
+14feb6d0b3d258783d55ad537d8ccbdc9574a966e14f65465c132eceb92c821f4033428eba83acb1e1a9cfb169cc5fdc86b6ae90b94fe2855bd1f69262e30770  restic-0.13.1.tar.gz
+"

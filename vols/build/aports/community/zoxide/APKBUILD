@@ -1,0 +1,58 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=zoxide
+pkgver=0.8.1
+pkgrel=0
+pkgdesc="A faster way to navigate your filesystem"
+url="https://github.com/ajeetdsouza/zoxide"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le"  # limited by rust/cargo
+license="MIT"
+makedepends="cargo"
+checkdepends="dash bash fish shfmt zsh"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/ajeetdsouza/zoxide/archive/v$pkgver/zoxide-$pkgver.tar.gz
+	exclude-shellcheck-test.patch
+	remove-pwsh-xonsh.patch
+	"
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="z"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	cargo install --locked --offline --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	install -Dm644 man/man1/*.1 -t "$pkgdir"/usr/share/man/man1/
+
+	cd contrib/completions
+	install -Dm644 zoxide.bash "$pkgdir"/usr/share/bash-completion/completions/zoxide
+	install -Dm644 zoxide.fish -t "$pkgdir"/usr/share/fish/completions/
+	install -Dm644 _zoxide -t "$pkgdir"/usr/share/zsh/site-functions/
+}
+
+sha512sums="
+3df2f7dcbafb13326b2dfdf46fdb7d952bbc63c04b9fb4b219ab0ddb9533b6d12a4f4f4bbb4938881874e99f16c5b6b959b4a83309c023bb93899bc0b019b143  zoxide-0.8.1.tar.gz
+78f53af62460aec5db610ed7a47344f4386b1a0129f05b9b392cbd588d5c8ea10a18a48c9c8ef34bc73436aeaf0e3e6eecc50c99425b3efdec266d4f862dbf78  exclude-shellcheck-test.patch
+da300f31e17b5fcf23cd2f523c1f6ad9216bb0be7fb62675e5d735c4a88be306a79fd4328c01383674bf2c9dfa75336525113e8ce94a29b5d3e8d853e46c56e8  remove-pwsh-xonsh.patch
+"

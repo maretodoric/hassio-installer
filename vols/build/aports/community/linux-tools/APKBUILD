@@ -1,0 +1,207 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Milan P. Stanić <mps@arvanta.net>
+pkgname=linux-tools
+pkgver=5.15.41
+_kernver=${pkgver%.*}
+pkgrel=2
+pkgdesc="Linux kernel tools meta package"
+url="https://www.kernel.org/"
+arch="all"
+license="GPL-2.0-only"
+depends="perf cpupower $pkgname-gpio $pkgname-iio"
+depends_dev="pciutils-dev readline-dev gettext-dev"
+makedepends="$depends_dev elfutils-dev bash linux-headers flex bison diffutils
+	zlib-dev findutils python3 ncurses-dev
+	automake autoconf libtool libudev-zero-dev sysfsutils-dev glib-dev
+	libbpf binutils-dev clang llvm libcap-dev"
+subpackages="perf perf-bash-completion:perf_bashcomp:noarch
+	cpupower cpupower-openrc cpupower-bash-completion:cpupower_bashcomp:noarch
+	$pkgname-gpio $pkgname-iio $pkgname-doc $pkgname-dev
+	$pkgname-tmon $pkgname-usbip $pkgname-usbip-openrc
+	bpftool bpftool-bash-completion:bpftool_bashcomp:noarch"
+source="https://kernel.org/pub/linux/kernel/v5.x/linux-$_kernver.tar.xz
+	https://kernel.org/pub/linux/kernel/v5.x/patch-$pkgver.xz
+	tmon-musl-includes.patch
+	cpupower-libs.patch
+	bpftool-nftw.patch
+	bpftool-include-fcntl.h.patch
+	cpupower.initd
+	cpupower.confd
+	usbip.initd
+	usbip.confd
+	"
+
+builddir="$srcdir"/linux-$_kernver
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+prepare() {
+	cd "$srcdir"/linux-$_kernver
+	if [ "${pkgver%.0}" = "$pkgver" ]; then
+		msg "Applying patch-$pkgver.xz"
+		unxz -c < "$srcdir"/patch-$pkgver.xz | patch -p1 -N
+	fi
+	default_prepare
+}
+
+_make_tools() {
+	make -C "$builddir"/tools \
+		VERSION=$pkgver-$pkgrel NLS=false LIBINTL_LIBS=-lintl WERROR=0 \
+		prefix=/usr libdir=/usr/lib lib=lib mandir=/usr/share/man \
+		"$@"
+}
+
+build() {
+	_make_tools perf cpupower gpio iio tmon bpf/bpftool
+	( cd tools/usb/usbip ;
+	./autogen.sh
+	sed -i 's,-Wall -Werror -Wextra,-fcommon,' configure.ac ;
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--libdir=/usr/lib \
+		--datarootdir=/usr/share ;
+	make )
+}
+
+package() {
+	mkdir -p "$pkgdir"
+	_make_tools DESTDIR="$pkgdir" \
+		perf_install cpupower_install gpio_install iio_install
+	make -C "$builddir/tools/bpf/bpftool" prefix=/usr \
+		DESTDIR="$pkgdir" install
+	( cd tools/thermal/tmon;
+		make install INSTALL_ROOT="$pkgdir"; )
+	( cd tools/usb/usbip ;
+		make DESTDIR="$pkgdir" install; )
+
+	# perf completion is wrongly installed in /etc/bash_completion.d
+	mv "$pkgdir"/etc/bash_completion.d/* "$pkgdir"/usr/share/bash-completion/completions/
+	rmdir "$pkgdir"/etc/bash_completion.d
+}
+
+cpupower() {
+	pkgdesc="Linux kernel tool to set CPU power features"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/sbin \
+		"$subpkgdir"/usr/bin \
+		"$subpkgdir"/usr/lib \
+		"$subpkgdir"/etc
+
+	mv "$pkgdir"/usr/bin/cpu* "$subpkgdir"/usr/bin/
+	mv "$pkgdir"/usr/sbin/cpu* "$subpkgdir"/usr/sbin/
+	mv "$pkgdir"/usr/lib/libcpu*.so.* "$subpkgdir"/usr/lib/
+	mv "$pkgdir"/etc/cpu* "$subpkgdir"/etc/
+	install -Dm755 "$srcdir"/$subpkgname.initd \
+		"$pkgdir"/etc/init.d/$subpkgname
+	install -Dm644 "$srcdir"/$subpkgname.confd \
+		"$pkgdir"/etc/conf.d/$subpkgname
+}
+
+cpupower_bashcomp() {
+	pkgdesc="Bash completion for cpupower"
+	install_if="cpupower=$pkgver-r$pkgrel bash-completion"
+	mkdir -p "$subpkgdir"/usr/share/bash-completion/completions
+	mv "$pkgdir"/usr/share/bash-completion/completions/cpupower \
+		"$subpkgdir"/usr/share/bash-completion/completions/
+}
+
+usbip() {
+	pkgdesc="utilities for USB device sharing over IP network"
+	replaces="usbip-utils"
+	provides="usbip-utils=$pkgver-r$pkgrel"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/sbin \
+		"$subpkgdir"/usr/lib \
+		"$subpkgdir"/usr/include/usbip \
+		"$subpkgdir"/etc
+	mv "$pkgdir"/usr/sbin/usb* "$subpkgdir"/usr/sbin
+	mv "$pkgdir"/usr/lib/libusb* "$subpkgdir"/usr/lib
+	install -Dm755 "$srcdir"/usbip.initd "$pkgdir"/etc/init.d/usbip
+	install -Dm644 "$srcdir"/usbip.confd "$pkgdir"/etc/conf.d/usbip
+}
+
+perf() {
+	pkgdesc="Linux kernel performance auditing tool"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/bin "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/bin/perf \
+		"$pkgdir"/usr/bin/trace \
+		"$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/lib/traceevent \
+		"$pkgdir"/usr/lib/perf \
+		"$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/libexec "$subpkgdir"/usr/
+
+	# /usr/share/perf-core is apprently not installed on all arches
+	if [ -e "$pkgdir"/usr/share/perf-core ]; then
+		mkdir -p "$subpkgdir"/usr/share
+		mv "$pkgdir"/usr/share/perf-core \
+			"$subpkgdir"/usr/share/
+	fi
+}
+
+perf_bashcomp() {
+	replaces="$pkgname-bash-completion" # Backward compatibility
+	pkgdesc="Bash completion for perf"
+	install_if="perf=$pkgver-r$pkgrel bash-completion"
+	mkdir -p "$subpkgdir"/usr/share/bash-completion/completions
+	mv "$pkgdir"/usr/share/bash-completion/completions/perf \
+		"$subpkgdir"/usr/share/bash-completion/completions/
+}
+
+gpio() {
+	pkgdesc="Linux kernel GPIO tools"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/bin/*gpio* "$subpkgdir"/usr/bin
+}
+
+iio() {
+	pkgdesc="Linux kernel IIO tools"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/bin/*iio* "$subpkgdir"/usr/bin
+}
+
+tmon() {
+	pkgdesc="Linux kernel thermal monitor tools"
+	replaces="tmon"
+	depends=""
+	mkdir -p "$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/bin/tmon "$subpkgdir"/usr/bin
+}
+
+bpftool() {
+       pkgdesc="Linux kernel bpf manipulation tool"
+       mkdir -p "$subpkgdir"/usr/sbin
+       mv "$pkgdir"/usr/sbin/bpftool "$subpkgdir"/usr/sbin/
+}
+
+bpftool_bashcomp() {
+	pkgdesc="Bash completion for bpftool"
+	install_if="bpftool=$pkgver-r$pkgrel bash-completion"
+	mkdir -p "$subpkgdir"/usr/share/bash-completion/completions
+	mv "$pkgdir"/usr/share/bash-completion/completions/bpftool \
+		"$subpkgdir"/usr/share/bash-completion/completions/
+}
+
+
+sha512sums="
+d25ad40b5bcd6a4c6042fd0fd84e196e7a58024734c3e9a484fd0d5d54a0c1d87db8a3c784eff55e43b6f021709dc685eb0efa18d2aec327e4f88a79f405705a  linux-5.15.tar.xz
+1c7ece228174f5c3049ec44cafa588117d6c470567a95ba4c926fa370b17b8a90256c40df657fc923ec32303268abeeb6249943eee69cad73be38156628aab6f  patch-5.15.41.xz
+15d6d80e9ed2cdea3bb09574f1cf524007b088699204cfc9d326edd9cf461a38300cfafd82dae4a5a78a179944ef10f51ed7d51c3a8aeb8c08e7c6754d9e123b  tmon-musl-includes.patch
+a46e3a84b00a39a356618831d0ddfb7f0d10f0a3799d1307ba2cc832e73c01f8d637a4e801a6dd25025f6f13155c6ad8b836422ff72d365e51063ac0bf907f52  cpupower-libs.patch
+b2e91d3ce8154a5515bb6f41c02ea73d74f1e3cf4e05c7d902e820803658fa1a2e3d4d6654c35661d95e4f24f923ba84723e9ffdf85583fa3db187f9c51e480f  bpftool-nftw.patch
+13201d1915413091a5974c1a3c1d70bc79f02923357b0a37ac8fcf8baf52f90a152b046b0b69ebc8558e49ca1be89a2d370a7aa4fe6d2821d9e79c2a9dc2bfd4  bpftool-include-fcntl.h.patch
+97ecfeaaaa8efca7af585316b843bf7be885e88095bbdfbf52bc9a96b14dc862435482781e205ea022ab208978aaa4aabb317354fab890ed514a5088ae5045c8  cpupower.initd
+63cd12a4d8782198c71662e9205e346e064b65bae5e3e175b5bc43bdf7ec6ddf675b60349750afe3c37c8a925f9ae9a93530671821342581bd282a69e0773b8c  cpupower.confd
+fcbd64d844c9bc187d08cef5995e91a46c0df78deb24e96ac9210c0e2c730eca0301970d9b8ffbf003df274682d05072431a26b59d8c491f396618268a12ec92  usbip.initd
+eb8de617e27c4d5fdfee9c442e8f74b0afb4d0fe7b59eca3a19629eb70fea7e09b3c125bc968aa8810d845ce661c829bd0f3fdb2288664f2cccf423bc0ae6ae8  usbip.confd
+"

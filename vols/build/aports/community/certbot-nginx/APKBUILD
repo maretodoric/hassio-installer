@@ -1,0 +1,29 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=certbot-nginx
+pkgver=1.28.0
+pkgrel=0
+pkgdesc="Nginx plugin for Certbot client"
+url="https://pypi.org/project/certbot-nginx/"
+arch="noarch"
+license="Apache-2.0"
+depends="certbot py3-acme py3-mock py3-openssl py3-parsing
+	py3-setuptools py3-pip py3-zope-interface"
+checkdepends="py3-pytest"
+source="https://pypi.io/packages/source/c/certbot-nginx/certbot-nginx-$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+4bdd6f63fcb03f1536b735cec9955f72c2c08467c213f2c5da3a3946cb2c22daf44e39ab3590a1a8831b26a5b40eed7ef32a6bbc4246dbe57dd5135ab9670edb  certbot-nginx-1.28.0.tar.gz
+"

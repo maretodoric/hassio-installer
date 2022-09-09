@@ -1,0 +1,36 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-jaraco.classes
+pkgver=3.2.1
+pkgrel=2
+pkgdesc="Utility functions for Python class constructs"
+url="https://github.com/jaraco/jaraco.classes"
+arch="noarch"
+license="MIT"
+depends="python3"
+# py3-setuptools_scm is required to set version of python module
+makedepends="
+	py3-setuptools
+	py3-setuptools_scm
+	"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/j/jaraco.classes/jaraco.classes-$pkgver.tar.gz"
+builddir="$srcdir/jaraco.classes-$pkgver"
+
+# backwards compatibility for old name
+replaces="py3-jaraco-classes"
+provides="py3-jaraco-classes=$pkgver-r$pkgrel"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="4c85cfdd1da88de01596867365147be6cadd7e1d230798683236fdfde579747e3309aac95ae4f3ef86c91bb4493f3096c4ecc14e3db764ef308aab41ead88e23  jaraco.classes-3.2.1.tar.gz"

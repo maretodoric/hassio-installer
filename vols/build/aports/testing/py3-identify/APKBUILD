@@ -1,0 +1,31 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=py3-identify
+_pyname=identify
+pkgver=2.5.1
+pkgrel=0
+pkgdesc="File identification library for Python"
+url="https://github.com/pre-commit/identify"
+arch="noarch"
+license="MIT"
+depends="python3 py3-ukkonen"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="$_pyname-$pkgver.tar.gz::https://github.com/pre-commit/identify/archive/refs/tags/v$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+8b61dd03bcdb8908a1a7f3b13d66121bb4f4bb3aab57672bff55a84232dcff310214ed0a90cfcf79846da9abc111bff08761ec9dd40c8b9b183bfbbf365efac4  identify-2.5.1.tar.gz
+"

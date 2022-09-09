@@ -1,0 +1,29 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=libfaketime
+pkgver=0.9.10
+pkgrel=0
+pkgdesc="intercept system calls related to time and return user-defined values"
+options="!check" # https://github.com/wolfcw/libfaketime/issues/259
+url="https://github.com/wolfcw/libfaketime"
+arch="all"
+makedepends="coreutils"
+license="GPL-2.0-or-later"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wolfcw/libfaketime/archive/v$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+check() {
+	make -j1 test
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX="/usr" install
+}
+
+sha512sums="
+07c431bee21e31343b680d1322dd529ea276e3cc4dbec61646c12bf5d0263163faf6186efeb36b199e24b655578a493c43e3b7a7acf8eba8b9ff84a1e94d618b  libfaketime-0.9.10.tar.gz
+"

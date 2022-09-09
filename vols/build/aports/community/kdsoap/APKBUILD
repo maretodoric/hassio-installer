@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdsoap
+pkgver=2.0.0
+pkgrel=0
+pkgdesc="Additional components to increase the functionality of KIO"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+url="https://www.kdab.com/products/kd-soap"
+license="LGPL-2.1-only AND LGPL-3.0-only AND (GPL-2.0-only OR GPL-3.0-only) AND AGPL-3.0-only"
+depends_dev="qt5-qtbase-dev"
+makedepends="$depends_dev
+	cmake
+	doxygen
+	"
+source="https://github.com/KDAB/KDSoap/releases/download/kdsoap-$pkgver/kdsoap-$pkgver.tar.gz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DKDSoap_TESTS=true \
+		-DKDSoap_EXAMPLES=false
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# kdsoap-webcalls, kdsoap-webcalls_wsdl and kdsoap-test_calc require network access
+	# kdsoap-test_wsdl_document is broken on s390x, https://github.com/KDAB/KDSoap/issues/245
+	local skipped_tests="kdsoap-("
+	local tests="
+		webcalls
+		webcalls_wsdl
+		test_calc
+		"
+	[ "$CARCH" = "s390x" ] && tests="$tests test_wsdl_document"
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)"
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+50305866595048e0ec6cd6dabba9e63a948f1e1263e7f03e9e3bc56f09a843bade944df95b5ff57d4fc3a62896e72f02b0d7b3d5cc2be2823da67001ca459428  kdsoap-2.0.0.tar.gz
+"

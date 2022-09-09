@@ -1,0 +1,112 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=freerdp
+_pkgname=FreeRDP
+pkgver=2.7.0
+pkgrel=0
+pkgdesc="FreeRDP client"
+url="https://www.freerdp.com/"
+arch="all"
+license="Apache-2.0"
+options="!check" # As of 2.0.0_rc4 no test suite is available
+makedepends="
+	alsa-lib-dev
+	bsd-compat-headers
+	cmake
+	cups-dev
+	gsm-dev
+	gst-plugins-base-dev
+	libjpeg-turbo-dev
+	libusb-dev
+	libxcursor-dev
+	libxdamage-dev
+	libxi-dev
+	libxinerama-dev
+	libxkbcommon-dev
+	libxkbfile-dev
+	libxv-dev
+	linux-headers
+	openssl1.1-compat-dev
+	samurai
+	wayland-dev
+	"
+subpackages="$pkgname-doc $pkgname-dev $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/FreeRDP/FreeRDP/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+# backwards compat since now merged into main package
+provides="freerdp-plugins=$pkgver-r$pkgrel"
+
+# secfixes:
+#   2.4.1-r0:
+#     - CVE-2021-41159
+#     - CVE-2021-41160
+#   2.2.0-r0:
+#     - CVE-2020-15103
+#   2.1.2-r0:
+#     - CVE-2020-4033
+#     - CVE-2020-4031
+#     - CVE-2020-4032
+#     - CVE-2020-4030
+#     - CVE-2020-11099
+#     - CVE-2020-11098
+#     - CVE-2020-11097
+#     - CVE-2020-11095
+#     - CVE-2020-11096
+#   2.0.0-r1:
+#     - CVE-2020-13398
+#     - CVE-2020-13397
+#     - CVE-2020-13396
+#   2.0.0-r0:
+#     - CVE-2020-11521
+#     - CVE-2020-11522
+#     - CVE-2020-11523
+#     - CVE-2020-11524
+#     - CVE-2020-11525
+#     - CVE-2020-11526
+#   2.0.0_rc4-r0:
+#     - CVE-2018-8786
+#     - CVE-2018-8787
+#     - CVE-2018-8788
+#     - CVE-2018-8789
+
+build() {
+	export CFLAGS="$CFLAGS -D_BSD_SOURCE"
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DWITH_ALSA=ON \
+		-DWITH_CUPS=ON \
+		-DWITH_CHANNELS=ON \
+		-DBUILTIN_CHANNELS=OFF \
+		-DWITH_DIRECTFB=OFF \
+		-DWITH_FFMPEG=OFF \
+		-DWITH_GSM=ON \
+		-DWITH_GSTREAMER_1_0=ON \
+		-DWITH_IPP=OFF \
+		-DWITH_JPEG=ON \
+		-DWITH_OPENSSL=ON \
+		-DWITH_PCSC=OFF \
+		-DWITH_PULSE=OFF \
+		-DWITH_WAYLAND=ON \
+		-DWITH_SERVER=ON \
+		-DWITH_X11=ON \
+		-DWITH_XCURSOR=ON \
+		-DWITH_XEXT=ON \
+		-DWITH_XKBFILE=ON \
+		-DWITH_XI=ON \
+		-DWITH_XINERAMA=ON \
+		-DWITH_XRENDER=ON \
+		-DWITH_XV=ON \
+		-DWITH_ZLIB=ON \
+		-DWITH_NEON=OFF
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+85912b12ff27c02f2d535d4713109ecd1f11944a77b26aa885ea82f211411d9e02de3b6bc2e8e6bfb413ddac300a88f4616e82c2f2aea90112ab2144d5507fbc  freerdp-2.7.0.tar.gz
+"

@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ksmtp
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Job-based library to send email through an SMTP server"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kio
+arch="all !armhf !s390x !riscv64"
+url="https://kontact.kde.org"
+license="LGPL-2.1-or-later"
+depends_dev="
+	cyrus-sasl-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kio-dev
+	qt5-qtbase-dev
+	samurai
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/ksmtp-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+options="!check" # Broken
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+a7a02c146733bb6755e1c7c342b04b8a4959ebca3ef8ea948e377a3cd206f215dab867654e885bbb02fa8b0746636f38352883da51e68acfffb6252468d8d988  ksmtp-22.04.2.tar.xz
+"

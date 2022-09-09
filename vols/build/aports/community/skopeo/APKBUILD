@@ -1,0 +1,50 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=skopeo
+pkgver=1.8.0
+pkgrel=1
+# set this to the gitrev of the version
+_gitrev=49084d2cd8c9f8e7b38ba8405d61e701d5381bc0
+pkgdesc="Work with remote images registries - retrieving information, images, signing content"
+url="https://github.com/containers/skopeo"
+license="Apache-2.0"
+arch="all"
+options="chmod-clean !check" # needs docker
+depends="containers-common"
+makedepends="
+	bash
+	go
+	go-md2man
+	linux-headers
+	btrfs-progs-dev
+	glib-dev
+	gpgme-dev
+	lvm2-dev
+	ostree-dev
+	libselinux-dev
+	"
+subpackages="$pkgname-doc $pkgname-bash-completion"
+source="https://github.com/containers/skopeo/archive/v$pkgver/skopeo-$pkgver.tar.gz"
+
+# secfixes:
+#   1.5.2-r0:
+#     - CVE-2021-41190
+
+export GOPATH="$srcdir"
+
+build() {
+	make GIT_COMMIT=$_gitrev all
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install-docs install-completions
+	install -D -m755 -t "$pkgdir"/usr/bin bin/skopeo
+}
+
+sha512sums="
+697242244e533b597f481005754301efed8581018cdc297e071fa24347301ddf6111d1f1d3ccc6e87e3e5a9ea606e9c6b40c47bf69d2df6b44336fb260f546de  skopeo-1.8.0.tar.gz
+"

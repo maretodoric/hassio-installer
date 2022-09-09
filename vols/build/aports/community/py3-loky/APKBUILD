@@ -1,0 +1,42 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-loky
+pkgver=3.0.0
+pkgrel=1
+pkgdesc="Robust implementation of concurrent.futures.ProcessPoolExecutor"
+url="https://loky.readthedocs.io/en/stable/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-cloudpickle"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-psutil"
+source="$pkgname-$pkgver.tar.gz::https://github.com/joblib/loky/archive/$pkgver.tar.gz"
+builddir="$srcdir/loky-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" py.test-3 -v \
+		--deselect tests/test_loky_backend.py::TestLokyBackend::test_sync_object_handling \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_invalid_process_number \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_reusable_executor_thread_safety[constant-clean_start] \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_reusable_executor_thread_safety[constant-broken_start] \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_reusable_executor_thread_safety[varying-clean_start] \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_reusable_executor_thread_safety[varying-broken_start] \
+		--deselect tests/test_reusable_executor.py::TestGetReusableExecutor::test_reusable_executor_reuse_true \
+		--deselect tests/test_reusable_executor.py::TestExecutorInitializer::test_reusable_initializer \
+		--deselect tests/test_process_executor_forkserver.py::TestsProcessPoolForkserverExecutor::test_no_failure_on_large_data_send \
+		--deselect tests/test_process_executor_loky.py::TestsProcessPoolLokyExecutor::test_no_failure_on_large_data_send \
+		--deselect tests/test_process_executor_spawn.py::TestsProcessPoolSpawnExecutor::test_no_failure_on_large_data_send \
+		--deselect tests/test_loky_backend.py::test_recursive_terminate
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+ad171bfac031ab4d6749bde416031e905eb29adb97dab9c3348791c9df78b17e1e3eab8a354954d7c16fb2095ccc03d26cf2153fe53a546007a7a89c6046cb36  py3-loky-3.0.0.tar.gz
+"

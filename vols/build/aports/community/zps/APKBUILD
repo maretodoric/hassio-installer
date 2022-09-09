@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=zps
+pkgver=1.2.7
+pkgrel=0
+pkgdesc="Utility for listing and reaping zombie processes"
+url="https://github.com/orhun/zps"
+license="GPL-3.0-only"
+arch="all"
+options="!check" # no test suite
+makedepends="cmake"
+subpackages="$pkgname-doc"
+source="https://github.com/orhun/zps/archive/$pkgver/zps-$pkgver.tar.gz"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+
+	install -Dm644 -t "$pkgdir"/usr/share/man/man1 man/zps.1
+}
+
+sha512sums="
+f65c9d197822cc86d436afb22defaa8061fcb97079192634b8fd60b7990e814d224516fb86d55708cdf1aafd7cc25ac5d273b76b5b5f0308695a33ad92923429  zps-1.2.7.tar.gz
+"

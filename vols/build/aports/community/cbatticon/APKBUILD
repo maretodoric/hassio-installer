@@ -1,0 +1,25 @@
+# Contributor: Kevin Daudt <kdaudt@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=cbatticon
+pkgver=1.6.12
+pkgrel=0
+pkgdesc="lightweight and fast battery icon that sits in your systray"
+url="https://github.com/valr/cbatticon"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="gtk+3.0-dev libnotify-dev"
+options="!check" # no test suite
+subpackages="$pkgname-doc $pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/valr/cbatticon/archive/refs/tags/$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make install DESTDIR=$pkgdir/
+}
+
+sha512sums="
+4946bf8a0514c0d595dd335a1388fd0e2c1cbb4d4e7fa774ab58bca4914d635d23cf32d7299dc9cad0f4dc7a37d88b875d9432234bfea0251f699d7776e5b019  cbatticon-1.6.12.tar.gz
+"

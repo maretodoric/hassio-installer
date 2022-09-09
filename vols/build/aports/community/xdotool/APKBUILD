@@ -1,0 +1,26 @@
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Stefan Wagner <stw@bit-strickerei.de>
+pkgname=xdotool
+pkgver=3.20211022.1
+pkgrel=0
+pkgdesc="Simulate keyboard/mouse input"
+url="https://github.com/jordansissel/xdotool"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="libxtst-dev libxinerama-dev libxkbcommon-dev"
+makedepends="$depends_dev libx11-dev perl"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jordansissel/xdotool/archive/v$pkgver.tar.gz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	make WITHOUT_RPATH_FIX=1
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr INSTALLMAN=/usr/share/man install
+}
+
+sha512sums="
+02e599d25f402759176f200207bd7a78f333e44c4213b9dd266afd47c319e1bbf73b16aac29a31700be9a5cfd37ac0dc52271f26adc4ed46500fb35d7389e182  xdotool-3.20211022.1.tar.gz
+"

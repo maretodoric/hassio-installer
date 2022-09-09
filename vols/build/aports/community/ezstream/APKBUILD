@@ -1,0 +1,28 @@
+# Contributor: Lionel Voirol <lionel@sinux.ch>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=ezstream
+pkgver=1.0.2
+pkgrel=0
+pkgdesc="Ezstream is a command line source client for Icecast media streaming servers"
+url="https://icecast.org/ezstream/"
+arch="all"
+license="GPL-2.0"
+makedepends="libshout-dev libxml2-dev libvorbis-dev check-dev taglib-dev bsd-compat-headers"
+subpackages="$pkgname-doc"
+source="http://downloads.xiph.org/releases/ezstream/ezstream-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="54a11b6db9fd15259bbd3cfff11d95100b4c334e19a58a39b8b98f97300c57fbcaa19dabc751d93158ec3f7eb7a7101178c99d9eba193e49b7917ed5731aa48d  ezstream-1.0.2.tar.gz"

@@ -1,0 +1,50 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=spdk
+pkgver=22.05
+pkgrel=1
+pkgdesc="Storage Performance Development Kit"
+url="https://spdk.io/"
+# only supports 64bit
+arch="aarch64 ppc64le x86_64"
+license="BSD-3-Clause"
+# test script has bad array subscript
+options="!check"
+makedepends="
+	bash
+	clang
+	coreutils
+	cunit-dev
+	dpdk-dev
+	libaio-dev
+	llvm
+	ncurses-dev
+	openssl-dev
+	pmdk-dev
+	python3
+	util-linux-dev
+	"
+subpackages="$pkgname-static $pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/spdk/spdk/archive/v$pkgver.tar.gz"
+
+build() {
+	case "$CARCH" in
+		x86_64)	export CC=clang export CXX=clang++ ;;
+	esac
+	# this is not a GNU autoconf script
+	./configure \
+		--prefix=/usr \
+		--with-shared \
+		--with-dpdk \
+		--with-pmdk \
+		--without-isal
+	make
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+}
+
+sha512sums="
+ab92255eca61de64ab3a3a4672b5bd0cc0a9335fd12ee1c473c12ba115433dbbea7af20b669cf0c4d478638c40e6a5058a0bc8e0beca453d4a01f5ec76675c88  spdk-22.05.tar.gz
+"

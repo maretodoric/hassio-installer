@@ -1,0 +1,29 @@
+# Maintainer: Pedro Filipe <xpecex@outlook.com>
+pkgname=py3-fastimport
+pkgver=0.9.12
+pkgrel=1
+pkgdesc="VCS fastimport/fastexport parser"
+arch="noarch"
+url="https://github.com/jelmer/python-fastimport"
+license="GPL-2.0-only"
+depends="python3"
+makedepends="git py3-setuptools"
+source="https://github.com/jelmer/python-fastimport/archive/refs/tags/fastimport-$pkgver.tar.gz"
+builddir="$srcdir/python-fastimport-fastimport-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m unittest fastimport.tests.test_suite
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm -rf "$pkgdir"/usr/lib/python3*/site-packages/fastimport/tests
+}
+
+sha512sums="
+af9e808b72d0e29b9f77d33ab37f4b65b2f7fd4e129499c24193bbaa25baadf502a8ae3720b53af86862c7bf2977510eeb6d76f0e032dfe8a3fda5c6ddadd6ea  fastimport-0.9.12.tar.gz
+"

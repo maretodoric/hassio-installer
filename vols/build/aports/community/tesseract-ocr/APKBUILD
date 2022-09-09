@@ -1,0 +1,67 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=tesseract-ocr
+pkgver=5.1.0
+_tdver=4.1.0
+pkgrel=1
+pkgdesc="open source OCR engine"
+url="https://github.com/tesseract-ocr/tesseract/releases"
+arch="all"
+license="Apache-2.0"
+makedepends="automake autoconf libtool leptonica-dev pango-dev icu-dev
+	cairo-dev"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/tesseract-ocr/tesseract/archive/$pkgver.tar.gz
+	https://github.com/tesseract-ocr/tessdata/archive/$_tdver/tessdata-$_tdver.tar.gz
+	"
+_langs="afr ara aze bel ben bul cat ces chi_sim chi_tra chr dan deu ell
+enm epo equ est eus fin fra frk frm glg grc heb hin hrv hun ind isl ita
+ita_old jpn kan kat kor lav lit mal mkd mlt msa nld nor pol por ron rus slk slv spa spa_old sqi srp swa swe tam tel tgl tha tur ukr vie"
+
+for _lang in $_langs; do
+	subpackages="$subpackages $pkgname-data-$_lang:_lang_data:noarch"
+done
+
+builddir="$srcdir"/${pkgname/-*}-$pkgver
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-static
+	make
+	make training
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	make DESTDIR="$pkgdir" training-install
+	install -D "$srcdir"/tessdata-$_tdver/eng.* \
+		"$srcdir"/tessdata-$_tdver/osd.* \
+		"$srcdir"/tessdata-$_tdver/equ.* \
+		"$pkgdir"/usr/share/tessdata/
+}
+
+_lang_data() {
+	local lang="${subpkgname#$pkgname-data-}"
+	pkgdesc="Tesseract language data for $lang"
+	depends="$pkgname"
+	mkdir -p "$subpkgdir"/usr/share/tessdata
+	mv "$srcdir"/tessdata-$_tdver/$lang.* \
+		"$subpkgdir"/usr/share/tessdata/
+}
+
+sha512sums="
+d874fc995182c2c7ce210ebd79ad36414fa73afc53063505bc0b0aa0f090dc48db09c650c86a727778584f34a421b7d64c129cefe282ea112560cd7ca24e7f59  tesseract-ocr-5.1.0.tar.gz
+c0b55fb5542d25ebd4b56d25155cc8254027c9503af298641686388886403ee26ebf9ef47d21d530d372deeba6a01f6eb17705e1ab46bb02f9f7bf4f63805cd0  tessdata-4.1.0.tar.gz
+"

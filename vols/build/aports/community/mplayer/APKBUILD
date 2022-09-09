@@ -1,0 +1,73 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=mplayer
+pkgver=1.5.0
+pkgrel=0
+pkgdesc="A movie player for linux"
+url="http://www.mplayerhq.hu/design7/news.html"
+arch="x86_64 aarch64"
+license="GPL-2.0-or-later"
+subpackages="$pkgname-doc"
+makedepends="libxxf86dga-dev libxv-dev libmad-dev lame-dev libao-dev
+	libtheora-dev xvidcore-dev zlib-dev sdl2-dev freetype-dev libdvdread-dev
+	x264-dev faac-dev fontconfig-dev libxvmc-dev alsa-lib-dev live-media-dev
+	mesa-dev yasm libpng-dev libvdpau-dev libcdio-paranoia-dev ffmpeg-dev"
+
+source="http://www.mplayerhq.hu/MPlayer/releases/MPlayer-${pkgver%.*}.tar.xz
+	x11-libs.patch
+	mplayer_alpine_aarch64.patch
+	"
+builddir="$srcdir"/MPlayer-${pkgver%.*}
+
+build() {
+	case "$CARCH" in
+		aarch64)
+			cpudetection="disable-runtime-cpudetection"
+			;;
+		*)
+			cpudetection="enable-runtime-cpudetection"
+	esac
+	./configure \
+		--prefix=/usr \
+		--$cpudetection	\
+		--disable-gui \
+		--disable-gif \
+		--disable-arts \
+		--enable-x11 \
+		--confdir=/etc/mplayer \
+		--disable-nas \
+		--enable-gl \
+		--disable-tv-v4l1 \
+		--enable-tv-v4l2 \
+		--disable-ffmpeg_a \
+		--disable-liblzo \
+		--disable-speex \
+		--disable-openal \
+		--disable-fribidi \
+		--disable-libdv \
+		--disable-musepack \
+		--language=all \
+		--disable-esd \
+		--disable-mga \
+		--disable-lirc \
+		--enable-debug \
+		--enable-radio \
+		--enable-radio-capture \
+		--extra-cflags="-I/usr/lib/live-media -O2 -fno-PIC -fno-PIE" \
+		--extra-ldflags="-no-pie" \
+		--disable-nemesi \
+		--enable-freetype \
+		--enable-xvmc
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -Dm644 etc/codecs.conf etc/input.conf etc/example.conf \
+		"$pkgdir"/etc/mplayer/
+}
+
+sha512sums="
+05fe1edf23cec53be676333b6299df4b3f1ee746e5ccd96dc0bed550e7a1602ba7ba182c1cc23fcac67aacde849a46628b1dcab8ee3d3d4117415c11b6a6ad74  MPlayer-1.5.tar.xz
+bba012c5a116cbc6715955a0a563c89a33a1d8ad3c44301a083ce65296ba9112a88a58e38c874d9347f9c3133054e62bd16d3b3367383f207ee40ddae105081c  x11-libs.patch
+1d63f76c1961d43a3c4cd2c5e897396cabc68948dbfe9e96d464dbabba70b167bcf9f125e3bcac0508e141d5833e0ae63129fd803d80e73e26d6b8ac353a8040  mplayer_alpine_aarch64.patch
+"

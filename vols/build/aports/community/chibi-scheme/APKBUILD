@@ -1,0 +1,27 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=chibi-scheme
+pkgver=0.10
+pkgrel=1
+pkgdesc="Minimal implementation of the R7RS scheme standard"
+url="https://github.com/ashinn/chibi-scheme"
+arch="all"
+license="BSD-3-Clause"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/ashinn/chibi-scheme/archive/$pkgver/chibi-scheme-$pkgver.tar.gz"
+
+build() {
+	make PREFIX=/usr
+}
+
+check() {
+	make test
+}
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+348c20468e3b3b084ed25d38860f1afdecfb06ad9ff9ceb178c36930c14aa66a78f48b881a8eda28a30498662e7c722938212ea77b1cea89834d1a4377f0f648  chibi-scheme-0.10.tar.gz
+"

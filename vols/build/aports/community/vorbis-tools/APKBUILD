@@ -1,0 +1,36 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=vorbis-tools
+pkgver=1.4.2
+pkgrel=1
+pkgdesc="Extra tools for Ogg-Vorbis"
+url="https://www.xiph.org/vorbis/"
+arch="all"
+license="GPL-2.0-only"
+makedepends="curl-dev flac-dev libvorbis-dev libao-dev speex-dev"
+subpackages="$pkgname-doc $pkgname-lang"
+source="http://downloads.xiph.org/releases/vorbis/vorbis-tools-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--enable-vcut
+	make
+}
+
+check() {
+	make check
+}
+
+lang() {
+	default_lang
+	mkdir -p "$subpkgdir"/usr/share/$pkgname
+	mv "$subpkgdir"/usr/share/locale "$subpkgdir"/usr/share/$pkgname
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm "$pkgdir"/usr/lib/charset.alias
+}
+
+sha512sums="31681560434054706981aef64406975295eb405a9d2d7c0468af789d6c23edb7cfc1c19d26a28fa7061835524289cdc6d217a4669c43a2eb828189370cc6fcaf  vorbis-tools-1.4.2.tar.gz"

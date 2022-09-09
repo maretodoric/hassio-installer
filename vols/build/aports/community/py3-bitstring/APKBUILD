@@ -1,0 +1,29 @@
+# Maintainer: Michał Adamski <michal@ert.pl>
+pkgname=py3-bitstring
+pkgver=3.1.9
+pkgrel=2
+pkgdesc="Simple construction, analysis and modification of binary data"
+url="https://github.com/scott-griffiths/bitstring"
+license="MIT"
+arch="noarch"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/b/bitstring/bitstring-$pkgver.tar.gz"
+builddir="$srcdir/bitstring-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	cd test
+	python3 -m unittest discover
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+e47e27fdf98486cb1968ef6dad4c90cc673487e18b9da79ba176ed73be4ff629360330e6e3bb422edd4c5e104af437169739f9000f93917a2fe0e8448a0b42d0  bitstring-3.1.9.tar.gz
+"

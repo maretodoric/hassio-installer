@@ -1,0 +1,231 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=kodi
+pkgver=19.4
+_realname=Matrix
+pkgrel=2
+_crossguid_hash="8f399e8bd4"
+pkgdesc="software media player and entertainment hub for digital media"
+url="https://kodi.tv/"
+# kodi does not know of other archs
+arch="x86 x86_64 aarch64 armv7" # flatbuffers missing on armhf
+license="GPL-2.0-only"
+depends="
+	curl
+	hicolor-icon-theme
+	py3-bluez
+	py3-pillow
+	py3-simplejson
+	python3
+	xdpyinfo
+	"
+# Required dependencies
+depends_dev="
+	curl-dev
+	ffmpeg4-dev
+	flatbuffers-dev
+	fmt-dev
+	freetype-dev
+	fribidi-dev
+	fstrcmp-dev
+	giflib-dev
+	glu-dev
+	gtest-dev
+	libass-dev
+	libcdio-dev
+	libdrm-dev
+	libdvdcss-dev
+	libdvdnav-dev
+	libdvdread-dev
+	libjpeg-turbo-dev
+	lzo-dev
+	mesa-dev
+	openssl1.1-compat-dev
+	pcre-dev
+	rapidjson-dev
+	spdlog-dev
+	sqlite-dev
+	taglib-dev
+	tinyxml-dev
+	zlib-dev
+	"
+
+# Required for Wayland
+depends_dev="$depends_dev
+	libxkbcommon-dev
+	waylandpp-dev
+	"
+
+# Required for gbm
+depends_dev="$depends_dev
+	libinput-dev
+	"
+
+# Optional for extra features
+depends_dev="$depends_dev
+	alsa-lib-dev
+	avahi-dev
+	bluez-dev
+	dav1d-dev
+	dbus-dev
+	eudev-dev
+	libbluray-dev
+	libcap-dev
+	libcec4-dev
+	libmicrohttpd-dev
+	libnfs-dev
+	libplist-dev
+	libshairport-dev
+	libva-glx-dev
+	libxslt-dev
+	mariadb-connector-c-dev
+	pulseaudio-dev
+	python3-dev
+	samba-dev
+	"
+makedepends="$depends_dev
+	autoconf
+	automake
+	cmake
+	doxygen
+	graphviz
+	libtool
+	openjdk8-jre-base
+	samurai
+	swig
+	tar
+	wayland-protocols
+	xz
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-openrc
+	$pkgname-x11
+	$pkgname-wayland
+	$pkgname-gbm
+	$pkgname-polkit::noarch
+	"
+replaces="xbmc"
+options="ldpath-recursive !check" # No testsuite
+source="https://github.com/xbmc/xbmc/archive/$pkgver-$_realname.tar.gz
+	crossguid-$_crossguid_hash.tar.gz::https://mirrors.kodi.tv/build-deps/sources/crossguid-$_crossguid_hash.tar.gz
+	fix-musl-incompability.patch
+	sse-build.patch
+	kodi.initd
+	60-kodi.rules
+	"
+
+builddir="$srcdir/xbmc-$pkgver-$_realname"
+
+# secfixes:
+#   18.2-r0:
+#     - CVE-2018-8831
+
+build() {
+	# use less memory on x86
+	[ "$CARCH" = "x86" ] && LDFLAGS="$LDFLAGS -Wl,--no-keep-memory"
+
+	export LDFLAGS="$LDFLAGS -Wl,-z,stack-size=2097152"
+
+	make -C tools/depends/target/crossguid PREFIX="$PWD"/usr
+
+	# X11
+	cmake -B build-x11 -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DENABLE_INTERNAL_CROSSGUID=ON \
+		-DENABLE_TESTING=OFF \
+		-DCROSSGUID_URL="$srcdir"/crossguid-$_crossguid_hash.tar.gz \
+		-DCORE_PLATFORM_NAME=x11 \
+		-DAPP_RENDER_SYSTEM=gl
+	cmake --build build-x11
+
+	# Wayland
+	cmake -B build-wayland -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DENABLE_INTERNAL_CROSSGUID=ON \
+		-DENABLE_TESTING=OFF \
+		-DCROSSGUID_URL="$srcdir"/crossguid-$_crossguid_hash.tar.gz \
+		-DCORE_PLATFORM_NAME=wayland \
+		-DAPP_RENDER_SYSTEM=gl
+	cmake --build build-wayland
+
+	# GBM
+	cmake -B build-gbm -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DENABLE_INTERNAL_CROSSGUID=ON \
+		-DENABLE_TESTING=OFF \
+		-DCROSSGUID_URL="$srcdir"/crossguid-$_crossguid_hash.tar.gz \
+		-DCORE_PLATFORM_NAME=gbm \
+		-DAPP_RENDER_SYSTEM=gles
+	cmake --build build-gbm
+}
+
+package() {
+	depends="$pkgname-bin"
+
+	DESTDIR="$pkgdir" cmake --install build-x11
+
+	install -Dm755 "$srcdir"/kodi.initd "$pkgdir"/etc/init.d/kodi
+
+	rm \
+		"$pkgdir"/usr/lib/kodi/kodi-x11 \
+		"$pkgdir"/usr/lib/kodi/kodi-xrandr
+
+	# Cmake files are by default installed in the wrong location
+	# should be in /usr/lib/cmake/kodi/
+	# not /usr/share/kodi/cmake/
+	mkdir -p "$pkgdir"/usr/lib/cmake/kodi
+	mv "$pkgdir"/usr/share/kodi/cmake/*.cmake \
+		"$pkgdir"/usr/lib/cmake/kodi/
+	rmdir "$pkgdir"/usr/share/kodi/cmake
+}
+
+x11() {
+	pkgdesc="X11 Kodi binary"
+	provides="$pkgname-bin=$pkgver-r$pkgrel"
+
+	cd "$builddir"/build-x11
+	install -Dm755 kodi-x11 "$subpkgdir"/usr/lib/kodi/kodi-x11
+	install -Dm755 kodi-xrandr "$subpkgdir"/usr/lib/kodi/kodi-xrandr
+}
+
+wayland() {
+	pkgdesc="Wayland Kodi binary"
+	provides="$pkgname-bin"
+
+	cd "$builddir"/build-wayland
+	install -Dm755 kodi-wayland "$subpkgdir"/usr/lib/kodi/kodi-wayland
+}
+
+gbm() {
+	pkgdesc="GBM Kodi binary"
+	provides="$pkgname-bin"
+	depends="$pkgname-openrc"
+	install="$subpkgname.pre-install"
+
+	cd "$builddir"/build-gbm
+	install -Dm755 kodi-gbm "$subpkgdir"/usr/lib/kodi/kodi-gbm
+}
+
+polkit() {
+	pkgdesc="Polkit rules for Kodi in combination with GBM"
+	install_if="$pkgname-gbm polkit"
+
+	install -Dm644 "$srcdir"/60-kodi.rules "$subpkgdir"/usr/share/polkit-1/rules.d/60-kodi.rules
+}
+
+sha512sums="
+2804c57d85877873dae8e62f083b86f51fceebb802819523654a231f50f9850022956e1a9b91702e7c8b3f7ab437ceea7b10319239a8289dbf877ce94bba07c9  19.4-Matrix.tar.gz
+2682d63609d3dcdfcd8136be632e45df26ad88ce93b9c49745cf728bbd2e6254a7b05c8b059ab581d532372e504206a525a52564b64d076dfdae9c965a09fd16  crossguid-8f399e8bd4.tar.gz
+d3445c7f96eeab7cd2a2a67319fab09300ee2e8c03912d474e885d7e8a770b501abc59352972abb4dab6fab7f138b42fdb31b0113b9bb1a71b4f000fe1cdcbbb  fix-musl-incompability.patch
+cf8e55505f45898b15d8db356f7f43e215f07f9e2ed8215d726f3be37d78b328e08763f4c678f7223d185df72821b2a863958a1c279edd26ac8dc9f99ab92791  sse-build.patch
+7e2a2289da3098e0007e461ad538dcd6435e908283caf1719788248fe736615890175e11392ca0cd68002872217bbf7b70cf909f228307828aa82467d5502ed4  kodi.initd
+465a2079d598bf909a458d8e9d0ddd2b2a41dff83ba736542cffec7811c044295d5af092928f20aaa6cd3bc8b13bb03ede5c7ded1783680f890464e103392787  60-kodi.rules
+"

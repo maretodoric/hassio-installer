@@ -1,0 +1,31 @@
+# Contributor: Klemens Nanni <kl3@posteo.org>
+# Maintainer: Klemens Nanni <kl3@posteo.org>
+pkgname=plzip
+pkgver=1.10
+pkgrel=0
+pkgdesc="Massively parallel lossless data compressor"
+url="http://www.nongnu.org/lzip/plzip.html"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="lzlib-dev"
+subpackages="$pkgname-doc"
+source="https://download.savannah.gnu.org/releases/lzip/plzip/plzip-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--mandir=/usr/share/man
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+7fd7ec288800950deaec9337b3112db72cde059721a0143a091650fc20ba2a3d9d7eebbd7a312e5bbb1a61ca6c902d2450e6c3c7172dccf9c0c8b86db7c2a944  plzip-1.10.tar.gz
+"

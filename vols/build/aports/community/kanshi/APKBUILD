@@ -1,0 +1,28 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=kanshi
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="Dynamic display configuration for Wayland"
+url="https://wayland.emersion.fr/kanshi/"
+license="MIT"
+arch="all"
+options="!check" # no test suite
+makedepends="meson wayland-dev scdoc"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://git.sr.ht/~emersion/kanshi/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+7fd109b99b00876300ef0c7f94b6fa9fdcf2f13b20746eeed4709d66b8f55d2eae4a8bc08702411f7ec7d5042a1c7cbfa8b3837e1c055f8652ebd483f8b407d3  kanshi-1.2.0.tar.gz
+"

@@ -1,0 +1,28 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer:
+pkgname=py3-manuel
+pkgver=1.10.1
+pkgrel=1
+pkgdesc="mix and match traditional doctests with custom test syntax"
+url="https://github.com/benji-york/manuel"
+arch="noarch"
+license="Apache-2.0"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-zope-testing"
+source="$pkgname-$pkgver.tar.gz::https://github.com/benji-york/manuel/archive/refs/tags/$pkgver.tar.gz"
+builddir="$srcdir/manuel-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="7109852a80097a12237a363c91ac433dd2662e238ab4f20757b4d4b93019d0ada19069fd45a13a66128adf4dbc32f162d12a90879db2f2eb4748635118d75072  py3-manuel-1.10.1.tar.gz"

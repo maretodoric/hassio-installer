@@ -1,0 +1,42 @@
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Maintainer: Stuart Cardall <developer@it-offshore.co.uk>
+pkgname=opencl-icd-loader
+_pkgreal=ocl-icd
+pkgver=2.2.14
+pkgrel=0
+pkgdesc="Generic OpenCL ICD Loader"
+url="https://github.com/OCL-dev/ocl-icd"
+arch="all"
+license="custom"
+depends_dev="$pkgname"
+makedepends="ruby libtool autoconf automake"
+subpackages="$pkgname-doc $pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OCL-dev/ocl-icd/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgreal-$pkgver"
+
+prepare() {
+	default_prepare
+	autoreconf -vif
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -D -m644 COPYING "$pkgdir"/usr/share/doc/ocl-icd/LICENSE
+}
+
+sha512sums="78510b6fa4e2c6a52141a51ccf0d0ef3110b0b4902a43bb97f7622ff0ce470b108dc05c9619c28ce8758ccea1e1cf6b2e7f1a296f8b07f52532f23b2b036a5cf  opencl-icd-loader-2.2.14.tar.gz"

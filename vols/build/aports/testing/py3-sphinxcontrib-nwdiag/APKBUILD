@@ -1,0 +1,28 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-nwdiag
+_pkgname=sphinxcontrib-nwdiag
+pkgver=2.0.0
+pkgrel=2
+pkgdesc="Sphinx nwdiag extension"
+url="https://pypi.python.org/pypi/sphinxcontrib-nwdiag"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-nwdiag py3-sphinx"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-sphinxcontrib-nwdiag" # for backwards compatibility
+provides="py-sphinxcontrib-nwdiag=$pkgver-r$pkgrel" # for backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+
+sha512sums="a77d8259a4c1f238dec20ef0c260e6e0ad4665ab13e0124a5cdd3dc135969b44c218131746cc9f955a3dd088bf3b17e23354f8edc0409a239ca2e02d38ec645a  sphinxcontrib-nwdiag-2.0.0.tar.gz"

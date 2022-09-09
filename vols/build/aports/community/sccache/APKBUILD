@@ -1,0 +1,70 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=sccache
+pkgver=0.3.0
+pkgrel=0
+pkgdesc="shared compilation cache for C/C++ and Rust"
+url="https://github.com/mozilla/sccache/"
+# s390x & riscv64: limited by cargo
+# ppc64le: not supported by ring crate
+# armhf: sigbus
+arch="all !s390x !ppc64le !armhf !riscv64"
+license="Apache-2.0"
+makedepends="cargo openssl-dev"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mozilla/sccache/archive/v$pkgver.tar.gz
+	test_musl_ldd_parse.patch
+	"
+
+case "$CARCH" in
+x86_64)
+	# only x86_64 supports sccache-dist
+	subpackages="$subpackages $pkgname-dist"
+	_features="all,dist-server"
+	;;
+*)
+	_features="all"
+	;;
+esac
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cat >> Cargo.toml <<- EOF
+	[profile.release]
+	codegen-units = 1
+	lto = true
+	opt-level = "s"
+	panic = "abort"
+	EOF
+	cargo build --release --frozen --features $_features
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm0755 target/release/$pkgname -t "$pkgdir"/usr/bin
+
+	install -Dm0644 -t "$pkgdir"/usr/share/doc/"$pkgname" \
+		docs/Distributed.md \
+		docs/DistributedQuickstart.md \
+		docs/Jenkins.md \
+		docs/Rust.md
+}
+
+dist() {
+	pkgdesc="$pkgdesc (dist server)"
+
+	install -Dm0755 "$builddir"/target/release/$pkgname-dist \
+		-t "$subpkgdir"/usr/bin
+}
+
+sha512sums="
+6cf82764b488e2092769a96a5d98c1fcc4969e228053684eb7e4c66c6262f5cdaa4f8a771a38026a4b2ff539304432f271f6cea51ebf31d7f67b9465f47eebfc  sccache-0.3.0.tar.gz
+d8e544829df05fd374518f7daa3fc09b129877288594aafedfa43aeaa358779475c763b58801a7591bc4dd5b555ec4326957df18628e661798c73c0dd6da3bec  test_musl_ldd_parse.patch
+"

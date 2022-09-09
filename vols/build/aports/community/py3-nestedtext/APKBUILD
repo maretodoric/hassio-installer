@@ -1,0 +1,59 @@
+# Contributor: Andy Hawkins <andy@gently.org.uk>
+# Maintainer: Andy Hawkins <andy@gently.org.uk>
+pkgname=py3-nestedtext
+pkgver=3.4
+pkgrel=0
+pkgdesc="A Human Friendly Data Format"
+url="https://nestedtext.org/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-inform
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-pytest
+	py3-arrow
+	py3-docopt
+	py3-inform
+	py3-hypothesis
+	py3-natsort
+	py3-parametrize-from-file
+	py3-pydantic
+	py3-email-validator
+	py3-yaml
+	py3-quantiphy
+	py3-requests
+	py3-shlib
+	py3-voluptuous
+	"
+_official_tests_hash="c01e677c0a26172b979e15928c384386c94a7a56"
+source="https://github.com/KenKundert/nestedtext/archive/v$pkgver/nestedtext-v$pkgver.tar.gz
+	https://github.com/KenKundert/nestedtext_tests/archive/$_official_tests_hash.zip"
+builddir="$srcdir/nestedtext-$pkgver"
+# disable tests temporarily due to circular dependency for python 3.10 rebuild
+# py3-nestedtext -> py3-quantiphy -> py3-parametrize-from-file -> py3-nestedtext
+options="!check"
+
+build() {
+	python3 setup.py build
+}
+
+prepare() {
+	default_prepare
+
+	cp -r $srcdir/nestedtext_tests-$_official_tests_hash/* $builddir/tests/official_tests/
+}
+
+check() {
+	PY_IGNORE_IMPORTMISMATCH=1 PYTHONPATH="$PWD/build/lib" pytest
+	#pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+be09071fdbf7124d269284d05beceac4f6d1e08c14941f777c1ac7f33f2a513fb01275d20f6dfb3a3f85df22a6a2ac14443033526b56cc9124de4edb2e9d10fc  nestedtext-v3.4.tar.gz
+9fe61c335f624e4860ee63f72f0229b9feb446fa298d3f51bc82b314c2a7ad42f7c5865bdfb3955b325ab4547387391b377b4abe06e771a83c07cdc3262c1abd  c01e677c0a26172b979e15928c384386c94a7a56.zip
+"

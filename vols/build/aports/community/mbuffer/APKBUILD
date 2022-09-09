@@ -1,0 +1,36 @@
+# Contributor: Katie Holly <holly@fuslvz.ws>
+# Maintainer: Katie Holly <holly@fuslvz.ws>
+pkgname=mbuffer
+pkgver=20220418
+pkgrel=0
+pkgdesc="tool for measuring and buffering data streams"
+url="https://www.maier-komor.de/mbuffer.html"
+arch="all !armhf !armv7" # fails on the builders
+license="GPL-3.0-or-later"
+makedepends="linux-headers openssl1.1-compat-dev"
+subpackages="$pkgname-doc"
+source="https://www.maier-komor.de/software/mbuffer/mbuffer-$pkgver.tgz
+	fix-shell.patch"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		SH=/bin/sh
+	make
+}
+
+check() {
+	make -j1 check TESTTREE="$builddir"/*
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+aad7f764c82e3bdd4ee3fc5ac8174e716fd44cdb0418f1994d3f506d2e58264a13e15596bc8e78e9e8bb2d181875294448085bab122a2a31356d4336bb8b54a4  mbuffer-20220418.tgz
+ca676600272747c70e6f0ca199bfa77849dd3fd5ec7ee9994286100812ff0c69fde2bd13a61ae430af31ec0b9331f34a847e55fe3b4e2305072d83673027666a  fix-shell.patch
+"

@@ -1,0 +1,38 @@
+# Contributor: Matt Smith <mcs@darkregion.net>
+# Maintainer: Matt Smith <mcs@darkregion.net>
+pkgname=apache2-mod-wsgi
+_realname=mod_wsgi
+pkgver=4.9.0
+pkgrel=0
+pkgdesc="Python WSGI Module for Apache2"
+url="https://github.com/GrahamDumpleton/mod_wsgi"
+arch="all"
+license="Apache-2.0"
+depends="apache2"
+makedepends="apache2-dev python3-dev"
+options="!check" # no tests provided
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/GrahamDumpleton/mod_wsgi/archive/$pkgver.tar.gz
+	$pkgname.apache2.conf"
+builddir="$srcdir"/$_realname-$pkgver
+
+build() {
+	CFLAGS="" CXXFLAGS="" CPPFLAGS="" \
+	./configure --prefix=/usr \
+		--with-apxs=/usr/bin/apxs \
+		--with-python=/usr/bin/python3
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -Dm644 "$srcdir"/$pkgname.apache2.conf \
+		"$pkgdir"/etc/apache2/conf.d/wsgi-module.conf
+	install -Dm644 LICENSE \
+		"$pkgdir"/usr/share/doc/$pkgname/LICENSE
+}
+
+sha512sums="
+9dc34d431171321094a9713444895d9754eff4e69ad1e86c8d3cd77bc1ca0a4c10b697e7f8cf14902d6bfaf205c8842e62fa944bb38f66f1c54fd36af95a09d6  apache2-mod-wsgi-4.9.0.tar.gz
+5b36a458bd3539e58ea61ec405c4f5c5e0001a644263b0e1f8421a5c7fc7884b6df1355674a9d9b610780b5e9db6ce66d0ae1bbc0e512ecb027c3757209152c8  apache2-mod-wsgi.apache2.conf
+"

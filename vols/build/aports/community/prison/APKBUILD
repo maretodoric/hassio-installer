@@ -1,0 +1,40 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=prison
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="A barcode API to produce QRCode barcodes and DataMatrix barcodes"
+arch="all !armhf" # armhf blocked by qt5-qtdeclarative
+url="https://community.kde.org/Frameworks"
+license="MIT"
+depends_dev="qt5-qtbase-dev qt5-qtdeclarative-dev libdmtx-dev"
+makedepends="$depends_dev extra-cmake-modules doxygen qt5-qttools-dev libqrencode-dev samurai"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/prison-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# prison-datamatrixtest and prison-qrtest are broken on s390x
+	case "$CARCH" in
+		s390x) CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "prison-(datamatrix|qr)test" ;;
+		*) CTEST_OUTPUT_ON_FAILURE=TRUE ctest ;;
+	esac
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+83369da86f9b7ddd813f7a90367943ffc4eb066260ad9999545aa77cab0f6783531d2cf2081715e3ffd70fac377cdea221b79b626127c8773bf96c249536f990  prison-5.95.0.tar.xz
+"

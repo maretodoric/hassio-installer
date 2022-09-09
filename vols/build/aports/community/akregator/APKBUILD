@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=akregator
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://apps.kde.org/akregator/"
+pkgdesc="RSS Feed Reader"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later"
+makedepends="
+	akonadi-mime-dev
+	extra-cmake-modules
+	grantlee-dev
+	grantleetheme-dev
+	kcmutils-dev
+	kcrash-dev
+	kdoctools-dev
+	kiconthemes-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kontactinterface-dev
+	kparts-dev
+	kpimtextedit-dev
+	ktexteditor-dev
+	kxmlgui-dev
+	libkdepim-dev
+	libkleo-dev
+	messagelib-dev
+	pimcommon-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	samurai
+	syndication-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/akregator-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+0d2ab01e85fa80db16292e09c0135d3234650afb0d9574340ef87371c7d2a860a562b063c26f9c4ba79dfede2a8d71c3b9a4e7390262bdf203edb3f4aace29ac  akregator-22.04.2.tar.xz
+"

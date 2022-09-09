@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+
+command="/usr/sbin/lxd"
+command_args="${LXD_OPTIONS}"
+command_background="true"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+depend() {
+	need net cgroups dbus
+	use lxcfs
+	after firewall
+}

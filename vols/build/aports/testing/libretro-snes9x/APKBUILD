@@ -1,0 +1,26 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-snes9x
+pkgver=0_git20220414
+pkgrel=0
+_commit="bc65c09c280cb225084099385375d3b513a43455"
+pkgdesc="Super Nintendo Entertainment System core for libretro"
+url="https://github.com/libretro/snes9x"
+arch="all"
+license="custom"
+makedepends="zlib-dev"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/snes9x/archive/$_commit.tar.gz"
+builddir="$srcdir/snes9x-$_commit"
+options="!check" # No tests
+
+build() {
+	make -C libretro
+}
+
+package() {
+	install -Dm644 libretro/snes9x_libretro.so "$pkgdir"/usr/lib/libretro/snes9x_libretro.so
+}
+
+sha512sums="
+55f37de84659860e1c76da2fc63fb252ff99be17434b297a084f4c71a96b3cc152d427294a7feb6dab27da43d97836c102e60419e4685802bd83178857872db1  libretro-snes9x-bc65c09c280cb225084099385375d3b513a43455.tar.gz
+"

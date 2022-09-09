@@ -1,0 +1,35 @@
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=py3-fakeredis
+_pkgname=${pkgname#py3-}
+pkgver=1.7.1
+pkgrel=0
+pkgdesc="Fake implementation of redis API for testing purposes"
+url="https://pypi.org/project/fakeredis/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-six py3-redis py3-sortedcontainers"
+makedepends="py3-setuptools"
+checkdepends="py3-hypothesis py3-pytest py3-pytest-mock py3-lupa"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+prepare() {
+	# Requires unpackaged 'aioredis'
+	rm -f test/test_aioredis*.py
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" py.test-3 -m fake -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6bcde79161c4b340a79dae07f4644a33ba1d0b3839f904d043b447799f6553dd26e4c7d18edb42b2767f3b51b10d1f768e887c01eacadec482cc60ee61848692  py3-fakeredis-1.7.1.tar.gz
+"

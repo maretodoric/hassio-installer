@@ -1,0 +1,31 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=py3-mopidy-mpd
+_pyname=Mopidy-MPD
+pkgver=3.2.0
+pkgrel=1
+pkgdesc="Mopidy extension for controlling playback from MPD clients"
+url="https://github.com/mopidy/mopidy-mpd"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 mopidy py3-pykka"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/${_pyname%${_pyname#?}}/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6d399491ec8c5e9e44a4ccc0054ee8aae01cdaad646de3ff58b02f30cce94fc55aa382d6e5c4cde59e78902c1ea76e827bf355fb091a5d647b3721e39f20f675  Mopidy-MPD-3.2.0.tar.gz
+"

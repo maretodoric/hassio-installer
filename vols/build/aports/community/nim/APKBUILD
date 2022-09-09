@@ -1,0 +1,81 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Contributor: Nicolas Lorin <androw95220@gmail.com>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+#
+# WARNING: There may be breakages!
+pkgname=nim
+pkgver=1.6.6
+pkgrel=0
+_csources_ver=0.20.0
+pkgdesc="A systems and applications programming language"
+url="https://nim-lang.org/"
+arch="all !s390x"
+license="MIT"
+checkdepends="sqlite-libs nodejs gc-dev pcre valgrind"
+subpackages="$pkgname-doc nimsuggest niminst"
+depends="libucontext-dev"  # used by nims compiler
+source="https://nim-lang.org/download/nim-$pkgver.tar.xz
+	niminst-fix-paths.patch
+	nim-config-fix-paths.patch
+	nim-config-enable-ucontext.patch
+	"
+
+# Don't run tests on armhf and ppc64le, it'd take eternity...
+# Can't run tests on riscv64, no nodejs...
+# Temporarily allow textrels on riscv64
+case "$CARCH" in
+	armhf | ppc64le ) options="!check";;
+	riscv64) options="!check textrels";;
+esac
+
+
+build() {
+	msg2 "Building nim csources..."
+	./build.sh
+
+	msg2 "Building koch..."
+	./bin/nim compile -d:release koch
+
+	msg2 "Building nim..."
+	./koch boot -d:release
+
+	msg2 "Building nimsuggest..."
+	./bin/nim compile -d:release nimsuggest/nimsuggest.nim
+}
+
+check() {
+	# XXX: Some tests fail!
+	./koch tests --pedantic --targets="c js" all || true
+}
+
+package() {
+	DESTDIR="$pkgdir" ./koch install /usr/bin
+
+	cd "$pkgdir"
+	mkdir -p usr/include
+	local file; for file in usr/lib/nim/*.h; do
+		mv $file usr/include/
+		ln -s ../../include/${file##*/} usr/lib/nim/${file##*/}
+	done
+}
+
+nimsuggest() {
+	pkgdesc="idetools for the nim language"
+
+	install -D -m 755 "$builddir"/nimsuggest/nimsuggest \
+		"$subpkgdir"/usr/bin/nimsuggest
+}
+
+niminst() {
+	pkgdesc="A tool to generate an installer for a Nim program"
+
+	install -D -m 755 "$builddir"/tools/niminst/niminst \
+		"$subpkgdir"/usr/bin/niminst
+}
+
+sha512sums="
+6ea8d3f61adae48184dd0e3ac393296fd3bd5ead818e7dee949f43eccbd0b6229ebfc474353ddd63cc734f82c3247998fbfe88362061983f978ad8d0ab7fa677  nim-1.6.6.tar.xz
+7b4b4dbaef63786a98f69e5c43ae066f64ab4321769c95d0e8d279642329089882d9a93535c1ab876dcdb06ae62ba2918d051359698c4ca6d05342e128ca5d69  niminst-fix-paths.patch
+7667963a1f3370a7625c1ee6575239f20ea501b0ba8342f8dcea6020692411fc177e7f101edd81a48bb3885e1d1cbece2d6ecd1a4d7640f0f78de109a97eeea9  nim-config-fix-paths.patch
+4bff5b687fc4154a4b3c8e888e4fcdd2340acfcc87b1a5eeaa9feb173cadd6047bd73d68983461c1edcec232aca6014dbeab8efaedcf4d8a52662780de4b51d3  nim-config-enable-ucontext.patch
+"

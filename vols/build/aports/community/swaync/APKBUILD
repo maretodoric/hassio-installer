@@ -1,0 +1,48 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=swaync
+_projname=SwayNotificationCenter
+pkgver=0.6.1
+pkgrel=0
+pkgdesc="Notification daemon with a GTK GUI for notifications and the control center"
+url="https://github.com/ErikReider/SwayNotificationCenter"
+arch="all !riscv64 !s390x"  # blocked by libhandy1
+license="GPL-3.0"
+depends="dbus"
+makedepends="
+	gobject-introspection-dev
+	gtk+3.0-dev
+	gtk-layer-shell-dev
+	json-glib-dev
+	libhandy1-dev
+	meson
+	scdoc
+	vala
+	"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/ErikReider/SwayNotificationCenter/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	fix-fish-completions-dir.patch
+	"
+builddir="$srcdir/$_projname-$pkgver"
+options="!check"  # no tests defined
+
+build() {
+	abuild-meson \
+		-Dsystemd-service=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+68a72a84114f9d6620e3f80218ee5f3142526d2d377de7277fdd005e2523dc7a221910fd6609a1ec6e664bd2fd5692fecdf8fe27fa0614eeaf99836f2373ddd1  swaync-0.6.1.tar.gz
+d6adceae7d8cba6ca6a3c131e61ac7ef31edacdd847063555fb5827494d4145d260975c8955492b7739cac9857457557e1f30870713468ced60f9b56c5534b55  fix-fish-completions-dir.patch
+"

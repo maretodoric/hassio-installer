@@ -1,0 +1,29 @@
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Damian Kurek <starfire24680@gmail.com>
+pkgname=kodi-audioencoder-wav
+pkgver=3.0.0
+_realname=Matrix
+pkgrel=0
+pkgdesc="WAV encoder addon for Kodi"
+options="!check" # no test suite
+url="https://github.com/xbmc/audioencoder.wav"
+arch="x86 x86_64 aarch64 armv7" # kodi
+license="GPL-2.0-only"
+makedepends="cmake kodi-dev"
+source="$pkgname-$pkgver-$_realname.tar.gz::https://github.com/xbmc/audioencoder.wav/archive/$pkgver-$_realname.tar.gz"
+builddir="$srcdir/audioencoder.wav-$pkgver-$_realname"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_MODULE_PATH=/usr/lib/cmake/kodi \
+		-DUSE_LTO=1
+	make -C build
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+}
+
+sha512sums="68673e432d377b895172e398628c5dfd506bdb46c83c38933d0d674abaf1715d44e488d4c158d27c0480b92a947f21534502aa8ed473e9225c37f62e28b05512  kodi-audioencoder-wav-3.0.0-Matrix.tar.gz"

@@ -1,0 +1,33 @@
+# Contributor: Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+# Maintainer: Iztok Fister, Jr. <iztok@iztok-jr-fister.eu>
+pkgname=py3-niaaml
+_pkgorig=NiaAML
+pkgver=1.1.9
+pkgrel=0
+pkgdesc="Python automated machine learning framework."
+url="https://github.com/lukapecnik/NiaAML"
+arch="noarch !s390x !riscv64" # py3-scikit-learn, py3-niapy
+license="MIT"
+depends="python3 py3-numpy py3-pandas py3-niapy py3-scikit-learn"
+checkdepends="python3-dev py3-pytest"
+makedepends="py3-setuptools poetry py3-platformdirs py3-threadpoolctl py3-installer"
+source="https://github.com/lukapecnik/NiaAML/archive/$pkgver/$_pkgorig-$pkgver.tar.gz"
+builddir="$srcdir/NiaAML-$pkgver"
+
+build() {
+	GIT_DIR="$builddir" poetry build -f wheel
+}
+
+check() {
+	python3 -m pytest
+}
+
+package() {
+	mv dist/NiaAML-$pkgver-py3-none-any.whl dist/niaaml-$pkgver-py3-none-any.whl
+	python3 -m installer -d "$pkgdir" \
+		dist/niaaml-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+cad710dc0a204b8730aace8800bfb62a80898fecb569d5cb9b806c169f59b56f9c064fc654c95b1b9c45effd86073437994f8e7e5c8548b851ae3be95fa2854f  NiaAML-1.1.9.tar.gz
+"

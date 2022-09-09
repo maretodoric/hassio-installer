@@ -1,0 +1,35 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-music
+pkgver=42.1
+pkgrel=0
+pkgdesc="Music is the new GNOME music playing application"
+url="https://wiki.gnome.org/Apps/Music"
+# s390x and riscv64 blocked by polkit -> tracker
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="grilo grilo-plugins gnome-online-accounts libdazzle libsoup py3-gobject3
+	tracker libmediaart py3-cairo gst-plugins-good tracker-miners"
+makedepends="meson gnome-online-accounts-dev gtk4.0-dev libadwaita-dev libsoup-dev
+	gobject-introspection-dev grilo-dev grilo-plugins-dev tracker-dev py3-gobject3-dev
+	libmediaart-dev py3-cairo-dev itstool"
+checkdepends="desktop-file-utils appstream-glib"
+subpackages="$pkgname-lang $pkgname-doc"
+source="https://download.gnome.org/sources/gnome-music/${pkgver%.*}/gnome-music-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+4feb02459a010c83c66bde12d73be648e9e482117bda88ae2e44e93b59ac7c0b80522e8e4d7ccb38954465d7c012975521b0764f0a42dbecef737fe64d3c3bf1  gnome-music-42.1.tar.xz
+"

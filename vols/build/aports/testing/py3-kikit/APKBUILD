@@ -1,0 +1,38 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=py3-kikit
+pkgver=1.0.2
+pkgrel=0
+pkgdesc="Python library and CLI tool to automate several tasks in KiCAD"
+url="https://github.com/yaqwsx/KiKit"
+# riscv64: py3-shapely
+# aarch64, armv7, armhf, mips64: py3-solidpython
+arch="noarch !riscv64 !aarch64 !armv7 !armhf"
+license="MIT"
+depends="
+	python3
+	py3-click
+	py3-markdown2
+	py3-pybars3
+	py3-shapely
+	py3-solidpython
+	py3-python-versioneer
+	"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/yaqwsx/KiKit/archive/v$pkgver.tar.gz"
+builddir="$srcdir/KiKit-$pkgver"
+options="!check" # Not all dependencies packaged for check
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+404fecf3e89d7398159a1c63f4996fd8f8175ca55c7509994948a7e09d398e1836b5ad453c67cac0fcf7f10f0c1ad43cfccbb6c487d6b2732bbae2ed15910061  py3-kikit-1.0.2.tar.gz
+"

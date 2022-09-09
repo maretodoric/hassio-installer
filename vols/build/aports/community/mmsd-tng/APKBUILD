@@ -1,0 +1,60 @@
+# Contributor: Julian P Samaroo <jpsamaroo@jpsamaroo.me>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=mmsd-tng
+pkgver=1.9
+pkgrel=1
+pkgdesc="daemon for receiving and managing GSM MMS messages"
+url="https://gitlab.com/kop316/mmsd"
+# s390x and riscv64 blocked by polkit -> modemmanager
+arch="all !s390x !riscv64"
+license="GPL-2.0-only"
+# upstream was renamed mmsd-->mmsd-tng
+provides="mmsd=$pkgver-r$pkgrel"
+replaces="mmsd"
+depends="mobile-broadband-provider-info"
+makedepends="
+	c-ares-dev
+	dbus-dev
+	glib-dev
+	json-c-dev
+	libphonenumber-dev
+	libsoup-dev
+	meson
+	modemmanager-dev
+	"
+source="
+	$pkgname-$pkgver.tar.gz::https://gitlab.com/kop316/mmsd/-/archive/$pkgver/mmsd-$pkgver.tar.gz
+	mmsd.desktop
+	"
+subpackages="$pkgname-tools"
+builddir="$srcdir/${pkgname%%-tng}-$pkgver"
+
+build() {
+	abuild-meson  -Dbuild-mmsctl=true . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C output
+	install -Dm644 "$srcdir"/mmsd.desktop \
+		"$pkgdir"/etc/xdg/autostart/mmsd.desktop
+}
+
+tools() {
+	cd "$builddir"
+	mkdir -p "$subpkgdir"/usr/bin
+
+	install -Dm755 \
+		output/tools/create-hex-array \
+		output/tools/decode-mms \
+		"$subpkgdir"/usr/bin/
+}
+
+sha512sums="
+ec331b429be8a218b281eda0e672e542180d108e92e4343a5198a2477dfd429807d3b5b4365763b2f8a84f9c12b7d453345640a4475b3b6da909b897e7def4fe  mmsd-tng-1.9.tar.gz
+5d558e14baf0324ba1d7ddd7b89a558cc4570dd44cfba964bddcd03d6e68c514aaf8a25be927ff4e095f6e08b592307ebd333f41c8747ce1a13793420a6086d8  mmsd.desktop
+"

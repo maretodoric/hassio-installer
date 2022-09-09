@@ -1,0 +1,26 @@
+# Contributor: Grigory Kirillov <txgk@bk.ru>
+# Maintainer: Grigory Kirillov <txgk@bk.ru>
+pkgname=treedude
+pkgver=1.0.7
+pkgrel=0
+pkgdesc="Curses clone of the mini-game from Superhot"
+url="https://gitlab.com/n-ivkovic/treedude"
+arch="all"
+license="GPL-3.0-or-later"
+options="!check" # no test suite
+makedepends="ncurses-dev"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/n-ivkovic/treedude/-/archive/v$pkgver/treedude-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+9ce9054c13771f0500810ce6ca6bf7c7e1701439ad7a92dc10983ced1751c469f80f5502c6da00c21b698137c0a8cd3730800d61011142bbaa36704886a2c7d7  treedude-1.0.7.tar.gz
+"

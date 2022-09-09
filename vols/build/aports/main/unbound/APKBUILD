@@ -1,0 +1,125 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=unbound
+pkgver=1.16.0
+pkgrel=0
+pkgdesc="Unbound is a validating, recursive, and caching DNS resolver"
+url="https://nlnetlabs.nl/projects/unbound/about/"
+arch="all"
+license="BSD-3-Clause"
+depends="dnssec-root"
+depends_dev="expat-dev"
+_depends_migrate="
+	/bin/sh
+	apk-tools
+	openrc
+	"
+makedepends="$depends_dev
+	libevent-dev
+	linux-headers
+	openssl-dev
+	python3-dev
+	swig
+	"
+checkdepends="
+	bind-tools
+	ldns-tools
+	"
+install="$pkgname.pre-install"
+pkgusers="unbound"
+pkggroups="unbound"
+subpackages="
+	$pkgname-dbg
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-libs
+	$pkgname-openrc
+	py-unbound:py
+	$pkgname-migrate::noarch
+	"
+source="https://unbound.net/downloads/unbound-$pkgver.tar.gz
+	conf.patch
+	migrate-dnscache-to-unbound
+	$pkgname.initd
+	$pkgname.confd
+	"
+
+# secfixes:
+#   1.10.1-r0:
+#     - CVE-2020-12662
+#     - CVE-2020-12663
+#   1.9.5-r0:
+#     - CVE-2019-18934
+#   1.9.4-r0:
+#     - CVE-2019-16866
+
+build() {
+	PYTHON_VERSION=3 ./configure \
+		--build="$CBUILD" \
+		--host="$CHOST" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--with-username=unbound \
+		--with-run-dir="" \
+		--with-pidfile="" \
+		--with-rootkey-file=/usr/share/dnssec-root/trusted-key.key \
+		--with-libevent \
+		--with-pthreads \
+		--disable-static \
+		--disable-rpath \
+		--with-ssl \
+		--without-pythonmodule \
+		--with-pyunbound
+
+	# do not link to libpython
+	sed -i -e '/^LIBS=/s/-lpython.*[[:space:]]/ /' Makefile
+
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	make DESTDIR="$pkgdir" unbound-event-install
+
+	install -Dm755 contrib/update-anchor.sh \
+		"$pkgdir"/usr/share/$pkgname/update-anchor.sh
+
+	install -D -m644 doc/CREDITS doc/Changelog doc/FEATURES \
+		doc/README doc/TODO -t "$pkgdir"/usr/share/doc/$pkgname/
+
+	cd "$pkgdir"
+
+	install -Dm755 "$srcdir"/unbound.initd ./etc/init.d/unbound
+	install -Dm644 "$srcdir"/unbound.confd ./etc/conf.d/unbound
+}
+
+py() {
+	pkgdesc="Python bindings to libunbound"
+	depends="$depends_py"
+
+	amove usr/lib/python*
+}
+
+migrate() {
+	pkgdesc="Simple tool to migrate from dnscache to unbound"
+	depends="$_depends_migrate"
+
+	install -m755 -D "$srcdir"/migrate-dnscache-to-unbound \
+		"$subpkgdir"/usr/bin/migrate-dnscache-to-unbound
+}
+
+sha512sums="
+134679c0baad6738541295fcfbf8cc701c647b5d5cd00f87e50394bc7b5b74b7326ed2fc42f3282cae8094b4980c1e580d7b748b7151642c9060c449b644715f  unbound-1.16.0.tar.gz
+05fec1829dfb5279f35a76eeab768d88b6dffee4477b1db693360021969bdcc89e309f71ea6cc63e0f921b1fc223a073b97892be2095ed93d7da917a59e09d00  conf.patch
+7ab3f57ade3fe8add60bfce208efccc968728fac5c94c759c34aaa09aa71e0da06dd7c24ae0fecf9e2ccc869594226d68b24fe2b0a0b161b833e22c0de1b03b6  migrate-dnscache-to-unbound
+c8e29190a7ab2803bb528fcc008d9788c1d46ca96abd7273023778068156aa65330a99af76a755929d24dfa936a3900bd400368ddf7b89fb3bcef29dbaa32683  unbound.initd
+0ceae15d69deb24baa16990226de31fe743d84779a2595f31b4910b46ef925fc132cec1683d0a06141f707d9cbe517d731015702c60d9df4958ccfb9abd5a23f  unbound.confd
+"

@@ -1,0 +1,28 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-flake8-isort
+_pyname=flake8-isort
+pkgver=4.0.0
+pkgrel=2
+pkgdesc="Extension for flake8 which integrates isort"
+options="!check" # No testsuite
+url="https://github.com/gforcada/flake8-isort"
+arch="noarch"
+license="GPL-2.0-only"
+depends="py3-flake8 py3-isort"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/f/flake8-isort/flake8-isort-$pkgver.tar.gz"
+builddir="$srcdir"/flake8-isort-$pkgver
+
+replaces="py-flake8-isort" # Backwards compatibility
+provides="py-flake8-isort=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="894899a767c27deb9882d0d885a525613b89598542bceaeb61bb85a45daa836322824f8d4684e14da5f819bdce2e26cc908c9fed744b32d2367bacb5374409bb  flake8-isort-4.0.0.tar.gz"

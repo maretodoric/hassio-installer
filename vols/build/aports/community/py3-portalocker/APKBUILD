@@ -1,0 +1,45 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-portalocker
+pkgver=2.3.2
+pkgrel=1
+pkgdesc="An extended version of portalocker to lock files in Python using the with statement"
+url="http://portalocker.readthedocs.io/en/latest/"
+arch="noarch"
+license="PSF-2.0"
+depends="
+	py3-babel
+	py3-imagesize
+	py3-requests
+	py3-snowballstemmer
+	python3
+	"
+makedepends="
+	py3-setuptools
+	py3-sphinx
+	"
+checkdepends="
+	py3-docutils
+	py3-pytest
+	py3-pytest-cov
+	"
+source="https://pypi.python.org/packages/source/p/portalocker/portalocker-$pkgver.tar.gz"
+# Tests requires deprecated Python package pytest-flakes and pytest-pep8
+options="!check"
+builddir="$srcdir/portalocker-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+f3ddb8bfbb4606fd0b37d5f1cb147b94af93ab03a7732c34416a794d56284d2d7c1553dff1907252383959198428ce81ac636c3b5da2be186d42c93756fc6478  portalocker-2.3.2.tar.gz
+"

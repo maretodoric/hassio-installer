@@ -1,0 +1,37 @@
+# Contributor: Nathan Caldwell <saintdev@gmail.com>
+# Maintainer: Nathan Caldwell <saintdev@gmail.com>
+pkgname=snapraid
+pkgver=12.1
+pkgrel=0
+pkgdesc="A backup program for disk arrays"
+url="https://www.snapraid.it"
+arch="all !s390x" # tests fails on s390x
+license="GPL-3.0-only"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/amadvance/snapraid/releases/download/v$pkgver/snapraid-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	update_config_sub
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="e97ead417c38454f4876561f7b7249490854006e593203c23709e76e372374db9e3b93830b2ce0552a60bb4cac5cb739669d2700c723481081135299438bb312  snapraid-12.1.tar.gz"

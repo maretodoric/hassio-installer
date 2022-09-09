@@ -1,0 +1,53 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ncspot
+pkgver=0.9.8
+pkgrel=0
+pkgdesc="Cross-platform ncurses Spotify client inspired by ncmpc and the likes"
+url="https://github.com/hrkfdn/ncspot"
+# ppc64le: fails to build ring crate
+# others: limited by rust/cargo
+arch="aarch64 armhf armv7 x86 x86_64"
+license="BSD-2-Clause"
+makedepends="
+	cargo
+	dbus-dev
+	libxcb-dev
+	ncurses-dev
+	openssl-dev
+	pulseaudio-dev
+	python3
+	"
+source="https://github.com/hrkfdn/ncspot/archive/v$pkgver/ncspot-$pkgver.tar.gz"
+options="!check"  # there's only one unit test (in v0.8.1)
+
+# Optimize binary for size (18 MiB -> 8.2 MiB in v0.8.1).
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+_cargo_opts='--frozen --features cover,share_selection'
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build $_cargo_opts --release
+}
+
+check() {
+	cargo test $_cargo_opts
+}
+
+package() {
+	cargo install $_cargo_opts --offline --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+f6c9548c236c147154e2be9e3df35407a9fff78ffce8c5e5d46064b27c7d28a1ca436c72e64a384244cfc01d127bcfbd1f80c272ce6dfa6dbff9093d76addb91  ncspot-0.9.8.tar.gz
+"

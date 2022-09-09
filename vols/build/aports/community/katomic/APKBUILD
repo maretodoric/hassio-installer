@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=katomic
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kxmlgui
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/games/org.kde.katomic"
+pkgdesc="A fun and educational game built around molecular geometry"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	qt5-qtbase-dev
+	kcoreaddons-dev
+	kconfig-dev
+	kcrash-dev
+	kwidgetsaddons-dev
+	ki18n-dev
+	kxmlgui-dev
+	knewstuff-dev
+	kdoctools-dev
+	kdbusaddons-dev
+	libkdegames-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/katomic-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+3d18c0c2dfa1fc25ff3e306588aa3519e2aceec20cc59c4d2a74fbdf46bf3b24b24e1f4d2917058e662cabd49ecd50191faf3fabd83323c7dce02dda6a3fc6ce  katomic-22.04.2.tar.xz
+"

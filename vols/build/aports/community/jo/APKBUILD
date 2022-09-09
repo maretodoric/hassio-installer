@@ -1,0 +1,39 @@
+# Contributor: Orion <systmkor@gmail.com>
+# Maintainer: Orion <systmkor@gmail.com>
+pkgname=jo
+pkgver=1.6
+pkgrel=0
+pkgdesc="JSON output from a shell"
+url="https://github.com/jpmens/jo"
+license="GPL-2.0-or-later"
+arch="all"
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/jpmens/jo/releases/download/$pkgver/jo-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		bashcompdir=/usr/share/bash-completion/completions
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a2cb1327c8255e0f8d1b6e6056bbce081d7703192bdb974e908549b863d7db645531dbeff87629a6ed53626295ab7ca8a72816d104f9188846ef175c8a9acb07  jo-1.6.tar.gz
+"

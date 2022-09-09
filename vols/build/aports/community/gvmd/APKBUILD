@@ -1,0 +1,94 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=gvmd
+pkgver=21.4.5
+#PostgreSQL version
+_pgver=14
+pkgrel=2
+pkgdesc="Greenbone Vulnerability Manager"
+url="https://www.openvas.org/"
+arch="all"
+license="AGPL-3.0"
+pkgusers="gvm"
+pkggroups="gvm"
+depends="rsync postgresql$_pgver postgresql$_pgver-contrib libxslt
+sed gnutls-utils gvm-libs perl-xml-twig"
+makedepends="cmake gvm-libs-dev clang-dev glib-dev
+	gpgme-dev libgcrypt-dev graphviz libical-dev
+	postgresql$_pgver-dev gnutls-dev
+	doxygen xmltoman perl-sql-translator"
+checkdepends="cppcheck"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/greenbone/gvmd/archive/v$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.logrotate
+
+	greenbone-certdata-sync.conf
+	greenbone-scapdata-sync.conf
+	greenbone-nvt-sync.conf
+
+	malloc-trim.patch
+	disable-execinfo.patch"
+
+prepare() {
+	default_prepare
+	mkdir build
+}
+
+build() {
+	cd build
+	cmake -DCMAKE_BUILD_TYPE=Release \
+		-DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/$_pgver/ \
+		-DSBINDIR=/usr/bin \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DSYSCONF_INSTALL_DIR=/etc \
+		-DLOCALSTATEDIR=/var \
+		-DGVM_RUN_DIR=/run/gvmd \
+		-DGVMD_PID_PATH=/run/gvmd/gvmd.pid \
+		-DDEFAULT_CONFIG_DIR=/etc/gvm \
+		-DLOGROTATE_DIR=/etc/logrotate.d \
+		-DOPENVAS_DEFAULT_SOCKET=/run/ospd/ospd.sock \
+	..
+	make
+}
+
+check() {
+	cd build
+	make check
+}
+
+package() {
+	cd build
+	make DESTDIR="$pkgdir" install
+	install -Dm644 "$srcdir"/$pkgname.logrotate "$pkgdir"/etc/logrotate.d/$pkgname
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+
+	for f in nvt certdata scapdata; do
+		install -Dm755 "$srcdir"/greenbone-$f-sync.conf "$pkgdir"/etc/gvm/greenbone-$f-sync.conf
+	done
+
+	install -d -o "$pkgusers" -g "$pkggroups" "$pkgdir"/var/lib/gvm/gvmd/gnupg
+	chown -R "$pkgusers":"$pkggroups" "$pkgdir"/var/lib/gvm
+	rm -rf "$pkgdir"/lib/systemd
+}
+
+doc() {
+	default_doc
+	mkdir -p "$subpkgdir"/usr/share/doc/$pkgname
+	cat >"$subpkgdir"/usr/share/doc/$pkgname/README.alpine <<EOF
+	** Add texlive to generate PDF reports with
+	** apk add texlive
+EOF
+}
+
+sha512sums="
+5b22b9bfd58ae73fb973941c7a96027599ccc5b78d822eac9c840460cb75bf60a398519569daa04d5c4d935dbe3974335f87e2c1c5fa751b4cec1ea6e5f064ec  gvmd-21.4.5.tar.gz
+297f04900ec8678a86eca3ac78a7797787b302fabd51ac72b69aafe2376d6dc6f2c0c37c4728008c1063743aa1dfb1b0f3f2e16ff2821c71a931fc1b0995bbcb  gvmd.initd
+e1eeef173bfab7c750efcc7faa42cf7a1cfb9e6b137716063f273bc709c1346f11262dadbdb0c49822d885dc00177d8ccb91c0491ddc33cfee0a3827f11908f6  gvmd.logrotate
+4fda7d5051f9d1ca069becbcc0e82b20d76fd9f7c7abf4a4f05ab55c17fba54dbe269607ee6360b034e8a1674a38680775e2ffc4120b12c7b679564ba4c87ed4  greenbone-certdata-sync.conf
+1481eeb4182109295344768465a2db3895f51d39d6d2dee9a5db20db2ac53aec4df50eb2d5823c5a8d1f0897e284ad42c17ab59e3bef77614db6195dfbc5ae05  greenbone-scapdata-sync.conf
+0734c6dc3ba065daeaeeb80aa23b52b141ff1056bffaa62a7eb6be5acf559a287354df418a40f804269a76644dbdc0f8c0229b380954628d6842168860bd344a  greenbone-nvt-sync.conf
+73e1d455573dc4f11e86904740ea5ea7163d76fd422b81978f2a2a7127a8b50f6a1ad5f1f259fb86469d4d3ce5754db549158477696bb92b2b783d19b7bdbc63  malloc-trim.patch
+43a164ecd249bb96a4a2f145eac0e6eb114247c8af299eaeb21e16e258e03d69711a3c6a9e6f39b9c531f4c68722c256da9cc18419e11ccf8f7d6efd14a44c7a  disable-execinfo.patch
+"

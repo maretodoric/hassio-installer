@@ -1,0 +1,34 @@
+# Contributor: omni <omni@gitlab.alpinelinux.org>
+# Maintainer: omni <omni@gitlab.alpinelinux.org>
+pkgname=amfora
+pkgver=1.9.2 # Don't forget to update main.commit below
+pkgrel=4
+pkgdesc="terminal browser for the Gemini protocol"
+url="https://github.com/makeworld-the-better-one/amfora"
+license="GPL-3.0-or-later"
+arch="all"
+makedepends="go"
+source="$pkgname-$pkgver.tar.gz::https://github.com/makeworld-the-better-one/amfora/archive/v$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+
+build() {
+	go build \
+		-ldflags "-s -w -linkmode=external -extldflags \"$LDFLAGS\" \
+			-X main.version=$pkgver -X main.builtBy=Alpine_Linux \
+			-X main.commit=61d864540140f463a183e187e4211c258bd518bf" \
+		-v .
+}
+
+check() {
+	go test -v ./...
+}
+
+package() {
+	install -Dm0755 "$pkgname" -t "$pkgdir"/usr/bin
+	install -Dm0644 "$pkgname".desktop -t "$pkgdir"/usr/share/applications
+	install -Dm0644 default-config.toml -t "$pkgdir"/usr/share/"$pkgname"
+}
+
+sha512sums="d610217395add6219b3f56e15a5cf27d424807a1f82fde7f3fd953d91d571f85154bbffa0a766b3f7245a38f8849a96287edbf9475cb63bf9b6182e25e3d3ce9  amfora-1.9.2.tar.gz"

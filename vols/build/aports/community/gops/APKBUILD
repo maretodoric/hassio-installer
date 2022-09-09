@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=gops
+pkgver=0.3.23
+pkgrel=1
+pkgdesc="List and diagnose Go processes currently running on your system"
+url="https://github.com/google/gops"
+license="BSD-3-Clause"
+arch="all"
+makedepends="go"
+source="https://github.com/google/gops/archive/v$pkgver/gops-$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+export GOFLAGS="$GOFLAGS -trimpath -modcacherw"
+
+build() {
+	go build -ldflags "-s -w" -v -o bin/$pkgname
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+}
+
+sha512sums="
+03fc3a7e8b680b058f92f9c54d77a2f7b3dfa4f51c5b757d877bb4bde878f26c95a8d3a4e4750f6be71b2a7abe82d417c752e59a1cd4b003ba74bfbf6f7cf387  gops-0.3.23.tar.gz
+"

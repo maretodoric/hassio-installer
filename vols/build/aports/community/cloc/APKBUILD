@@ -1,0 +1,34 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=cloc
+pkgver=1.92
+pkgrel=0
+pkgdesc="Count lines of code"
+url="https://github.com/AlDanial/cloc"
+arch="noarch"
+license="GPL-2.0-or-later Artistic-2.0"
+depends="perl perl-algorithm-diff perl-regexp-common
+	perl-parallel-forkmanager"
+subpackages="$pkgname-doc"
+source="https://github.com/AlDanial/cloc/releases/download/v$pkgver/cloc-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver/Unix"
+
+build() {
+	make
+}
+
+check() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname/
+	install -Dm644 NEWS README AUTHORS \
+		"$pkgdir"/usr/share/doc/$pkgname/
+}
+
+sha512sums="
+e5f73f3e9c8599138031938d839e22ed11ce9318bb10b3815c023f30388c25bbd2d61db27c16a9ba488b33756f35da39db6fd6ead8ed8ff070b9d3e2af068e09  cloc-1.92.tar.gz
+"

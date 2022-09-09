@@ -1,0 +1,35 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Sodface <sod@sodface.com>
+pkgname=libnpupnp
+pkgver=4.2.2
+pkgrel=0
+pkgdesc="UPnP library based on libupnp, but extensively rewritten"
+url="https://www.lesbonscomptes.com/upmpdcli/npupnp-doc/libnpupnp.html"
+arch="all"
+license="BSD-3-Clause"
+makedepends="expat-dev curl-dev libmicrohttpd-dev"
+subpackages="$pkgname-dev"
+source="https://www.lesbonscomptes.com/upmpdcli/downloads/libnpupnp-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+22262e3dcb42f8c5ceb3df6296682ba993c4f86a810aaa63c7a6b5ec277c525d3d666a58840fb40833096e4f69916d309ca549bf67a137f200a236b1f71ec1f8  libnpupnp-4.2.2.tar.gz
+"

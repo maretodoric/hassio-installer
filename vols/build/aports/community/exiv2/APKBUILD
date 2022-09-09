@@ -1,0 +1,86 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=exiv2
+pkgver=0.27.5
+pkgrel=1
+pkgdesc="Exif and Iptc metadata manipulation library and tools."
+url="https://exiv2.org/"
+arch="all"
+options="!check"  # No test suite.
+license="GPL-2.0-or-later"
+depends_dev="expat-dev zlib-dev"
+makedepends="$depends_dev cmake samurai"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/Exiv2/exiv2/releases/download/v$pkgver/exiv2-$pkgver-Source.tar.gz"
+builddir="$srcdir"/$pkgname-$pkgver-Source
+
+# secfixes:
+#   0.27.5-r0:
+#     - CVE-2021-32815
+#     - CVE-2021-34334
+#     - CVE-2021-34335
+#     - CVE-2021-37615
+#     - CVE-2021-37616
+#     - CVE-2021-37618
+#     - CVE-2021-37619
+#     - CVE-2021-37620
+#     - CVE-2021-37621
+#     - CVE-2021-37622
+#     - CVE-2021-37623
+#   0.27.4-r0:
+#     - CVE-2021-29464
+#   0.27.3-r2:
+#     - CVE-2021-29463
+#     - CVE-2021-29470
+#     - CVE-2021-29473
+#     - CVE-2021-29623
+#     - CVE-2021-32617
+#   0.27.3-r1:
+#     - CVE-2021-3482
+#     - CVE-2021-29457
+#     - CVE-2021-29458
+#     - CVE-2021-31291
+#   0.27.2-r6:
+#     - CVE-2019-20421
+#   0.27.2-r2:
+#     - CVE-2019-17402
+#   0.27.2-r0:
+#     - CVE-2019-13108
+#     - CVE-2019-13109
+#     - CVE-2019-13110
+#     - CVE-2019-13111
+#     - CVE-2019-13112
+#     - CVE-2019-13113
+#     - CVE-2019-13114
+
+prepare() {
+	default_prepare
+
+	# -fcf-protection=full is only usable on x86_64 and x86 since those
+	# are the arches where Intel's CET Control-Flow Enforcement Technology
+	# is available
+	case "$CARCH" in
+		x86_64|x86) ;;
+		*) sed -i 's| -fcf-protection||g' cmake/compilerFlags.cmake ;;
+	esac
+}
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DEXIV2_BUILD_SAMPLES=OFF
+	ninja -C build
+}
+
+check() {
+	ninja -C build test
+}
+
+package() {
+	DESTDIR="$pkgdir" ninja -C build install
+}
+
+sha512sums="
+0f2d2dfbc976052a428dfeb597225d3ea3c725f584d05b99316bd4aa9cbf0ba5e1e37bcde71f9041975cf003b4fdb578c559adb144268d784bfd64494f451491  exiv2-0.27.5-Source.tar.gz
+"

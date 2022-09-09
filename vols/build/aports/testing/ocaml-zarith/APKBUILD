@@ -1,0 +1,40 @@
+# Contributor: River Dillon <oss@outerpassage.net>
+# Maintainer: River Dillon <oss@outerpassage.net>
+pkgname=ocaml-zarith
+pkgver=1.12
+pkgrel=1
+pkgdesc="library implementing arithmetic and logical operations"
+url="https://github.com/ocaml/Zarith"
+arch="all !riscv64" # limited by ocaml aport
+license="custom"
+depends="gmp-dev"
+makedepends="ocaml ocaml-findlib ocaml-compiler-libs ocaml-ocamldoc gmp-dev"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ocaml/Zarith/archive/refs/tags/release-$pkgver.tar.gz"
+builddir="$srcdir/Zarith-release-$pkgver"
+
+# 32bit archs
+case "$CARCH" in
+armv7|armhf|mips|x86) options="$options textrels" ;;
+esac
+
+build() {
+	./configure -installdir "$pkgdir"/usr/lib/ocaml
+	make
+	make doc
+}
+
+check() {
+	make tests
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr/lib/ocaml
+	OCAMLFIND_LDCONF=ignore make install
+	install -Dm644 README.md -t "$pkgdir"/usr/share/doc/"$pkgname"
+	install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/"$pkgname"
+}
+
+sha512sums="
+8075573ae65579a2606b37dd1b213032a07d220d28c733f9288ae80d36f8a2cc4d91632806df2503c130ea9658dc207ee3a64347c21aa53969050a208f5b2bb4  ocaml-zarith-1.12.tar.gz
+"

@@ -1,0 +1,41 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=portfolio
+pkgver=0.9.14
+pkgrel=0
+pkgdesc="Minimalist file manager for those who want to use Linux mobile devices"
+url="https://github.com/tchx84/Portfolio"
+# riscv64 disabled due to missing rust in recursive dependency
+arch="noarch !s390x !riscv64"  # no libhandy1 on s390x
+license="GPL-3.0-or-later"
+depends="
+	gtk+3.0
+	libhandy1
+	py3-gettext
+	py3-gobject3
+	"
+makedepends="
+	gettext-dev
+	glib-dev
+	meson
+	py3-setuptools
+	"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/tchx84/Portfolio/archive/v$pkgver.tar.gz
+	"
+options="!check"  # no tests
+subpackages="$pkgname-lang"
+builddir="$srcdir/Portfolio-$pkgver"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C output
+}
+
+sha512sums="
+d69b12751647006841c1025e752befc505238ffca856a0cb5fd771052ded6cdea021c2ff7c629bdfd6b7c550fb93adb0224b0a9d7449ada54068eea23f60ca8f  portfolio-0.9.14.tar.gz
+"

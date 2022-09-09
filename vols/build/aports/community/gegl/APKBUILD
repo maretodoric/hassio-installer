@@ -1,0 +1,44 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=gegl
+pkgver=0.4.36
+pkgrel=0
+pkgdesc="Graph based image processing framework"
+url="https://www.gegl.org/"
+# s390x and riscv64 blocked by librsvg
+arch="all !s390x !riscv64"
+license="GPL-3.0-or-later AND LGPL-3.0-or-later"
+makedepends="babl-dev bash gobject-introspection-dev libpng-dev
+	libjpeg-turbo-dev librsvg-dev lua5.1-dev gexiv2-dev
+	json-glib-dev libraw-dev libwebp-dev meson pango-dev gdk-pixbuf-dev
+	ffmpeg4-dev vala"
+checkdepends="diffutils"
+subpackages="$pkgname-dev $pkgname-lang"
+source="https://download.gimp.org/pub/gegl/${pkgver%.*}/gegl-$pkgver.tar.xz"
+
+# secfixes:
+#   0.4.34-r0:
+#     - CVE-2021-45463
+
+case "$CARCH" in
+arm*)
+	# 5 failing tests
+	options="$options !check"
+	;;
+esac
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+4d681091b15e7911229f86bf22381d62268451da57bba072bcb8ee3f4db79e2719dd7e70ab208c2c021e5353f42a9f88c18f62132512b18fe78ed6ad279660f8  gegl-0.4.36.tar.xz
+"

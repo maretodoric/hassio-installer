@@ -1,0 +1,37 @@
+# Contributor: Guy Godfroy <guy.godfroy@gugod.fr>
+# Maintainer: Guy Godfroy <guy.godfroy@gugod.fr>
+pkgname=py3status
+pkgver=3.45
+pkgrel=0
+pkgdesc="Extensible i3status wrapper written in python"
+url="https://py3status.readthedocs.io"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-setuptools"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ultrabug/py3status/archive/refs/tags/$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	install -d "$pkgdir/usr/share/doc/$pkgname"
+	install -d "$pkgdir/usr/share/doc/$pkgname/dev-guide"
+	install -d "$pkgdir/usr/share/doc/$pkgname/user-guide"
+	install -m644 docs/*.md README.md CHANGELOG "$pkgdir/usr/share/doc/$pkgname"
+	install -m644 docs/dev-guide/* "$pkgdir/usr/share/doc/$pkgname/dev-guide"
+	install -m644 docs/user-guide/* "$pkgdir/usr/share/doc/$pkgname/user-guide"
+	install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+sha512sums="
+e121a60cd2c57e1e3525e15fc165d44cd18ea6e2bd3aa704ea826ea0297ee66385b8ca3b88aadff89b7dd77771dca895fc51efce241880e99b8510a162a7334e  py3status-3.45.tar.gz
+"

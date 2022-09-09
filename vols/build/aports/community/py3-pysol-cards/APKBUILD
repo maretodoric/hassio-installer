@@ -1,0 +1,41 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-pysol-cards
+pkgver=0.10.2
+pkgrel=1
+pkgdesc="Deal PySol FC Cards"
+url="https://fc-solve.shlomifish.org/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-pbr
+	py3-random2
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-coverage
+	py3-oslotest
+	py3-pytest
+	py3-stestr
+	py3-testtools
+	"
+source="https://pypi.python.org/packages/source/p/pysol_cards/pysol_cards-$pkgver.tar.gz"
+builddir="$srcdir/pysol_cards-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+#	python3 setup.py test
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+df8848c63ad12496c4346fc51fbac803b7a27c274147d458c78f937b70c804cddeeece8c6a980ef2a422bb17771ee1825c9824843e7d1cbc47e3678e506a30c5  pysol_cards-0.10.2.tar.gz
+"

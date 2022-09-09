@@ -1,0 +1,41 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-calendar
+pkgver=0_git20210517
+pkgrel=0
+_commit="9d0241fc65466f17b9260b3bca8db319b0093d42"
+pkgdesc="Default calendar app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-calendar"
+# armhf blocked by nemo-qml-plugin-calendar
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	mapplauncherd
+	nemo-qml-plugin-calendar
+	nemo-qml-plugin-time
+	qt5-qtvirtualkeyboard
+	"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-calendar/archive/$_commit/asteroid-calendar-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+0e3f7598fad35bf837dcaa385db8c9de7c12dd53439db80938c5be2f9e4fa7dba77d894654979f2e722b162f10ff76ff93f7380795dfe22229ad220d1a4c2ecc  asteroid-calendar-9d0241fc65466f17b9260b3bca8db319b0093d42.tar.gz
+"

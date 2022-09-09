@@ -1,0 +1,45 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kxmlrpcclient
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="XML-RPC client library for KDE"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://projects.kde.org/projects/kde/pim/kxmlrpcclient"
+license="BSD-2-Clause"
+depends_dev="
+	ki18n-dev
+	kio-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/portingAids/kxmlrpcclient-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+30b7751597d3ee988f78e6f7fe5d606d7ee63c59a1d145614006e33330961854f93f395685eac1b747ad088ba3e46ce8fb8e9c530434469f383d9862bdebedb2  kxmlrpcclient-5.95.0.tar.xz
+"

@@ -1,0 +1,30 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=librelp
+pkgver=1.10.0
+pkgrel=0
+pkgdesc="The Reliable Event Logging Protocol library"
+url="https://www.rsyslog.com"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="gnutls-dev openssl1.1-compat-dev"
+subpackages="$pkgname-static $pkgname-dev"
+source="https://download.rsyslog.com/librelp/librelp-$pkgver.tar.gz"
+options="!check"  # XXX: all tests fail, don't know why
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--mandir=/usr/share/man
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a38840231902bec034edb497166deded7577c989e4f735e406c8488384972925de1ca6132b3080472f7919d2439559c8774c02a49c356e90ad791dfbba2a4865  librelp-1.10.0.tar.gz
+"

@@ -1,0 +1,34 @@
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Stefan Wagner <stw@bit-strickerei.de>
+pkgname=avrdude
+pkgver=7.0
+pkgrel=0
+pkgdesc="Download/upload/manipulate the ROM and EEPROM contents of AVR microcontrollers"
+url="https://nongnu.org/avrdude/"
+arch="all"
+license="GPL"
+makedepends="linux-headers bash flex byacc libftdi1-dev libusb-compat-dev elfutils-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="
+	https://download.savannah.gnu.org/releases/avrdude/avrdude-$pkgver.tar.gz
+	xplainedpro_pdi.patch
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--mandir=/usr/share/man \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--enable-linuxgpio
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+891c435d8f6d4529762d647c468c52b4c04c3a663b703af0ddd2c284aecfce92ce99502aed77f409f1afb4ab7d4e05d85f26d03de3624c7c14fcbc852d988d53  avrdude-7.0.tar.gz
+dcfe37b5be86458856f0d769cc118a37d7b1dd550c9a818a5261357112fd6c561db4998f0ea72ecb33208797a7b887814bff539b815cc5fd39124db6c2a9e6ed  xplainedpro_pdi.patch
+"

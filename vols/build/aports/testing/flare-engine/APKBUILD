@@ -1,0 +1,43 @@
+# Contributor: Díaz Urbaneja Diego <sodomon2@gmail.com>
+# Contributor: Antoni Aloy <aaloytorrens@gmail.com>
+# Maintainer: Díaz Urbaneja Diego <sodomon2@gmail.com>
+pkgname=flare-engine
+pkgver=1.13.04
+pkgrel=1
+pkgdesc="Free/Libre Action Roleplaying Engine"
+url="http://www.flarerpg.org/"
+arch="all"
+license="GPL-3.0-only"
+depends="hicolor-icon-theme"
+makedepends="
+	cmake
+	samurai
+	sdl2-dev
+	sdl2_image-dev
+	sdl2_mixer-dev
+	sdl2_ttf-dev
+	"
+options="!check" # make check not implemented
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/flareteam/flare-engine/archive/v$pkgver.tar.gz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBINDIR=bin \
+		-DDATADIR=share/flare \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+f16280cefbbcd4e9a1bcbe00bf7b17e66ea98f08987a0d3ade7053d5122409a17384f8d88e517def4bc86ebcf0131637f7b78d325c3c9b0def33e35bab601e6b  flare-engine-1.13.04.tar.gz
+"

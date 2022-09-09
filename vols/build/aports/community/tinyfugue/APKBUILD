@@ -1,0 +1,42 @@
+# Contributor: Sheila Aman <sheila@vulpine.house>
+# Maintainer: Sheila Aman <sheila@vulpine.house>
+pkgname=tinyfugue
+pkgver=5.1.1
+pkgrel=5
+pkgdesc="Powerful curses-based MUD client"
+url="https://github.com/ingwarsw/tinyfugue"
+arch="all"
+options="!check" # no testsuite
+license="GPL-2.0-or-later"
+makedepends="openssl1.1-compat-dev ncurses-dev pcre-dev icu-dev python3-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ingwarsw/tinyfugue/archive/refs/tags/$pkgver.tar.gz
+	0001-Add-DESTDIR-support.patch
+	0003-Minor-man-page-fixes.patch
+	0006-Fix-library-install-path.patch
+	0007-Fix-spelling-errors.patch
+	"
+
+build() {
+	CFLAGS="$CFLAGS -fcommon" ./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-atcp \
+		--enable-gmcp \
+		--enable-option102 \
+		--enable-python
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="9eca9f75781847f39699b0c691b80c181e9cfafc4808b743a9579d608ac84b6ea11903f388128cb946b4bfae7e082739df3a37d6b5704cd3f8d2478e66c20c69  tinyfugue-5.1.1.tar.gz
+60c29831079bb866f48121a5502d0d5aa138dac3cfbd4f5dd5aac8d39183c022d032747868d187e26c51986d0a9b7044cd3d0ef26f0e3b4d6dd667a29efedce1  0001-Add-DESTDIR-support.patch
+1e8f05d2744b60cc78f494283bb5f9ef7a804a6811d16028d5486a7394658a03aed04962adfd5bc60fe1517d3831b41f4ca1c3956a624f09a2a4b14f5ab91608  0003-Minor-man-page-fixes.patch
+13cbf27207a1d59afc74a54c9585d05386bf8860cf87eab39873c978bf1525d2abe3a6fcf1da2a8cd7ee17f09644c25ba156e9a69294216c5439175d55e426b6  0006-Fix-library-install-path.patch
+a84aeaf097eb1ec61f9c86f73795ad9f8c111057837b1a0b127905302372e01b6489f9a19f14a29171cef9a787314d511dc98e1140d0c122dd9af5f526eb4bc0  0007-Fix-spelling-errors.patch"

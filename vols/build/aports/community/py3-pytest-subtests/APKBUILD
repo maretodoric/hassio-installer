@@ -1,0 +1,30 @@
+# Contributor: Jacek Pruciak <alpine@juniorjpdj.pl>
+# Maintainer: Jacek Pruciak <alpine@juniorjpdj.pl>
+pkgname=py3-pytest-subtests
+pkgver=0.7.0
+pkgrel=0
+pkgdesc="pytest plugin for subTest() support and subtests fixture"
+url="https://github.com/pytest-dev/pytest-subtests/"
+arch="noarch"
+license="MIT"
+depends="python3 py3-pytest"
+makedepends="py3-setuptools py3-setuptools_scm"
+checkdepends="py3-pytest-xdist"
+source="https://files.pythonhosted.org/packages/source/p/pytest-subtests/pytest-subtests-$pkgver.tar.gz"
+builddir="$srcdir/pytest-subtests-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$builddir/build/lib:$PYTHONPATH" pytest -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+f412e72529c55a28cedf8995bc78d64c6a0197a3071cf1393c47173a9803584ae2d3e08f29c2a9a6e29ecc091c126500468e530962a52a9567223af771e4e8e7  pytest-subtests-0.7.0.tar.gz
+"

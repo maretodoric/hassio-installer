@@ -1,0 +1,27 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ssu-sysinfo
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="Mer's ssu-sysinfo"
+url="https://github.com/sailfishos/ssu-sysinfo"
+arch="all"
+license="LGPL-2.1-or-later AND BSD-3-Clause"
+subpackages="$pkgname-dev"
+source="https://github.com/sailfishos/ssu-sysinfo/archive/$pkgver/ssu-sysinfo-$pkgver.tar.gz"
+options="!check" # No test suite available
+
+build() {
+	make
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+
+	# Required to make missing library symlinks
+	ldconfig "$pkgdir"/usr/lib
+}
+
+sha512sums="
+ea5295616f75df374564ee786c90086d63141eb3ea5816412d51ba336de8ca880a1bc0eb19ec89fcef64b9727f6dc9527c84039ccdd4cf913d8c31994aca4834  ssu-sysinfo-1.4.0.tar.gz
+"

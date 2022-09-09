@@ -1,0 +1,37 @@
+# Contributor: Nicolas Lorin <androw95220@gmail.com>
+# Maintainer: Nicolas Lorin <androw95220@gmail.com>
+pkgname=crowdsec
+pkgver=1.3.4
+pkgrel=1
+pkgdesc="behavior detection engine, coupled with a global IP reputation network"
+url="https://crowdsec.net/"
+# riscv64: missing yq, binutils-gold
+arch="all !riscv64"
+license="MIT"
+depends="tzdata yq"
+makedepends="go jq bash gettext binutils-gold coreutils"
+options="!check" # no test suite identified
+source="$pkgname-$pkgver.tar.gz::https://github.com/crowdsecurity/crowdsec/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	make BUILD_VERSION=v$pkgver build
+}
+
+package() {
+	mkdir -p $pkgdir/usr/bin/
+	install -m 755 -D ./cmd/crowdsec/crowdsec $pkgdir/usr/bin/crowdsec
+	install -m 755 -D ./cmd/crowdsec-cli/cscli $pkgdir/usr/bin/cscli
+
+	mkdir -p $pkgdir/etc/crowdsec/
+	mkdir -p $pkgdir/etc/crowdsec/hub/
+	install -m 644 -D ./config/config.yaml $pkgdir/etc/crowdsec/
+	install -m 644 -D ./config/dev.yaml $pkgdir/etc/crowdsec/
+	install -m 644 -D ./config/user.yaml $pkgdir/etc/crowdsec/
+	install -m 644 -D ./config/acquis.yaml $pkgdir/etc/crowdsec/
+	install -m 644 -D ./config/profiles.yaml $pkgdir/etc/crowdsec/
+	install -m 644 -D ./config/simulation.yaml $pkgdir/etc/crowdsec/
+}
+
+sha512sums="
+d8a2edaa2853d9b7af9769b36fc6f9dbb651cff4cfbd2dd55ab9598563740c2f33b6cf52cf92fbc2917cd8b98e0c2e257c0d15a40da82e3af5f3ceb7e8be0973  crowdsec-1.3.4.tar.gz
+"

@@ -1,0 +1,70 @@
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=uutils-coreutils
+_pkgname=coreutils
+pkgver=0.0.14
+pkgrel=0
+pkgdesc="coreutils rewritten in Rust"
+# s390x, riscv64: limited by cargo
+# ppc64le: unsupported by at least the ioctl-sys and nix crates
+arch="all !s390x !ppc64le !riscv64"
+url="https://github.com/uutils/coreutils"
+license="MIT"
+makedepends="cargo help2man"
+checkdepends="coreutils" # test_ls.rs incompatible with busybox truncate
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/uutils/coreutils/archive/$pkgver.tar.gz
+	disable_tests_armhf_patch"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# FIXME: fd issues on builders (mqtt-exec?)
+options="!check"
+
+build() {
+	cargo build --release --locked
+
+	mkdir bin
+	cp target/release/"$_pkgname" bin/uutils
+
+	mkdir man1
+	help2man --no-info --name=uutils --manual=uutils \
+		--version-string="$pkgver" bin/uutils > man1/uutils.1
+
+	# create symlinks and individual man pages
+	for uutil in $(./bin/uutils | tail -n +7 | tr -d '\n' | sed -e 's/,//g' -e 's/sha3-\s*512sum/sha3-512sum/'); do
+		ln -s uutils bin/uutils-$uutil
+		case "$uutil" in
+			test) ;; # helpless
+			\[) help2man --no-info --name=uutils-test --manual=uutils \
+				bin/uutils-"$uutil" > man1/uutils-test.1 ;;
+			cp) help2man --no-info --name=uutils-"$uutil" --manual=uutils \
+				--no-discard-stderr bin/uutils-"$uutil" > man1/uutils-"$uutil".1 ;;
+			*) help2man --no-info --name=uutils-"$uutil" --manual=uutils \
+				bin/uutils-"$uutil" > man1/uutils-"$uutil".1 ;;
+		esac
+	done
+}
+
+check() {
+	ulimit -n 2048 # running out of file descriptors
+
+	case "$CARCH" in
+	armhf)
+		patch -p1 < "$srcdir"/disable_tests_armhf_patch
+		;;
+	esac
+	cargo test --release --locked
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr
+	mv bin "$pkgdir"/usr
+
+	mkdir -p "$pkgdir"/usr/share/man
+	mv man1 "$pkgdir"/usr/share/man
+	install -Dm0644 LICENSE -t "$pkgdir"/usr/share/licenses/"$pkgname"
+}
+
+sha512sums="
+99a023d192505bafc2cbd25bd1df63d35bb89ef6aca2d5a71404aef95f13d7cc42ceec5ad0cba8b2a63a6e5abefbb5be3e8c2375144b55e0cb47e1e2361d1577  uutils-coreutils-0.0.14.tar.gz
+d1bc4b511ef286a8c49c116994739e5706a95cfbc241939555d8099eed160a8023abff0ad91ed367996e2486bdcc8c81f11bd757542030c80cc20dcbce0fd1d8  disable_tests_armhf_patch
+"

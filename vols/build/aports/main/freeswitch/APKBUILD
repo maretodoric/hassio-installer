@@ -1,0 +1,240 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Contributor: Cameron Banta <cbanta@gmail.com>
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=freeswitch
+pkgver=1.10.7
+pkgrel=3
+pkgdesc="A communications platform written in C from the ground up"
+url="https://www.freeswitch.org/"
+arch="all"
+license="MPL-1.1"
+makedepends="
+	apr-dev
+	bash
+	bsd-compat-headers
+	coreutils
+	curl-dev
+	diffutils
+	flite-dev
+	ilbc-dev
+	lame-dev
+	ldns-dev
+	libedit-dev
+	libjpeg-turbo-dev
+	libks-dev
+	openssl1.1-compat-dev
+	libpq-dev
+	libshout-dev
+	libsndfile-dev
+	linux-headers
+	lua5.3-dev
+	mpg123-dev
+	ncurses-dev
+	net-snmp-dev
+	opus-dev
+	pcre-dev
+	perl-dev
+	portaudio-dev
+	python3-dev
+	sngtc_client-dev
+	speex-dev
+	speexdsp-dev
+	sqlite-dev
+	libsrtp-dev
+	tiff-dev
+	unixodbc-dev
+	util-linux-dev
+	xmlrpc-c-dev
+	yasm
+	zlib-dev
+	sofia-sip-dev
+	spandsp3-dev
+	autoconf
+	automake
+	libtool
+	"
+install="$pkgname.pre-install $pkgname.pre-upgrade"
+_freeswitch_user=freeswitch
+_freeswitch_group=freeswitch
+pkgusers="$_freeswitch_user"
+pkggroups="$_freeswitch_group"
+subpackages="$pkgname-static $pkgname-dev $pkgname-flite $pkgname-timezones::noarch
+	$pkgname-sample-config:conf:noarch $pkgname-sangoma
+	$pkgname-snmp $pkgname-pgsql $pkgname-python3 $pkgname-perl $pkgname-perlesl
+	$pkgname-openrc $pkgname-dbg"
+
+source="https://files.freeswitch.org/freeswitch-releases/freeswitch-$pkgver.-release.tar.xz
+	configure-lua53.patch
+	include-lua53.patch
+	getlib.patch
+	libvpx-fix-arm-float-abi.patch
+	disable-Werror.patch
+	explicit-darwin-macro.patch
+	fix-undeclared-function-s390x.patch
+	python-3.10.patch
+	modules.conf
+	freeswitch.confd
+	freeswitch.initd
+	"
+
+builddir="$srcdir/$pkgname-$pkgver.-release"
+
+# secfixes:
+#   1.10.7-r0:
+#     - CVE-2021-37624
+#     - CVE-2021-41105
+#     - CVE-2021-41145
+#     - CVE-2021-41157
+#     - CVE-2021-41158
+
+prepare() {
+	default_prepare
+	autoreconf -vif
+	update_config_sub
+}
+
+build() {
+	cp -f "$srcdir/modules.conf" modules.conf
+	# Wno-format-truncation: https://github.com/signalwire/freeswitch/issues/652
+	CFLAGS="$CFLAGS -Wno-unused-but-set-variable -Wno-format-truncation" ./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-fhs \
+		--localstatedir=/var \
+		--sysconfdir=/etc \
+		--with-scriptdir=/etc/freeswitch/scripts \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--with-devrandom=/dev/urandom \
+		--with-python3 \
+		--disable-debug \
+		--enable-core-pgsql-support \
+		--enable-system-lua \
+		--enable-system-xmlrpc-c
+
+	make libs/libvpx/libvpx.a
+	# first build libfreeswitch (in parallel)
+	make src/include/switch_version.h src/include/switch_swigable_cpp.h
+	make libfreeswitch.la
+	# finally we build the rest
+	make -j1 all
+
+	# build perlesl module
+	cd "$builddir"/libs/esl
+	make -j1 perlmod
+
+	# deal with pkg-config version being bogus
+	cd "$builddir"
+	sed -i s:-release::g build/freeswitch.pc
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" install samples-conf samples-htdocs
+
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+	chown -R $_freeswitch_user:$_freeswitch_group "$pkgdir"/var/*/freeswitch
+
+	# install perlesl module
+	cd "$builddir"/libs/esl
+	make -j1 DESTDIR="$pkgdir" perlmod-install
+}
+
+_mv_mod() {
+	local moddir=usr/lib/freeswitch/mod i=
+	mkdir -p "$subpkgdir"/$moddir
+	for i in "$@"; do
+		mv "$pkgdir"/$moddir/$i.so "$subpkgdir"/$moddir/
+	done
+}
+
+flite() {
+	pkgdesc="Freeswitch Text To Speech Module"
+	install=
+	_mv_mod mod_flite
+##
+## The mod_say_xx modules can be used with out flite (for numbers, etc using
+## sound files). So they shouldn't be in the flite package -cB
+##
+#	_mv_mod mod_say_de mod_say_en mod_say_es mod_say_fr \
+#		mod_say_it mod_say_nl mod_say_zh mod_say_hu mod_say_ru \
+#		mod_say_th mod_say_he
+}
+
+sangoma() {
+	pkgdesc="Freeswitch Sangoma Media Transcode Codec Module"
+	install=
+	_mv_mod mod_sangoma_codec
+}
+
+timezones() {
+	pkgdesc="Freeswitch timezone configuration"
+	install=
+	replaces="freeswitch-sample-config"
+	mkdir -p "$subpkgdir"/etc/freeswitch/autoload_configs
+	mv "$pkgdir"/etc/freeswitch/autoload_configs/timezones.conf.xml \
+		"$subpkgdir"/etc/freeswitch/autoload_configs
+}
+
+snmp() {
+	pkgdesc="Freeswitch SNMP module"
+	install=
+	_mv_mod mod_snmp
+}
+
+pgsql() {
+	pkgdesc="Freeswitch PostgreSQL Module"
+	install=
+	_mv_mod mod_cdr_pg_csv
+}
+
+perl() {
+	pkgdesc="Freeswitch Perl module"
+	install=
+	_mv_mod mod_perl
+}
+
+perlesl() {
+	pkgdesc="Freeswitch Perl ESL module"
+	install=
+	mkdir -p "$subpkgdir"/usr/lib/perl5
+	mv "$pkgdir"/usr/lib/perl5/* "$subpkgdir"/usr/lib/perl5
+}
+
+python3() {
+	pkgdesc="Freeswitch Python3 module"
+	install=
+	_mv_mod mod_python3
+}
+
+conf() {
+	pkgdesc="Freeswitch sample configuration"
+	depends="freeswitch-timezones"
+	install=
+	mkdir -p "$subpkgdir"/etc/freeswitch
+	# move all configs except freeswitch.xml
+	for i in "$pkgdir"/etc/freeswitch/*; do
+		[ "$i" = "$pkgdir"/etc/freeswitch/freeswitch.xml ] && continue
+		mv "$i" "$subpkgdir"/etc/freeswitch/
+	done
+	mkdir -p "$pkgdir"/etc/freeswitch/scripts
+}
+
+sha512sums="
+9c0b29f8e631c5e7d073cb2a70c53ffb16780029e462e6171651a54d9f2a2c73f6c871c8bea9e7715ddb40cd7005d73c5931e6a8af33eeb5a01aa7c8a83dda5b  freeswitch-1.10.7.-release.tar.xz
+222e3510790de29e29428c70325eb1d4e7852eb4315ee546f137293868bd71acf89e7c85c5ca9d0eb708090c9eef91878a8e12c1b9d5cc99a68fecbd42ad962f  configure-lua53.patch
+c1960f3c7acf729468b819f7f15d66a251c3967b2784bce18c7755b333156e687c55fdc1aceda588ceb1bf9638e2fd4a31a169b00b15c5040cf1001c3c73913b  include-lua53.patch
+4ceb48f64d2bc26a02cc0846276506241bfd30c156422b0a1d608fd172c099feb5c121a763652e9a45046dcdd0ba0eb71eab240e0c6ce2ad63ff781719e135a4  getlib.patch
+98a53f289c3647cafd05b6f847da0504a838a6e06545c133c10fb058c2d941e6bccf2820f44649fc25f94a4a5b7c1280eaee91098e8110f96ed3342c1cb4346c  libvpx-fix-arm-float-abi.patch
+16e9208fca7f0a1985dd01ec38ddabb6a79da83ad6ab004bb66de528ac45f02fadaddc50a9f228e1aa38fae213fa5af0ca858b7af629b67a7d654339f813a68c  disable-Werror.patch
+7c2fa472a3abb5d735902e9a8f1fc6e9c9053955d453216313dd47a263af290cf1f3a92d7297a380e9bbaa17fddc1aacd55c8a72228d2335a9a7bf4ef01aef6c  explicit-darwin-macro.patch
+d91350af634d3e6fd6a460d3b861ab0e7289c206d3200bcd7cb5ef9536df1ac9181f7e84462132c5bc8d72329e2e8683aa99ab399fd58324cd85f0280b424874  fix-undeclared-function-s390x.patch
+4739be0c1c6783ace2bd10f7573b1ca86be013d21a7f973b5fd348c98fb9ed1a548baacee6bb65b7501251106c8dbd7266997f8699d2d7070a2bd7efe145b866  python-3.10.patch
+e495f955bdfd89259d8c907a7159e15bf17bd5933b0a643fba08f022583b518758b2a6ff301b79a24c099352bb39d4724f779dfc76eb924c103d2cb160fc2aa9  modules.conf
+a585f6411185a26206137a1ad97a06fd6c73e80c5439e9be45eabfa70e7a83120169ba882971fcd328436c8e0242cbd664170b80754ea2846021689baf1f1595  freeswitch.confd
+643d0a2e43f5d3bf3b99fcb6f6422302cb4b74a95eccf844eafb100b15aa9856b4ff41f112d6637255c2e9e2bec9fedc9a9215dfff214dfb83b52eae16b71dca  freeswitch.initd
+"

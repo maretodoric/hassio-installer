@@ -1,0 +1,41 @@
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=alligator
+pkgver=22.06
+pkgrel=0
+pkgdesc="A convergent RSS/Atom feed reader"
+url="https://invent.kde.org/plasma-mobile/alligator/"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+license="GPL-2.0-only OR GPL-3.0-only"
+depends="
+	kirigami2
+	qt5-qtbase-sqlite
+	"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	qt5-qtbase-dev
+	qt5-qtquickcontrols2-dev
+	samurai
+	syndication-dev
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/alligator-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+4296af89558e7369772413eeddf61a66c476faa2585e9821fba1569bfdd6745043210aadbc23e5056f8f53c6045f64eb93dfa435be10579e92ba9910c828644f  alligator-22.06.tar.xz
+"

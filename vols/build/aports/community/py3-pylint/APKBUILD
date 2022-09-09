@@ -1,0 +1,46 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-pylint
+pkgver=2.14.2
+pkgrel=0
+pkgdesc="Analyzes Python code looking for bugs and signs of poor quality"
+url="https://github.com/PyCQA/pylint"
+arch="noarch !s390x" # py3-dill
+license="GPL-2.0-or-later"
+depends="
+	py3-astroid
+	py3-dill
+	py3-isort
+	py3-mccabe
+	py3-platformdirs
+	py3-tomli
+	py3-tomlkit
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-pytest
+	py3-pytest-runner
+	"
+options="!check" # https://github.com/PyCQA/pylint/issues/3895
+source="https://files.pythonhosted.org/packages/source/p/pylint/pylint-$pkgver.tar.gz
+	"
+builddir="$srcdir"/pylint-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# Requires unpackaged 'pytest-benchmark'
+	rm -rf tests/benchmark
+#	PYTHONPATH="$PWD/build/lib" py.test-3
+	python3 setup.py pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6387a2f15126486632fa87823a336f90834fc79369f67099ee25f3240b243d03e31b9c3b0edc7743f13e244cb8712335e831b24abd9ca41f6de971c3d871e1fb  pylint-2.14.2.tar.gz
+"

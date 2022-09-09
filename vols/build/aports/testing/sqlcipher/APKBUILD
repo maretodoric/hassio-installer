@@ -1,0 +1,51 @@
+# Contributor: wener <wenermail@gmail.com>
+# Maintainer: wener <wenermail@gmail.com>
+pkgname=sqlcipher
+pkgver=4.4.3
+pkgrel=0
+pkgdesc="SQLCipher is an SQLite extension that provides 256 bit AES encryption of database files."
+url="https://www.zetetic.net/sqlcipher/"
+arch="all"
+license="BSD-3-clause"
+makedepends="openssl-dev tcl-dev readline-dev zlib-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sqlcipher/sqlcipher/archive/v$pkgver.tar.gz"
+# block by https://github.com/sqlcipher/sqlcipher/issues/368#issuecomment-669984195
+# options="!check"
+
+build() {
+	export CFLAGS="$CFLAGS -DSQLITE_HAS_CODEC -DSQLCIPHER_TEST"
+	export LDFLAGS="$LDFLAGS -lcrypto"
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-tempstore=yes \
+		--enable-fts5
+
+	make
+}
+
+check() {
+	make testfixture
+	./testfixture test/sqlcipher.test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -Dm0644 sqlcipher.1 \
+		"$pkgdir"/usr/share/man/man1/sqlcipher.1
+}
+
+libs() {
+	pkgdesc="SQLCipher library"
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/lib "$subpkgdir"/usr/
+}
+
+sha512sums="d80177cf658c145f7328bafac14bc2779afa463fc94ef0a5e99b6654cf2eece3088ac296949130e7263f52948913ffeac253c47e33d91816e90caf1788301a9a  sqlcipher-4.4.3.tar.gz"

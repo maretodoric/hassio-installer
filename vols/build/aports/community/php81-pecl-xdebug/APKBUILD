@@ -1,0 +1,49 @@
+# Contributor: Andy Postnikov <apostnikov@gmail.com>
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Contributor: Fabio Ribeiro <fabiorphp@gmail.com>
+# Maintainer: Andy Postnikov <apostnikov@gmail.com>
+pkgname=php81-pecl-xdebug
+_extname=xdebug
+pkgver=3.1.5
+pkgrel=0
+pkgdesc="PHP 8.1 extension that provides functions for function traces and profiling - PECL"
+url="https://pecl.php.net/package/xdebug"
+arch="all"
+license="PHP-3.0"
+depends="php81-common"
+makedepends="php81-dev"
+source="php-pecl-$_extname-$pkgver.tgz::https://pecl.php.net/get/$_extname-$pkgver.tgz"
+builddir="$srcdir/$_extname-$pkgver"
+provides="php81-xdebug=$pkgver-r$pkgrel" # for backward compatibility
+replaces="php81-xdebug" # for backward compatibility
+
+build() {
+	phpize81
+	./configure --prefix=/usr --with-php-config=php-config81
+	make
+}
+
+check() {
+	# PECL package has no test suite.
+	php81 -d zend_extension="$builddir"/modules/xdebug.so -r 'xdebug_info();'
+}
+
+package() {
+	make INSTALL_ROOT="$pkgdir" install
+
+	local _confdir="$pkgdir"/etc/php81/conf.d
+	mkdir -p $_confdir
+	# should go after opcache
+	cat > $_confdir/50_$_extname.ini <<-EOF
+		; Uncomment and configure mode https://xdebug.org/docs/all_settings#xdebug.mode
+		;zend_extension=$_extname.so
+		;xdebug.mode=off
+	EOF
+
+	install -D -m644 -t "$pkgdir"/usr/share/php81/xdebug/ contrib/tracefile-analyser.php
+	install -D -m644 -t "$pkgdir"/usr/share/vim/vimfiles/syntax/ contrib/xt.vim
+}
+
+sha512sums="
+882d4033ee6e71a6b861aa7b98c2cdf06bbbc3fcd9f064f2c59391df2efe647a5ad7a5373960847cc6568b88aa2ca85e2ddba53d3c4c1d627b57b9923d222f90  php-pecl-xdebug-3.1.5.tgz
+"

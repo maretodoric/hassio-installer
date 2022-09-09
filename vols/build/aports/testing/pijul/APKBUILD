@@ -1,0 +1,41 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=pijul
+pkgver=0.12.2
+pkgrel=1
+pkgdesc="Patch-based distributed version control system"
+url="https://pijul.org/"
+arch="all !s390x !riscv64" # Limited by cargo
+license="GPL-2.0-or-later"
+makedepends="cargo clang libsodium-dev nettle-dev openssl-dev"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+source="$pkgname-$pkgver.tar.gz::https://crates.io/api/v1/crates/pijul/$pkgver/download"
+
+build() {
+	cargo build --release
+}
+
+check() {
+	cargo test --release
+}
+
+package() {
+	cd target/release/
+	install -Dm755 pijul -t "$pkgdir"/usr/bin/
+
+	# Generate completion scripts
+	for s in bash fish zsh
+	do
+		./pijul generate-completions --$s > $pkgname.$s
+	done
+
+	install -Dm644 $pkgname.bash "$pkgdir"/usr/share/bash-completion/completions/$pkgname
+	install -Dm644 $pkgname.fish "$pkgdir"/usr/share/fish/completions/$pkgname.fish
+	install -Dm644 $pkgname.zsh "$pkgdir"/usr/share/zsh/site-functions/_$pkgname
+}
+
+sha512sums="b6f6b6ba631f02b2b5bc49ed712581244a03b5062fc06cce8127ab7683e20a3736d2b94c77eef47c4552b430dca848f3ebdbb6117bee07c41e89710829738921  pijul-0.12.2.tar.gz"

@@ -1,0 +1,39 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Claas Störtenbecker <claas.stoertenbecker@gmail.com>
+# Maintainer: Anjandev Momi <anjan@momi.ca>
+pkgname=gopass
+pkgver=1.14.3
+pkgrel=0
+pkgdesc="The slightly more awesome Standard Unix Password Manager for Teams. Written in Go."
+url="https://www.gopass.pw"
+arch="all"
+license="MIT"
+depends="gnupg git"
+makedepends="go ncurses"
+source="$pkgname-$pkgver.tar.gz::https://github.com/gopasspw/gopass/archive/v$pkgver.tar.gz"
+options="chmod-clean net"
+subpackages="
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	$pkgname-fish-completion
+	$pkgname-doc
+	"
+
+check() {
+	# This fails if user already has a ~/.password-store
+	GOPATH="$srcdir" make test-integration
+}
+
+build() {
+	GOPATH="$srcdir" make build BUILDFLAGS="\$(BUILDFLAGS_NOPIE) $GOFLAGS"
+}
+
+package() {
+	GOPATH="$srcdir" make install DESTDIR="$pkgdir" PREFIX="/usr" BUILDFLAGS="\$(BUILDFLAGS_NOPIE) $GOFLAGS"
+	install -Dm0644 "$builddir"/fish.completion \
+		"$pkgdir"/usr/share/fish/completions/gopass.fish
+}
+
+sha512sums="
+bbb3257100f8413e2f249949c2a88cccbddfc1be4bff6cfa46576d7f714c78fcd022067550caadb71b9a0b27d4ad745efcce0c5d93f381cd1ce66fb8af30511f  gopass-1.14.3.tar.gz
+"

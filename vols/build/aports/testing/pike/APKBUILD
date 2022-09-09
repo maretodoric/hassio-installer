@@ -1,0 +1,168 @@
+# Contributor: Paweł Tomak <pawel@tomak.eu>
+# Maintainer: rubicon <rubicon@mailo.com>
+pkgname=pike
+_pkgname=Pike
+pkgver=8.0.1738
+pkgrel=1
+pkgdesc="Pike Programing language"
+url="https://pike.lysator.liu.se"
+arch="all !s390x !riscv64"	# blocked by librsvg
+license="GPL-2.0-or-later"
+options="!check" # there are no tests for those packages
+depends="readline"
+makedepends="gmp-dev
+	bzip2-dev
+	freeglut-dev
+	gdbm-dev
+	giflib-dev
+	giflib-utils
+	gtk+2.0-dev
+	libsm-dev
+	mesa-gl
+	nettle
+	nettle-dev
+	nettle-utils
+	pcre-dev
+	sdl12-compat-dev
+	sdl_mixer-dev
+	sqlite-dev
+	sqlite-libs
+	zlib-dev
+	librsvg-dev"
+subpackages="$pkgname-doc $pkgname-full::noarch"
+source="$pkgname-$pkgver.tar.gz::https://pike.lysator.liu.se/pub/pike/all/$pkgver/$_pkgname-v$pkgver.tar.gz
+	zlib-1.2.12-test.patch
+	"
+builddir="$srcdir/$_pkgname-v$pkgver"
+
+_full_deps="$pkgname=$pkgver-r$pkgrel $pkgname-doc=$pkgver-r$pkgrel"
+for _name in bzip2 gdbm gl gtk image pcre sdl svg sqlite
+do
+	subpackages="$subpackages $pkgname-$_name"
+	_full_deps="$_full_deps $pkgname-$_name=$pkgver-r$pkgrel"
+done
+
+build() {
+	make CONFIGUREARGS=" \
+		--prefix=/usr \
+		--disable-make_conf \
+		--disable-noopty-retry \
+		--without-cdebug \
+		--without-bundles \
+		--without-ssleay \
+		--with-gmp \
+		--with-crypt \
+		--with-bignums \
+		--without-rtldebug \
+		--with-Bz2 \
+		--without-fftw \
+		--without-_Ffmpeg \
+		--with-gdbm \
+		--without-GTK1 \
+		--with-GTK2 \
+		--with-jpeglib \
+		--without-Kerberos \
+		--without-msql \
+		--without-mysql \
+		--without-Odbc \
+		--without-oracle \
+		--with-GL \
+		--with-GLUT \
+		--with-_Regexp_PCRE \
+		--without-libpdf \
+		--without-sass \
+		--with-sane \
+		--with-SDL \
+		--disable-sdltest \
+		--with-SDL_Mixer \
+		--with-svg \
+		--with-tifflib \
+		--without-freetype \
+		--without-vcdiff \
+		--with-_Image_WebP \
+		--with-zlib"
+	PATH="$builddir/bin:$PATH" make doc
+}
+
+package() {
+	make INSTALLARGS="--traditional" buildroot="$pkgdir" install
+
+	rm -Rf "$pkgdir"/usr/doc
+	mkdir -vp "$pkgdir"/usr/share/doc/
+	mv -v	"$builddir"/refdoc/traditional_manual \
+		"$pkgdir"/usr/share/doc/$pkgname
+}
+
+bzip2() {
+	pkgdesc="$pkgdesc (BZip2 support)"
+	depends="pike"
+	amove usr/lib/pike/modules/*Bz2.*
+}
+
+gdbm() {
+	pkgdesc="$pkgdesc (GDBM support)"
+	depends="pike"
+	amove usr/lib/pike/modules/*Gdbm.*
+}
+
+gl() {
+	pkgdesc="$pkgdesc (OpenGL/GLUT support)"
+	depends="pike freeglut libsm"
+	amove usr/lib/pike/modules/*GL*
+}
+
+gtk() {
+	pkgdesc="$pkgdesc (GTK2 support)"
+	depends="pike-image"
+	amove usr/lib/pike/modules/*GTK2*
+	amove usr/lib/pike/modules/*Gnome2*
+	amove usr/lib/pike/modules/Tools.pmod/PV.pike
+}
+
+image() {
+	pkgdesc="$pkgdesc (image handling modules)"
+	depends="pike"
+	amove usr/lib/pike/?.?/modules/Image.pmod
+	amove usr/lib/pike/modules/Image.so
+	amove usr/lib/pike/modules/*Image_[!S]*.so
+	amove usr/lib/pike/modules/*Image*.pmod
+	amove usr/lib/pike/modules/Graphics.pmod
+	amove usr/lib/pike/modules/Colors.pmod
+	amove usr/lib/pike/modules/Protocols.pmod/X.pmod/XImage.pmod
+}
+
+pcre() {
+	pkgdesc="$pkgdesc (PCRE support)"
+	depends="pike"
+	amove usr/lib/pike/modules/*Regexp_PCRE.*
+}
+
+sdl() {
+	pkgdesc="$pkgdesc (SDL support)"
+	depends="pike-image"
+	amove usr/lib/pike/modules/*SDL.*
+}
+
+svg() {
+	pkgdesc="$pkgdesc (SVG support)"
+	depends="pike"
+	amove usr/lib/pike/modules/_Image_SVG.so
+}
+
+sqlite() {
+	pkgdesc="$pkgdesc (SQLite support)"
+	depends="pike"
+	amove usr/lib/pike/modules/*SQLite.*
+	amove usr/lib/pike/modules/Sql.pmod/sqlite*
+}
+
+full() {
+	pkgdesc="Meta package for $pkgdesc"
+	depends="$_full_deps"
+	mkdir -vp "$subpkgdir"
+}
+
+sha512sums="
+6c42594e7cd52fac124068014926e4eb6edcbbb44c51bf806db6b0d0514c710f8c19352813a78b0e2ae8032f40315f72d0990eeaefe6a1f97578ec5045e650d2  pike-8.0.1738.tar.gz
+9bef9e95a8beb02b030a29c189216be2b58b3ac12976c3ec44b53305a4bde360e69176061179678a1e519458212c7d8636adef37fd9a3a4dcc3a057520920eb8  zlib-1.2.12-test.patch
+"

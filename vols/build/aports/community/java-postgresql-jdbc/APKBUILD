@@ -1,0 +1,40 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=java-postgresql-jdbc
+_pkgname=postgresql-jdbc
+pkgver=42.3.5
+pkgrel=0
+pkgdesc="Java JDBC 4.2 (JRE 8+) driver for PostgreSQL database"
+url="https://jdbc.postgresql.org/"
+# riscv64 blocked by java-jdk
+arch="noarch !riscv64"
+license="BSD-3-Clause"
+makedepends="java-jdk gradle"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pgjdbc/pgjdbc/archive/REL$pkgver.tar.gz"
+options="!check net" # tests require running postgres server
+builddir="$srcdir/pgjdbc-REL$pkgver/pgjdbc"
+
+# secfixes:
+#   42.2.25-r0:
+#     - CVE-2020-13692
+
+build() {
+	# Note: Gradle downloads quite many dependencies, but
+	# these are used only for building, not bundled to the final JAR.
+	export JAVA_HOME="/usr/lib/jvm/default-jvm"
+	gradle jar
+}
+
+check() {
+	gradle test
+}
+
+package() {
+	install -Dm644 ./build/libs/postgresql-$pkgver-SNAPSHOT.jar \
+		"$pkgdir"/usr/share/java/$_pkgname-$pkgver.jar
+	ln -s $_pkgname-$pkgver.jar "$pkgdir"/usr/share/java/$_pkgname.jar
+}
+
+sha512sums="
+f4f7010dc8223742ccb18b39f55cfe9dc4d43e2fbf0bb00692f0d2652c56bdacd2219d496784264553d26a3b04407dd492e6f92573d70872233a8df3e4758a94  java-postgresql-jdbc-42.3.5.tar.gz
+"

@@ -1,0 +1,60 @@
+# Contributor: Fernando Casas Schossow <casasfernando@outlook.com>
+# Maintainer: Fernando Casas Schossow <casasfernando@outlook.com>
+pkgname=ocaml-calendar
+_pkgname=calendar
+pkgver=2.04
+pkgrel=2
+pkgdesc="Objective Caml library for managing dates and times"
+url="https://forge.ocamlcore.org/projects/calendar/"
+arch="all !riscv64" # limited by ocaml aport
+license="LGPL-2.1-or-later-WITH-linking-exception"
+makedepends="ocaml ocaml-findlib-dev ocaml-ocamldoc gawk"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://download.ocamlcore.org/calendar/calendar/$pkgver/calendar-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	./configure --prefix=/usr --libdir=/usr/lib
+	make
+}
+
+check() {
+	make tests
+}
+
+package() {
+	export DESTDIR="$pkgdir"
+	export OCAMLFIND_DESTDIR="$DESTDIR/usr/lib/ocaml"
+	mkdir -p "$OCAMLFIND_DESTDIR"
+	make install
+	install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+	install -D -m644 LGPL "$pkgdir/usr/share/licenses/$pkgname/LGPL"
+	install -D -m644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+3941768428eda47f47912846cc2921ee82c722bda7cf6095c1c8bdcfebc19bb8f64ebb1a25475396d2a49c186b83421af63602a54a261684117b1c036a66cf3d  calendar-2.04.tar.gz
+"

@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-secure-cookie
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Secure cookies and sessions for WSGI"
+url="https://github.com/pallets/secure-cookie"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-werkzeug"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/s/secure-cookie/secure-cookie-$pkgver.tar.gz"
+builddir="$srcdir/secure-cookie-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD"/build/lib pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+5fb1df7cf6540a90120200655756cd5bf087810fdc4e66596fe8c2c8e2e300a1e5519fcc691790fe600921a1afd24db15e8ce1cfb74b2dc670ab305481f6ecff  secure-cookie-0.2.0.tar.gz
+"

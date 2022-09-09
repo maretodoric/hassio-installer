@@ -1,0 +1,30 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=git-secret
+pkgver=0.4.0
+pkgrel=0
+pkgdesc="A bash-tool to store your private data inside a git repository"
+url="https://git-secret.io/"
+arch="noarch"
+license="MIT"
+depends="bash gawk gnupg"
+checkdepends="bats"
+subpackages="$pkgname-doc"
+source="https://github.com/sobolevn/git-secret/archive/v$pkgver/$pkgname-$pkgver.tar.gz"
+options="!check"  # does not work in a container w/o tty
+
+build() {
+	make
+}
+
+check() {
+	make test -j1
+}
+
+package() {
+	make PREFIX="$pkgdir/usr" install
+}
+
+sha512sums="
+d38d923bb761730979353869cd932db19b854120ea3ab4c415c8a08f55f4e42e07b76270117d5cad412a7c54dfdd2dc50694b5e41abf654ae07fea00775eee12  git-secret-0.4.0.tar.gz
+"

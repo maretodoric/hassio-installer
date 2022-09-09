@@ -1,0 +1,33 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=py3-discogs-client
+_pyname=python3-discogs-client
+pkgver=2.3.12
+pkgrel=1
+pkgdesc="Joalla Python Discogs API Client"
+url="https://github.com/joalla/discogs_client"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-oauthlib py3-requests py3-six"
+makedepends="py3-dateutil py3-setuptools py3-yaml"
+source="https://files.pythonhosted.org/packages/source/p/python3-discogs-client/python3-discogs-client-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+replaces="py-discogs-client" # for backwards compatibility
+provides="py-discogs-client=$pkgver-r$pkgrel" # for backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c14ea953e92f2d77909a7af8f840ee5a1df2416e16f6de0b7f0e988f6ef56a07fc04c75b247508dc0d1b5f7033faf6cce80196b610d1169a23350d3e816e2925  python3-discogs-client-2.3.12.tar.gz
+"

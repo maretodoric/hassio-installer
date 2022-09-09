@@ -1,0 +1,41 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=libtommath
+pkgver=0_git20210921
+_gitrev=8355b88db088e41d6f7e19a8d58d46c9ed0333d3
+pkgrel=0
+pkgdesc="number theoretic multiple-precision integer library"
+url="https://www.libtom.net/LibTomMath/"
+# arch: all except x86 and x86_64 failed 2 tests:
+# test_mp_sqrtmod_prime, line 726: DO(mp_sqrtmod_prime(&b, &a, &c)) failed: Value out of range
+# test_mp_kronecker, line 345: EXPECT(i == kronecker[cnt].c[m + 10]) failed
+arch="all !armhf !armv7 !aarch64 !ppc64le !s390x"
+license="Unlicense"
+makedepends="libtool"
+checkdepends="coreutils" # Using BusyBox's "timeout" resulted in - unrecognized option: foreground
+subpackages="$pkgname-dev"
+source="$pkgname-$_gitrev.tar.gz::https://github.com/libtom/libtommath/archive/$_gitrev.tar.gz"
+builddir=$srcdir/$pkgname-$_gitrev
+
+build() {
+	make -f makefile.shared
+}
+
+check() {
+	# testme.sh runs its own CC and make
+	# resulting in .lo files in $builddir that break package() with error:
+	# "libtool:   error: 'mp_2expt.lo' is not a valid libtool object"
+	# clone $builddir to testdir for running testme.sh
+	cp -rp $builddir $builddir/../testdir
+	cd $builddir/../testdir
+	./testme.sh
+	cat test_gcc.log
+}
+
+package() {
+	make DESTDIR="$pkgdir" LIBPATH=/usr/lib INCPATH=/usr/include -f makefile.shared install
+}
+
+sha512sums="
+5f763bf0d38e8a6bab741dc3100894baece89eccbf5c76f78bc144a2a2499486bde552f5c9817722563717cc12e86e55cd69ef977f8d9f48d72893663f811914  libtommath-8355b88db088e41d6f7e19a8d58d46c9ed0333d3.tar.gz
+"

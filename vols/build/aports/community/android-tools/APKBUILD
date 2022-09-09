@@ -1,0 +1,35 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=android-tools
+pkgver=31.0.3p1
+pkgrel=5
+pkgdesc="Android platform tools"
+url="https://sites.google.com/a/android.com/tools/"
+arch="x86 x86_64 aarch64 armv7 armhf"
+license="Apache-2.0 MIT"
+options="net !check" # upstream doesn't have a test suite
+makedepends="pcre2-dev linux-headers libusb-dev gtest-dev go perl cmake
+	protobuf-dev brotli-dev zstd-dev lz4-dev samurai"
+subpackages="$pkgname-bash-completion:bashcomp:noarch"
+source="https://github.com/nmeum/android-tools/releases/download/$pkgver/android-tools-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=None
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+bashcomp() {
+	default_bashcomp
+	amove usr/share/android-tools/completions
+}
+
+sha512sums="
+a811eb1d7682b8807f7c110beb83ff234e65fe0f20127466dbd173ea13e68260def8891b4598d5776489af9ff8aeb9f0a19086f49b6df27f68ba63096688afa1  android-tools-31.0.3p1.tar.xz
+"

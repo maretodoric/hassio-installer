@@ -1,0 +1,93 @@
+# Contributor: Mark Riedesel <mark@klowner.com>
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=openimageio
+pkgver=2.3.16.0
+pkgrel=1
+pkgdesc="Image I/O library supporting a multitude of image formats"
+options="!check" # more than 10% of all tests fail
+url="https://sites.google.com/site/openimageio/"
+# s390x has missing dependency ptex-dev
+arch="all !s390x"
+license="BSD-3-Clause"
+makedepends="cmake
+	boost-dev
+	bzip2-dev
+	ffmpeg-dev
+	fmt-dev
+	freetype-dev
+	giflib-dev
+	hdf5-dev
+	libheif-dev
+	libtbb-dev
+	libraw-dev
+	libwebp-dev
+	mesa-dev
+	opencolorio-dev
+	openexr-dev
+	openjpeg-dev
+	ptex-dev
+	ptex-static
+	python3-dev
+	py3-pybind11-dev
+	qt5-qtbase-dev
+	robin-map
+	samurai
+	tiff-dev
+	"
+subpackages="py3-$pkgname:_python $pkgname-dev $pkgname-doc $pkgname-tools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OpenImageIO/oiio/archive/v$pkgver.tar.gz"
+builddir="$srcdir/oiio-$pkgver"
+
+build() {
+	local _py_version=$(python3 --version | cut -c 8-11)
+	local _iv="ON"
+
+	case "$CARCH" in
+		aarch64|armv7|armhf)
+			_iv="OFF";;
+	esac
+
+	# fails to build with fortify source enabled
+	export CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE"
+
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_SKIP_RPATH=ON \
+		-DPYTHON_VERSION=$_py_version \
+		-DOIIO_BUILD_TESTS=OFF \
+		-DSTOP_ON_WARNING=OFF \
+		-DENABLE_iv=$_iv \
+		-DINSTALL_FONTS=OFF \
+		-DOIIO_DOWNLOAD_MISSING_TESTDATA=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	ctest -E broken
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+tools() {
+	pkgdesc="Tools for manipulating a multitude of image formats"
+
+	amove usr/bin
+}
+
+_python() {
+	local pyver="${subpkgname:2:1}"
+	pkgdesc="Python $pyver bindings for OpenImageIO image I/O library"
+	depends="python$pyver"
+
+	amove usr/lib/python*
+}
+
+sha512sums="
+2249dfc7f9c4ede563d5ed05ed76557e0b81c35054832b4de2a7820c8619886afa3f260cd26b5f4291f74c9d9c16b9a2ac3772e23b5b70bc87c2c7a0d0c10726  openimageio-2.3.16.0.tar.gz
+"

@@ -1,0 +1,54 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=hy
+pkgver=1.0_p4
+_realver=${pkgver%_p*}a${pkgver##*_p}
+pkgrel=0
+pkgdesc="Dialect of Lisp that's embedded in Python"
+url="http://hylang.org/"
+arch="noarch"
+license="MIT"
+# XXX: py3-astor can be removed with python3 >= 3.10
+depends="python3 py3-funcparserlib py3-astor py3-rply py3-colorama"
+makedepends="py3-setuptools py3-sphinx py3-sphinxcontrib-hydomain py3-sphinx_rtd_theme"
+checkdepends="python3-tests py3-pytest py3-pytest-runner py3-tox"
+subpackages="$pkgname-doc"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/hylang/hy/archive/$_realver.tar.gz"
+builddir="$srcdir/$pkgname-$_realver"
+
+# By default setup.py tries to determine the hy version using
+# git-describe(1). Unfourtunatly, this will return the version
+# of the aports repository on Alpine.
+export HY_VERSION="$_realver"
+
+build() {
+	python3 setup.py build
+	
+	cd docs
+	sphinx-build . _build -b man
+}
+
+check() {
+	# Ignore tests requiring binaries to be installed
+	py.test-3 --ignore tests/test_bin.py \
+		--ignore tests/test_hy2py.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	local man
+	for man in docs/_build/*.?; do
+		install -Dm644 "$man" \
+			"$pkgdir"/usr/share/man/man${man##*.}/${man##*/}
+	done
+
+	# This file is only needed for setuptools-produced source
+	# distributions <https://github.com/hylang/hy/commit/bd7b8bf5e19e>.
+	rm -rf "$pkgdir"/usr/get_version
+}
+
+sha512sums="
+38fe6444b7e90ec545648a1df7679d99226b917b058e810e8972ed0dc58fbed12a13d939483705f82812d1779de5fa8677e845ebef268b3f39ed4b70f60e82f2  hy-1.0_p4.tar.gz
+"

@@ -1,0 +1,34 @@
+# Contributor: guddaff <guddaff@protonmail.com>
+# Maintainer: guddaff <guddaff@protonmail.com>
+pkgname=rustscan
+pkgver=2.1.0
+pkgrel=0
+pkgdesc="Modern Port Scanner"
+url="https://github.com/RustScan/RustScan"
+license="GPL-3.0-or-later"
+# s390x and riscv64 blocked by rust/cargo
+# ppc64le blocked by ring crate
+# armhf timout while building
+arch="all !s390x !ppc64le !riscv64 !armhf"
+makedepends="cargo python3 perl bash"
+source="$pkgname-$pkgver.tar.gz::https://github.com/RustScan/RustScan/archive/refs/tags/$pkgver.tar.gz
+./Cargo.lock.patch"
+builddir="$srcdir/RustScan-$pkgver"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+2d218520ae786bf98f3c81dc0528b5edd294182f4331a98bd739527de6fde74e6546d1268052f857e528cb1aac96c2d6ab47768d189dedd37adf5f7ee9ab7253  rustscan-2.1.0.tar.gz
+ef4cecc5f73870f78025370a17900abfa1fe997ec0913baf867099aa5ffcb5554f063b6c1f78032a3a6ffc67a704faafbd6dd14bcab19331404ff5010e1d57d0  Cargo.lock.patch
+"

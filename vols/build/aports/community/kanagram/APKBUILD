@@ -1,0 +1,52 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kanagram
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://edu.kde.org/kanagram/"
+pkgdesc="Letter Order Game"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdeclarative-dev
+	kdoctools-dev
+	ki18n-dev
+	kio-dev
+	knewstuff-dev
+	libkeduvocdocument-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	samurai
+	sonnet-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kanagram-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+66790eff8a6d8b8e6b37b27ab757033468d8db239ec8397252a9bb01477a9d1ef184d33cdcfcc5bb7c0da29bd69556caff36059ef463f568c208a57ae498379d  kanagram-22.04.2.tar.xz
+"

@@ -1,0 +1,47 @@
+# Maintainer: Pedro Filipe <xpecex@outlook.com>
+pkgname=breezy
+pkgver=3.2.1
+pkgrel=1
+pkgdesc="Decentralized revision control system"
+url="https://www.breezy-vcs.org/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="py3-configobj py3-six py3-dulwich py3-patiencediff"
+makedepends="python3-dev py3-fastimport py3-gpgme py3-inotify py3-paramiko
+	py3-setuptools cython gettext"
+checkdepends="py3-subunit py3-testtools"
+options="!check" # Requires unittest2
+subpackages="$pkgname-doc"
+source="https://launchpad.net/brz/${pkgver%.*}/$pkgver/+download/breezy-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	# Requires launchpadlib
+	rm -rf breezy/plugins/launchpad/
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+	ln -s brz "$pkgdir"/usr/bin/bzr # backwards compatibility
+
+	find "$pkgdir"/usr/lib/python3*/site-packages -type d -name tests \
+		-exec rm -rf {} +
+}
+
+doc() {
+	mkdir -p "$subpkgdir"/usr/share
+	mv "$pkgdir"/usr/man "$subpkgdir"/usr/share
+	default_doc
+}
+
+sha512sums="
+bfbbff1301f7cc13a2d59b1add80c196f3b45b69994194dcae96c0be151f807c965854047c86e43f54dd8c7aa24d56b25afdd00f0063e83b362a8c46d5858226  breezy-3.2.1.tar.gz
+"

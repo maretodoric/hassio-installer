@@ -1,0 +1,25 @@
+# Contributor: Kevin Daudt <kdaudt@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=semodule-utils
+pkgver=3.3
+pkgrel=1
+pkgdesc="SELinux semodule utilities"
+url="https://github.com/SELinuxProject/"
+arch="all"
+license="GPL-2.0-only"
+makedepends="libsepol-dev"
+options="!check" # No test suite
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/SELinuxProject/selinux/releases/download/$pkgver/semodule-utils-$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+}
+
+sha512sums="
+76aa0c9322889c7de100f3c5789bdf27b7073827fe2af371bd50a4517baa8442f35e53f16a93227dce93da0ceb054bea7e5ee17a46fe05e06f3c2d9925cf59dc  semodule-utils-3.3.tar.gz
+"

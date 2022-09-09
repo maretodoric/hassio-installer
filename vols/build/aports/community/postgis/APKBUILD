@@ -1,0 +1,40 @@
+# Contributor: Bjoern Schilberg <bjoern@intevation.de>
+# Maintainer: Bjoern Schilberg <bjoern@intevation.de>
+pkgname=postgis
+pkgver=3.2.1
+pkgrel=2
+pkgdesc="spatial database extender for PostgreSQL object-relational database"
+url="https://postgis.net/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="perl"
+makedepends="postgresql-dev geos-dev gdal-dev libxml2-dev proj-dev perl-dev
+	json-c-dev pcre-dev protobuf-c-dev clang-dev"
+subpackages="$pkgname-doc"
+source="https://download.osgeo.org/postgis/source/postgis-$pkgver.tar.gz"
+options="!check" # tests depends on a running PostgreSQL server
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+package() {
+	depends="$depends postgresql$(pg_config --major-version)"
+
+	make DESTDIR="$pkgdir" install
+
+	cd "$pkgdir"
+
+	mkdir -p usr/bin
+	local i; for i in .$(pg_config --bindir)/*; do
+		ln -s "${i#.}" usr/bin/${i##*/}
+	done
+}
+
+sha512sums="
+e0ea3d2304e71c98dd045a8031946235d9c26a1310e1ffa556db10dfd18378957ee3d88608fba7ff482835d8c8b41d7f7bddaff1279ce0b50cd7634237465b31  postgis-3.2.1.tar.gz
+"

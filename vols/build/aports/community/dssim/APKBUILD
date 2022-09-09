@@ -1,0 +1,28 @@
+# Contributor: Adam Jensen <adam@acj.sh>
+# Maintainer: Adam Jensen <adam@acj.sh>
+pkgname=dssim
+pkgver=3.2.0
+pkgrel=0
+pkgdesc="Tool for image similarity comparison, simulating human perception"
+url="https://kornel.ski/dssim"
+arch="all !s390x !riscv64" # limited by rust/cargo
+arch="$arch !ppc64le !armv7 !armhf" # Tries to compile mozjpeg-sys with 'with_simd'
+license="AGPL-3.0-only"
+makedepends="cargo"
+source="$pkgname-$pkgver.tar.gz::https://github.com/kornelski/dssim/archive/$pkgver.tar.gz"
+
+build() {
+	cargo build --release
+}
+
+check() {
+	cargo test --release
+}
+
+package() {
+	install -Dm755 "target/release/dssim" "$pkgdir/usr/bin/dssim"
+}
+
+sha512sums="
+c0adcd5f1415d8768de915b33995220543ae07a86a12ffafe24bcd3a51a4afb255162fb054b13704d63c56791faf1580fa26e1309546634a6369aebf6c6603e0  dssim-3.2.0.tar.gz
+"

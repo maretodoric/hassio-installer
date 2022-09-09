@@ -1,0 +1,62 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-distributed
+pkgver=2022.2.0
+pkgrel=0
+pkgdesc="A library for distributed computation"
+url="https://distributed.dask.org/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+depends="
+	py3-click
+	py3-cloudpickle
+	py3-dask
+	py3-msgpack
+	py3-psutil
+	py3-sortedcontainers
+	py3-tblib
+	py3-tornado
+	py3-yaml
+	py3-zict
+	"
+makedepends="
+	linux-headers
+	py3-setuptools
+	python3-dev
+	yaml-dev
+	"
+checkdepends="
+	py3-arrow
+	py3-h5py
+	py3-jsonschema
+	py3-lz4
+	py3-paramiko
+	py3-pytest
+	py3-pytest-asyncio
+	py3-requests
+	py3-scipy
+	"
+source="https://pypi.python.org/packages/source/d/distributed/distributed-$pkgver.tar.gz"
+# Mosts tests are broken by new pytest-asyncio
+# See https://github.com/dask/distributed/pull/4212 for an explanation
+options="!check"
+builddir="$srcdir/distributed-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest \
+		--ignore distributed/comm/tests/test_comms.py \
+		--ignore distributed/tests/test_core.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+652064a66864110e20bfc1258f7f2fb04e76e70bd444eb13831f139288dd7e200f278f10908d52f1d1975cf8cc857db456cca1a3e2f8a04b81dea1ffe7860cc3  distributed-2022.2.0.tar.gz
+"

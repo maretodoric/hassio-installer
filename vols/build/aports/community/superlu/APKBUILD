@@ -1,0 +1,46 @@
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=superlu
+pkgver=5.3.0
+pkgrel=0
+pkgdesc="Sparse LU factorization library"
+url="https://portal.nersc.gov/project/sparse/superlu/"
+arch="all"
+license="BSD-3-Clause"
+makedepends="
+	cmake
+	gfortran
+	openblas-dev
+	"
+subpackages="
+	$pkgname-dev
+	"
+source="
+	https://portal.nersc.gov/project/sparse/superlu/superlu-$pkgver.tar.gz
+	"
+
+build() {
+	mkdir build ; cd build
+	cmake .. \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+		-DCMAKE_INSTALL_LIBDIR="lib" \
+		-DCMAKE_INSTALL_INCLUDEDIR="include/superlu" \
+		-Denable_internal_blaslib:BOOL=OFF \
+		-DBUILD_SHARED_LIBS=ON
+	make
+}
+
+check() {
+	cd build
+	ctest
+}
+
+package() {
+	cd build
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+277c6884344d884b4f1d951385dd12ff87c46e32e615d9b00ea48227f22926fff1e4aba743e0d867bdc8afefd42ab4c19c74181939d753f336e96d30e40750ac  superlu-5.3.0.tar.gz
+"

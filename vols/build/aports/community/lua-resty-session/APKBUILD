@@ -1,0 +1,18 @@
+# Contributor: Timo Teräs <timo.teras@iki.fi>
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=lua-resty-session
+pkgver=3.8
+pkgrel=0
+pkgdesc="secure and flexible session library for OpenResty"
+url="https://github.com/bungle/lua-resty-session"
+arch="noarch"
+license="BSD-2-Clause"
+source="$pkgname-$pkgver.tar.gz::https://github.com/bungle/lua-resty-session/archive/v$pkgver.tar.gz"
+options="!check"
+
+package() {
+	mkdir -p "$pkgdir/usr/share/lua/common"
+	cp -r ./lib/resty "$pkgdir/usr/share/lua/common"
+}
+
+sha512sums="3effce6d73cc567b1c7f757d3926f6b29955136de86c05bd8a7e809e8842f3833f556e91a9e8f43623b3f4ff8ee47b395d0061a96d46267bb796a08cd5ce0a52  lua-resty-session-3.8.tar.gz"

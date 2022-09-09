@@ -1,0 +1,43 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ruby-enum
+_gemname=$pkgname
+pkgver=0.9.0
+pkgrel=2
+pkgdesc="A handy way to define enums in Ruby"
+url="https://github.com/dblock/ruby-enum"
+arch="noarch"
+license="MIT"
+depends="ruby ruby-i18n"
+checkdepends="ruby-rspec"
+source="$pkgname-$pkgver.tar.gz::https://github.com/dblock/ruby-enum/archive/v$pkgver.tar.gz
+	skip-coverage.patch"
+
+build() {
+	gem build $_gemname.gemspec
+}
+
+check() {
+	rspec spec
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+	local geminstdir="$gemdir/gems/$_gemname-$pkgver"
+
+	gem install --local \
+		--install-dir "$gemdir" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+
+	rm -r "$gemdir"/cache \
+		"$gemdir"/build_info \
+		"$gemdir"/doc \
+		"$geminstdir"/spec \
+		"$geminstdir"/*.md
+}
+
+sha512sums="48f4feebc8250adcc51d1673460c7c185f7373ca2b561ae8ba3f12a761193d7dd96ca518d6f84495d54518ef63d06efe404256fa9876871ff5c0539d9884fd39  ruby-enum-0.9.0.tar.gz
+f02142db686f3ab57a46d4df76b192860f989c94bd32d91c146a1b3d36799935e0cb74729da47ebc18f4fbf32b4239073321f3ba0bed92a9edd9fcf45fc4ad7d  skip-coverage.patch"

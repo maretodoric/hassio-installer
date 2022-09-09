@@ -1,0 +1,37 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer:
+pkgname=delve
+pkgver=1.8.3
+pkgrel=1
+pkgdesc="Debugger for the Go programming language"
+url="https://github.com/go-delve/delve"
+arch="x86 x86_64 aarch64"
+license="MIT"
+makedepends="go"
+options="net chmod-clean"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/go-delve/delve/archive/refs/tags/v$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+
+build() {
+	mkdir bin
+	go build -v -trimpath -o bin ./cmd/dlv/...
+}
+
+check() {
+	# TestGeneratedDoc and TestBuild require a proper $GOPATH setup.
+	go test -run '!(^(TestGeneratedDoc|TestBuild)$)' ./cmd/dlv/...
+}
+
+package() {
+	install -Dm755 bin/* -t "$pkgdir"/usr/bin/
+
+	# Install additional documentation files.
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname
+	cp -r Documentation/* "$pkgdir"/usr/share/doc/$pkgname
+}
+
+sha512sums="
+188f677218b74a7e1858447843d76439da26da7b830eca4ed61bb5ab3ed478091e91b38c638cc3495a4a58ecdd564d24befdb445a4b52a65230d989f7c235aa1  delve-1.8.3.tar.gz
+"

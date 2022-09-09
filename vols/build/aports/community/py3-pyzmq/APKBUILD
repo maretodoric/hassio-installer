@@ -1,0 +1,51 @@
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-pyzmq
+_pkgname=pyzmq
+pkgver=22.3.0
+pkgrel=1
+pkgdesc="Python bindings for ZeroMQ"
+url="https://pypi.python.org/pypi/pyzmq"
+arch="all"
+license="LGPL-3.0-or-later AND BSD-3-Clause"
+depends="python3"
+makedepends="python3-dev py3-setuptools zeromq-dev"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/p/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces=py-zmq # Backwards compatibility
+provides=py-zmq=$pkgver-r$pkgrel # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py build_ext --inplace
+	# TestAsyncioAuthentication hangs
+	# TestPubLog random failures on ppc64le/s390x/aarch64
+	py.test-3 -v \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_blank_root_topic \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_custom_debug_formatter \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_custom_global_formatter \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_init_iface \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_init_socket \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_root_topic \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_set_info_formatter_via_property \
+		--deselect zmq/tests/test_log.py::TestPubLog::test_unicode_message \
+		--deselect zmq/tests/asyncio/test_asyncio.py::TestAsyncioAuthentication::test_blacklist \
+		--deselect zmq/tests/asyncio/test_asyncio.py::TestAsyncioAuthentication::test_curve \
+		--deselect zmq/tests/asyncio/test_asyncio.py::TestAsyncioAuthentication::test_plain \
+		--deselect zmq/tests/test_context.py::TestContext::test_mockable \
+		--deselect zmq/tests/test_cython.py::test_cython[3] \
+		--deselect zmq/tests/test_cython.py::test_cython[2]
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+a822262ce70e822ea7ac31f458357f61d53b6c24e3482b7f8d222b8c3ace54e4bdb04aff787be07791670f295d6c40d8482fd1a05b87cfe658bf5562da41dcf5  pyzmq-22.3.0.tar.gz
+"

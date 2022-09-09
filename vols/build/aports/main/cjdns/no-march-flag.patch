@@ -1,0 +1,11 @@
+--- a/node_build/make.js
++++ b/node_build/make.js
+@@ -27,7 +27,7 @@
+ 
+ var CFLAGS = process.env['CFLAGS'];
+ var LDFLAGS = process.env['LDFLAGS'];
+-var NO_MARCH_FLAG = ['arm', 'ppc', 'ppc64'];
++var NO_MARCH_FLAG = ['arm', 'arm64', 'mips', 'mips64', 'mips64el', 'mipsel', 'ppc', 'ppc64'];
+ 
+ Builder.configure({
+     systemName:     process.env['SYSTEM'] || process.platform,

@@ -1,0 +1,52 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=peruse
+pkgver=1.80
+pkgrel=1
+pkgdesc="A comic book viewer based on Frameworks 5, for use on multiple form factors"
+# armhf blocked by extra-cmake-modules
+# s390x blocked by kdeclarative
+# riscv64 disabled due to missing rust in recursive dependency
+# ppc64le blocked by okular
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://invent.kde.org/graphics/peruse"
+license="LGPL-2.1-or-later AND LicenseRef-KDE-Accepted-LGPL"
+depends="
+	kirigami2
+	okular-common-qml
+	qt5-qtbase-sqlite
+	qt5-qtimageformats
+	qt5-qtquickcontrols
+	"
+makedepends="
+	extra-cmake-modules
+	kdeclarative-dev
+	kfilemetadata-dev
+	knewstuff-dev
+	qt5-qtdeclarative-dev
+	samurai
+	"
+source="https://download.kde.org/stable/peruse/peruse-$pkgver.tar.xz"
+subpackages="$pkgname-lang $pkgname-creator"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+creator() {
+	pkgdesc="Creation tool for comic books"
+
+	amove usr/bin/perusecreator
+	amove usr/share/metainfo/org.kde.perusecreator.appdata.xml
+}
+
+sha512sums="3c6188780b11743abd465c9cb7eadce94e638d292fe77e674068c2c123dbb614d1d46ba984a20b30a03e3e8b0ac941f6ec169cc52b4c2c83d14649c3d047156f  peruse-1.80.tar.xz"

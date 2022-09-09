@@ -1,0 +1,60 @@
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=plymouth
+pkgver=22.02.122
+pkgrel=0
+pkgdesc="graphical bootsplash on linux"
+url="http://www.freedesktop.org/wiki/Software/Plymouth"
+arch="all"
+license="GPL-2.0-or-later"
+depends_dev="
+	eudev-dev
+	gtk+3.0-dev
+	libdrm-dev
+	libpng-dev
+	pango-dev
+	"
+makedepends="$depends_dev
+	autoconf
+	automake
+	docbook-xsl
+	libtool
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-themes::noarch $pkgname-x11:_render $pkgname-drm:_render"
+source="https://www.freedesktop.org/software/plymouth/releases/plymouth-$pkgver.tar.xz
+	plymouth-rpmatch.patch
+	"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--with-system-root-install \
+		--disable-systemd-integration
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	rm -f "$pkgdir"/usr/lib/plymouth/*.la
+}
+
+themes() {
+	mkdir -p "$subpkgdir"/usr/share/plymouth/
+	mv "$pkgdir"/usr/share/plymouth/themes/ "$subpkgdir"/usr/share/plymouth/
+}
+
+_render() {
+	local _name=${subpkgname#$pkgname-}
+	mkdir -p "$subpkgdir"/usr/lib/plymouth/renderers
+	mv "$pkgdir"/usr/lib/plymouth/renderers/$_name.so \
+		"$subpkgdir"/usr/lib/plymouth/renderers
+}
+
+sha512sums="
+9f2f5a7121b431f16561d6b5f31177ff06cf1e6bdffaa68c1fe08aa3c765a96dee745824aae8eaac9a0b4a08f0a17a9ae79a82bd0826fcc3fe14d8553635f817  plymouth-22.02.122.tar.xz
+ec1c32ddf7ee418ef1b5d173040db464193d9bca3fd85d5c3a8d2ee13ba1218947f7c9f39c403d3ccced70be28b2c7328e82dc8f967e9bdeea1651dee4be2dc7  plymouth-rpmatch.patch
+"

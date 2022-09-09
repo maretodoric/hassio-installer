@@ -1,0 +1,134 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=dolphin-emu
+pkgver=5.0_git20220424
+pkgrel=1
+_commit="6abf36767682856128d8a306ad6914b94c3c95b4"
+_commit_mgba="40d4c430fc36caeb7ea32fd39624947ed487d2f2"
+ # Upstream doesn't actively support non 64-bit platforms and they're too slow
+ # to emulate any games anyway
+arch="x86_64 aarch64 riscv64"
+url="https://dolphin-emu.org"
+pkgdesc="A Gamecube / Wii emulator"
+license="GPL-2.0-or-later"
+makedepends="
+	bluez-dev
+	cmake
+	curl-dev
+	enet-dev
+	eudev-dev
+	ffmpeg-dev
+	hidapi-dev
+	libevdev-dev
+	libpng-dev
+	libusb-dev
+	libx11-dev
+	libxi-dev
+	libxrandr-dev
+	lzo-dev
+	mesa-dev
+	mesa-egl
+	miniupnpc-dev
+	ninja
+	pugixml-dev
+	pulseaudio-dev
+	qt5-qtbase-dev
+	sfml-dev
+	vulkan-headers
+	xz-dev
+	zlib-dev
+	zstd-dev
+	"
+# The following dependencies are required, but atm not supported for using system wide libraries
+# minizip-dev xxhash-dev soundtouch-dev gtest-dev
+source="https://github.com/dolphin-emu/dolphin/archive/$_commit/dolphin-emu-$_commit.tar.gz
+	https://github.com/mgba-emu/mgba/archive/$_commit_mgba/mgba-$_commit_mgba.tar.gz
+	"
+subpackages="$pkgname-doc $pkgname-lang"
+builddir="$srcdir/dolphin-$_commit"
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+prepare() {
+	default_prepare
+
+	rmdir Externals/mGBA/mgba
+	mv "$srcdir"/mgba-$_commit_mgba Externals/mGBA/mgba
+
+	# Make sure we never use non-system libraries except the ones that are not
+	# supported being used system-wide by removing them from the Externals
+	# folder
+	#
+	# Vulkan's API is not backwards-compatible
+	# New release dropped VK_PRESENT_MODE_RANGE_SIZE_KHR
+	# but Dolphin still relies on it
+	# See e.g. https://bugs.gentoo.org/729832
+
+	KEEP_SOURCES="
+		Bochs_disasm
+		FreeSurround
+		Vulkan
+		cpp-optparse
+		cubeb
+		fmt
+		glslang
+		gtest
+		imgui
+		mGBA
+		mbedtls
+		minizip
+		picojson
+		rangeset
+		soundtouch
+		xxhash
+	"
+
+	# Move the libraries we want to keep out of the externals folder
+	for s in $KEEP_SOURCES; do
+		mv -v "Externals/$s" .
+	done
+
+	# Remove the rest
+	rm -r Externals/*
+
+	# Move them back
+	for s in $KEEP_SOURCES; do
+		mv -v "$s" "Externals/"
+	done
+}
+
+build() {
+	# Enable a generic build for riscv64
+	# This enables building for the architecture but disables JIT and is thus slow
+	# TODO: see if support for riscv64 has been enabled upstream and disable the generic build
+	case "$CARCH" in
+		riscv64) _generic=ON ;;
+		*) _generic=OFF ;;
+	esac
+
+	cmake -B build -G Ninja  \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DUSE_DISCORD_PRESENCE=OFF \
+		-DUSE_SHARED_ENET=ON \
+		-DENABLE_LLVM=OFF \
+		-DENABLE_GENERIC=$_generic \
+		-DDISTRIBUTOR="alpinelinux.org"
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	install -Dm 644 Data/51-usb-device.rules -t "$pkgdir"/usr/lib/udev/rules.d/
+}
+
+sha512sums="
+b9c9815ace0b459179160551a3e51956d871a4f89841ab4a63ab88cd1ef84640ed6ad2754dce19429d4e7558590eaf2f8bdea03c7c6d5db1788f7ed1b26cc2a6  dolphin-emu-6abf36767682856128d8a306ad6914b94c3c95b4.tar.gz
+26d7b60cbc7415652bb9ca2a42ccd532856867db57bf6dd91d8204551970109b6b9f4a96c42d643ea96b9d071d6aec924d3c1bb79c251c95183b7fb8536456c9  mgba-40d4c430fc36caeb7ea32fd39624947ed487d2f2.tar.gz
+"

@@ -1,0 +1,24 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-locket
+pkgver=0.2.1
+pkgrel=2
+pkgdesc="File-based locks for Python"
+url="https://github.com/mwilliamson/locket.py"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://pypi.python.org/packages/source/l/locket/locket-$pkgver.tar.gz"
+options="!check" # Release tarball doesn't contain the tests
+builddir="$srcdir/locket-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="db25454b83d176f529eb3060e4e7fff0151d8a7ccfd58a66c9bc09345445923137c2e5eb7e8a42b9d8f1bbdb3a967cb3467e91a279f19ede6f8727eaebf85857  locket-0.2.1.tar.gz"

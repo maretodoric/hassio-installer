@@ -1,0 +1,31 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer:
+pkgname=way-displays
+pkgver=1.5.3
+pkgrel=0
+pkgdesc="Auto Manage Your Wayland Displays"
+url="https://github.com/alex-courtis/way-displays"
+arch="all"
+license="MIT"
+makedepends="
+	libinput-dev
+	wayland-dev
+	wayland-protocols
+	wlroots-dev
+	yaml-cpp-dev
+	"
+subpackages="$pkgname-doc"
+source="https://github.com/alex-courtis/way-displays/archive/$pkgver/way-displays-$pkgver.tar.gz"
+options="!check"  # no tests provided
+
+build() {
+	make
+}
+
+package() {
+	make install PREFIX=/usr PREFIX_ETC=/ DESTDIR="$pkgdir"
+}
+
+sha512sums="
+05ff72b952ba717b28b24e0cde6a20e3531350620590dc1a1595da9e795e09c8d85900946c5394ca5aca93ccf34bedefadcee151ccdaea4d754a359d31acb433  way-displays-1.5.3.tar.gz
+"

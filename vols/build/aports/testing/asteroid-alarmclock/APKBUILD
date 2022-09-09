@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-alarmclock
+pkgver=0_git20210517
+pkgrel=0
+_commit="66e4fabe58847b4c48fcad9c4b13be68a4242ca1"
+pkgdesc="Default alarm clock app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-alarmclock"
+# armhf blocked by qml-asteroid
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	libngf-qt
+	mapplauncherd
+	nemo-qml-plugin-alarms
+	nemo-qml-plugin-configuration
+	nemo-qml-plugin-time
+	"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-alarmclock/archive/$_commit/asteroid-alarmclock-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DSYSTEMD=OFF
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+02ea5db3d8589aea048d3629a90a991dfe2d78b6e28e7ab984b06d12c2853e427b1036df6b11e0a1c3044b76a63875c23aa23f08185ae04776dc51a124167710  asteroid-alarmclock-66e4fabe58847b4c48fcad9c4b13be68a4242ca1.tar.gz
+"

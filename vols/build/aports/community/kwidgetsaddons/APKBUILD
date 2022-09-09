@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kwidgetsaddons
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Addons to QtWidgets"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+url="https://community.kde.org/Frameworks"
+license="GPL-2.0-only AND LGPL-2.1-only AND Unicode-DFS-2016"
+depends_dev="qt5-qtbase-dev"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="
+	mesa-dri-swrast
+	xvfb-run
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kwidgetsaddons-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# ktwofingertaptest, ktwofingerswipetest and and ksqueezedtextlabelautotest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E '(ktooltipwidget|ktwofingertap|ktwofingerswipe|ksqueezedtextlabelauto)test'
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+1f79aa0f810574213c83c26ee454a50e52c08167c029be239d83f089858a28dcdd31720cc2fed606f319b8d7fef05743ca06424a1249b4fdcfebbf043688cbc3  kwidgetsaddons-5.95.0.tar.xz
+"

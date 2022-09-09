@@ -1,0 +1,36 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Contributor: Antoine Fontaine <antoine.fontaine@epfl.ch>
+# Maintainer:
+pkgname=py3-multidict
+_pkgname=multidict
+pkgver=6.0.2
+pkgrel=1
+pkgdesc="multidict implementation"
+url="https://github.com/aio-libs/multidict/"
+arch="all"
+license="Apache-2.0"
+depends="python3"
+checkdepends="py3-pytest py3-pytest-cov"
+makedepends="python3-dev py3-setuptools cython"
+source="$_pkgname-$pkgver.tar.gz::https://github.com/aio-libs/multidict/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+options="!strip"
+
+check() {
+	python3 -m pytest
+}
+
+build() {
+	(cd multidict && find -name '*.pyx' -exec cython {} \;)
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm -f "$pkgdir"/usr/lib/python3*/site-packages/*.c
+	rm -f "$pkgdir"/usr/lib/python3*/site-packages/*.h
+}
+
+sha512sums="
+508f18c5f731e7438bc7cb84b29aff22422769a8ea4c0ba7c875361d1bb1da78bed2db8b4ca34b833effd03ca3e7f00dabaad64bfce54b3e8d208cdc808083c9  multidict-6.0.2.tar.gz
+"

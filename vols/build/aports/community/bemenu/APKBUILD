@@ -1,0 +1,40 @@
+# Contributor: Cosmo Borsky <me@cosmoborsky.com>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=bemenu
+pkgver=0.6.7
+pkgrel=1
+pkgdesc="Dynamic menu library and client program with support for different backends"
+options="!check" # No testsuite
+url="https://github.com/Cloudef/bemenu"
+arch="all"
+license="GPL-3.0-or-later AND LGPL-3.0-or-later"
+depends_dev="
+	libxinerama-dev
+	libxkbcommon-dev
+	ncurses-dev
+	pango-dev
+	scdoc
+	wayland-dev
+	wayland-protocols
+	"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-dbg"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Cloudef/bemenu/archive/$pkgver.tar.gz"
+replaces="sxmo-bemenu"
+
+build() {
+	PREFIX=/usr CFLAGS="$CFLAGS -g" make
+}
+
+package() {
+	# Please don't split backends into subpackages until
+	# https://github.com/Cloudef/bemenu/issues/165 is
+	# resolved, i.e. proper error messages are output if
+	# no backend was found or a backend error occured.
+
+	make PREFIX=/usr DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+4adb7c9157a3d771b914f0ad5aa5a17cb02a4c31244aeea54ba6abd5d42b2b8f16afa7e2afcb53e9a4d9ed2de316f1967d260ecf622f8bf90550381964ec4073  bemenu-0.6.7.tar.gz
+"

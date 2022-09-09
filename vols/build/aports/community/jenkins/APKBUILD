@@ -1,0 +1,73 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=jenkins
+pkgver=2.332.3
+pkgrel=0
+pkgdesc="Extendable continuous integration server (LTS version)"
+url="https://jenkins.io/"
+# riscv64 blocked by openjdk8
+arch="noarch !riscv64"
+license="MIT"
+depends="java-jre-headless freetype ttf-dejavu xvfb fontconfig"
+install="$pkgname.pre-install"
+options="!check"
+pkgusers="$pkgname"
+pkggroups="$pkgname"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.war::https://get.jenkins.io/war-stable/$pkgver/jenkins.war
+	$pkgname.logrotate
+	$pkgname.initd
+	$pkgname.confd"
+builddir="$srcdir/"
+
+# secfixes:
+#   2.332.1-r0:
+#     - CVE-2022-20612
+#   2.319.3-r0:
+#     - CVE-2022-0538
+#   2.319.2-r0:
+#     - CVE-2022-20612
+#   2.287-r0:
+#     - CVE-2021-21639
+#     - CVE-2021-21640
+#   2.275-r0:
+#     - CVE-2021-21602
+#     - CVE-2021-21603
+#     - CVE-2021-21604
+#     - CVE-2021-21605
+#     - CVE-2021-21606
+#     - CVE-2021-21607
+#     - CVE-2021-21608
+#     - CVE-2021-21609
+#     - CVE-2021-21610
+#     - CVE-2021-21611
+#   2.245-r0:
+#     - CVE-2020-2220
+#     - CVE-2020-2221
+#     - CVE-2020-2222
+#     - CVE-2020-2223
+#   2.228-r0:
+#     - CVE-2020-2160
+#     - CVE-2020-2161
+#     - CVE-2020-2162
+#     - CVE-2020-2163
+
+package() {
+	install -Dm755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+	install -Dm755 "$srcdir"/$pkgname-$pkgver.war \
+		"$pkgdir"/usr/share/webapps/jenkins/$pkgname.war
+	install -Dm644 "$srcdir"/$pkgname.logrotate \
+		"$pkgdir"/etc/logrotate.d/$pkgname
+	mkdir -p "$pkgdir"/var/log/jenkins
+	chown -R $pkgusers:$pkggroups "$pkgdir"/var/log/jenkins
+}
+
+sha512sums="
+62bc639e7bed7f6cb194781761735dbf07b4e7b38a38b43a798c386e7000d589b3f6202ba8789a685d3b2ac18cb1554b19d4208362b945e4866e8a810be84e57  jenkins-2.332.3.war
+ee2e80d93b390b2c5dead3111e07d6226cbd87393740fd630975e4d177acc033392ebbdb99f8ea3c6daeceac184399b38b0fa3ae7d96b5cb28f65d473b916244  jenkins.logrotate
+43686a537248c7a0a8fe53c3ca9577c8ffb50a141248de028d398d0fd3b3be8562b6cb2c63b44b3b0ac58d6431e8907790553791b2e125d1bfc2e3263ffaa83e  jenkins.initd
+7247750a13fc2537dc1e405f6d8221ccdc80cfbaf40c47327ee04c206afa8607ada52e7b895c8eb3489dd9f6a94b42b8b38110b3120948a35dc4f197fe4c08ed  jenkins.confd
+"

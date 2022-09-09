@@ -1,0 +1,31 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-furl
+_pkgname=furl
+pkgver=2.1.2
+pkgrel=1
+pkgdesc="Python3 URL manipulator"
+url="https://github.com/gruns/furl"
+arch="noarch"
+license="Unlicense"
+depends="py3-orderedmultidict py3-six"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-flake8 py3-pycodestyle py3-pyflakes"
+source="https://files.pythonhosted.org/packages/source/f/furl/furl-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="build:$PYTHONPATH" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+d788344d129b511d00debe2cd4ee7c555453a0bf5e81444cededf48fe3b51fa2b45cdead6ddffb42837cb8684d085a3b5773b65a82cef87f6b16f60f1fcbc778  furl-2.1.2.tar.gz
+"

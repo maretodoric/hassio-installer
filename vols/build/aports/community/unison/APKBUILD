@@ -1,0 +1,53 @@
+# Contributor: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+# Contributor: omni <omni+alpine@hack.org>
+# Maintainer: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+pkgname=unison
+# Note: unison breaks compatibility between minor (major.minor) versions.
+pkgver=2.52.1
+_majorver=${pkgver%.*}  # x.y
+pkgrel=0
+pkgdesc="Efficient file-synchronization tool"
+url="https://www.cis.upenn.edu/~bcpierce/unison/"
+arch="all !riscv64" # ocaml
+license="GPL-3.0-or-later"
+makedepends="ocaml linux-headers"
+checkdepends="coreutils"
+subpackages="$pkgname-doc"
+source="unison-$pkgver.tar.gz::https://github.com/bcpierce00/unison/archive/v$pkgver.tar.gz"
+
+build() {
+	# ocamlopt is a front-end for gcc which will create optimized ocaml
+	# binaries. It will call gcc, but it hasn't implemented all gcc options.
+	# -ccopt is the way to pass arbitrary options.
+	local _cflags=''
+	local i; for i in $CFLAGS; do
+		_cflags="$_cflags -ccopt $i"
+	done
+	export CFLAGS="$_cflags"
+
+	make -j1 UISTYLE=text DEBUGGING=false THREADS=true
+	make -C man
+	cp src/unison unison-text
+	cp src/unison-fsmonitor unison-fsmonitor
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm755 unison-text \
+		"$pkgdir"/usr/bin/unison-text-$_majorver
+	install -Dm755 unison-fsmonitor \
+		"$pkgdir"/usr/bin/unison-fsmonitor-$_majorver
+	install -Dm644 man/unison.1 \
+		-t "$pkgdir"/usr/share/man/man1
+
+	cd "$pkgdir"/usr/bin
+	ln -s unison-text-$_majorver unison-text
+	ln -s unison-text unison
+}
+
+sha512sums="
+6b1b44ffb9c1f6373e7250b28c08c26dfc4281ff750f64155872317e1b98fce40fb3adf16ad89ebe0d033c93254c048c8b7d641163219642bfea9b4bb37c9e0a  unison-2.52.1.tar.gz
+"

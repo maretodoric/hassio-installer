@@ -1,0 +1,75 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdepim-runtime
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Extends the functionality of kdepim"
+url="https://kontact.kde.org/"
+# armhf blocked by extra-cmake-modules
+# ppc64le blocked by qt5-qtwebengine -> libkgapi
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !ppc64le !s390x !riscv64"
+license="LGPL-2.0-or-later"
+makedepends="
+	akonadi-calendar-dev
+	akonadi-contacts-dev
+	akonadi-dev
+	akonadi-mime-dev
+	akonadi-notes-dev
+	extra-cmake-modules
+	kcalendarcore-dev
+	kcalutils-dev
+	kcodecs-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcontacts-dev
+	kdav-dev
+	kdoctools-dev
+	kholidays-dev
+	kidentitymanagement-dev
+	kimap-dev
+	kio-dev
+	kitemmodels-dev
+	kmailtransport-dev
+	kmbox-dev
+	kmime-dev
+	knotifications-dev
+	knotifyconfig-dev
+	ktextwidgets-dev
+	kwindowsystem-dev
+	libkgapi-dev
+	libxslt-dev
+	pimcommon-dev
+	qca-dev
+	qt5-qtbase-dev
+	qt5-qtnetworkauth-dev
+	qt5-qtspeech-dev
+	qt5-qtxmlpatterns-dev
+	samurai
+	shared-mime-info
+	"
+subpackages="$pkgname-dbg $pkgname-doc $pkgname-lang"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdepim-runtime-$pkgver.tar.xz
+	0001-Fix-non-existing-import-in-ews-tests.patch
+	"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+99f2174e5069bd76b1ffb5a3946214423cf87d694f81afebbb22bb6cdedfc3b724fc21d0107134506c51d2365b9d874119d9453fd74bbaa632c2fe3f512cd3f3  kdepim-runtime-22.04.2.tar.xz
+5e0d0306be76e0aef80e2b7f17b36b6a5d7775428c54cf97fc242e511e926982b0092ddb1ed79fab37ca7145bde06a94a378ad9df85e7de0653813e076a3a644  0001-Fix-non-existing-import-in-ews-tests.patch
+"

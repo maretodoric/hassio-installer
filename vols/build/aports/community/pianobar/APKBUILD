@@ -1,0 +1,25 @@
+# Contributor:
+# Maintainer:
+pkgname=pianobar
+pkgver=2022.04.01
+pkgrel=0
+pkgdesc="Commandline player for pandora webradio"
+url="https://github.com/PromyLOPh/pianobar"
+arch="all"
+license="MIT"
+makedepends="ffmpeg-dev libao-dev libgcrypt-dev json-c-dev curl-dev"
+subpackages="$pkgname-doc"
+source="https://6xq.net/pianobar/pianobar-$pkgver.tar.bz2"
+options="!check" # no tests
+
+build() {
+	make PREFIX=/usr
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+9ad60c0048b375d74ad2bab289d75deec6dba46c31bfc1799dabf18661ec0cdef494df72273e6c16989ead21dc034445595a3e2ace43f6b6ca61446449895aef  pianobar-2022.04.01.tar.bz2
+"

@@ -1,0 +1,31 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-prettytable3
+pkgver=3.3.0
+pkgrel=0
+pkgdesc="Display tabular data in a visually appealing ASCII table format"
+url="https://github.com/jazzband/prettytable"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-wcwidth !py3-prettytable"
+makedepends="py3-setuptools py3-setuptools_scm"
+checkdepends="py3-pytest py3-pytest-lazy-fixture"
+source="https://files.pythonhosted.org/packages/source/p/prettytable/prettytable-$pkgver.tar.gz"
+builddir="$srcdir/prettytable-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py install --root="test_install"
+	PYTHONPATH=$(find test_install -name site-packages) pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+e190717e2ea89e8faddc7015fd5118e0d93ac5f5318641ce5960b22b4ea3740ff12c4d15812b33655252f258c96f9e848f554d1e678d39761c28025ba7772609  prettytable-3.3.0.tar.gz
+"

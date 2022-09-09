@@ -1,0 +1,65 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=faad2
+pkgver=2.10.0
+_pkgver="${pkgver//./_}"
+pkgrel=0
+pkgdesc="ISO AAC audio decoder"
+url="https://github.com/knik0/faad2"
+arch="all"
+options="!check"  # No test suite.
+license="GPL-2.0-or-later"
+makedepends="autoconf automake libtool"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/knik0/faad2/archive/$_pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$_pkgver"
+
+# secfixes:
+#   2.9.0-r0:
+#     - CVE-2019-6956
+#     - CVE-2018-20196
+#     - CVE-2018-20199
+#     - CVE-2018-20360
+#     - CVE-2018-20362
+#     - CVE-2018-19504
+#     - CVE-2018-20195
+#     - CVE-2018-20198
+#     - CVE-2018-20358
+#     - CVE-2018-20194
+#     - CVE-2018-19503
+#     - CVE-2018-20197
+#     - CVE-2018-20357
+#     - CVE-2018-20359
+#     - CVE-2018-20361
+#     - CVE-2019-15296
+#     - CVE-2018-19502
+
+prepare() {
+	default_prepare
+
+	# manfile has bad name
+	mv frontend/faad.man frontend/faad.1 && \
+		sed -i -e 's:faad\.man:faad.1:' frontend/Makefile.am
+
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+static() {
+	depends=""
+	pkgdesc="$pkgdesc (static libraries)"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/*.a "$subpkgdir"/usr/lib
+}
+
+sha512sums="92c8b5e79f85b7a7caac9e7954959c26d74ef148a658dcb37e2c1b303fc2fcc5a0d12f21e7bd476870498109bdd03916a56c13f578186a69d6eceb103222e771  faad2-2.10.0.tar.gz"

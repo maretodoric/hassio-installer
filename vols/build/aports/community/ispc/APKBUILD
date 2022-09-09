@@ -1,0 +1,58 @@
+# Contributor: Leon Marz <main@lmarz.org>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=ispc
+pkgver=1.18.0
+pkgrel=0
+pkgdesc="Intel SPMD Program Compiler"
+url="https://ispc.github.io/"
+arch="x86_64 armv7 aarch64" # ispc only supports these arches
+license="BSD-3-Clause"
+_llvmver=13
+makedepends="cmake
+	bison
+	clang-dev
+	clang-static
+	flex
+	libxml2-dev
+	llvm$_llvmver-dev
+	llvm$_llvmver-static
+	llvm$_llvmver-test-utils
+	m4
+	ncurses-dev
+	zlib-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ispc/ispc/archive/v$pkgver.tar.gz
+	0001-cmake-fixes.patch
+	"
+options="!check" # ctest does not find a testsuite
+
+build() {
+	_x86_enabled=OFF
+	_arm_enabled=OFF
+	case "$CARCH" in
+		x86_64)        _x86_enabled=ON ;;
+		armv7|aarch64) _arm_enabled=ON ;;
+	esac
+
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_SHARED_LIBS=True \
+		-DCLANG_EXECUTABLE="$(command -v clang)" \
+		-DCLANGPP_EXECUTABLE="$(command -v clang++)" \
+		-DX86_ENABLED=$_x86_enabled \
+		-DARM_ENABLED=$_arm_enabled \
+		-DISPC_INCLUDE_EXAMPLES=OFF \
+		-DISPC_NO_DUMPS=ON \
+		-DISPC_INCLUDE_RT=OFF
+
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+350b43876d6885ab4c5c0d49c5b44323fd258d5cf7c68fcdea774baa92589542f2caeea93c347a37f0dab3dcf14e7b3e685973b41694f08ce7a2da64dc81bf06  ispc-1.18.0.tar.gz
+8e44d7fb0bc383f817855b45b64642d6db8f8448263e3f4b939fb9602a608d03b4f47f525df4147241b18e121bc253c7eb87cbb9e4a4f0b9653e05fc03efc0eb  0001-cmake-fixes.patch
+"

@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-handy
+pkgver=0_git20220414
+pkgrel=0
+_commit="517bb2d02909271836604c01c8f09a79ad605297"
+pkgdesc="Atari Lynx emulator Handy"
+url="https://github.com/libretro/libretro-handy"
+arch="all"
+license="Zlib"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/libretro-handy/archive/$_commit.tar.gz"
+builddir="$srcdir/libretro-handy-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 handy_libretro.so "$pkgdir"/usr/lib/libretro/handy_libretro.so
+}
+
+sha512sums="
+cf1b0dd5d7fd3235eeaa8d8b48a102da2a7e7c96b05eee3bc56415bbaa6db39fd86d6612f842a5464c4f182548b0aeeafea2a11c8fdd7cd0a0297b60b1c03744  libretro-handy-517bb2d02909271836604c01c8f09a79ad605297.tar.gz
+"

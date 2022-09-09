@@ -1,0 +1,30 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Eivind Uggedal <eivind@uggedal.com>
+# Maintainer:
+pkgname=py3-flask-wtf
+_pkgname=Flask-WTF
+pkgver=1.0.1
+pkgrel=0
+pkgdesc="Flask WTForms extension"
+url="https://pypi.python.org/pypi/Flask-WTF"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-flask py3-wtforms"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-flask-wtf" # Backwards compatibility
+provides="py-flask-wtf=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+e1380e788d0b09ac84e158a6574883a2c061452595973bea8137f9c2789b8ed14bfc6816a571b9116643c36ed31e97ae9ad7fb0fa6c1638e5be142a6fc8d85f4  Flask-WTF-1.0.1.tar.gz
+"

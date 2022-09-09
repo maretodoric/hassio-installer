@@ -1,0 +1,41 @@
+# Contributor: kpcyrd <git@rxv.cc>
+# Maintainer: kpcyrd <git@rxv.cc>
+pkgname=cargo-outdated
+pkgver=0.10.2
+pkgrel=2
+pkgdesc="A cargo subcommand for displaying when Rust dependencies are out of date"
+url="https://github.com/kbknapp/cargo-outdated"
+# s390x and riscv64 blocked by cargo
+arch="all !s390x !riscv64"
+license="MIT"
+makedepends="cargo libgit2-dev"
+subpackages="$pkgname-doc"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/kbknapp/cargo-outdated/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --release --frozen
+}
+
+package() {
+	cargo install --locked --root "$pkgdir/usr" --path .
+
+	install -Dm 644 -t "$pkgdir/usr/share/doc/cargo-outdated" README.md
+
+	rm "$pkgdir"/usr/.crates.toml
+	rm "$pkgdir"/usr/.crates2.json
+}
+
+sha512sums="
+635d54c148c9adef8c5e70eb900b6e533a5f38033bdbd8b562fd13daad64200879856f0dddc160884dab58b143272df828a69490b3fd9e633c955426eb4b0c4d  cargo-outdated-0.10.2.tar.gz
+"

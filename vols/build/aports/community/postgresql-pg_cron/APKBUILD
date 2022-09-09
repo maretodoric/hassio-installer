@@ -1,0 +1,38 @@
+# Contributor: G.J.R. Timmer <gjr.timmer@gmail.com>
+# Maintainer: G.J.R. Timmer <gjr.timmer@gmail.com>
+pkgname=postgresql-pg_cron
+_projname=pg_cron
+pkgver=1.4.1
+pkgrel=1
+pkgdesc="Cron-based scheduler for PostgreSQL 9.5+"
+url="https://github.com/citusdata/pg_cron"
+arch="all"
+license="PostgreSQL"
+makedepends="postgresql-dev"
+provides="pg_cron=$pkgver-r$pkgrel"
+install="$pkgname.post-install"
+source="https://github.com/citusdata/pg_cron/archive/v$pkgver/$_projname-$pkgver.tar.gz"
+builddir="$srcdir/$_projname-$pkgver"
+options="!check"  # no tests provided
+
+prepare() {
+	default_prepare
+	# Remove -Werror from Makefile
+	# Required to compile on alpine, to ignore compilation warnings
+	sed "s/-Werror //" -i Makefile
+}
+
+build() {
+	make
+}
+
+package() {
+	depends="postgresql$(pg_config --major-version)"
+
+	make DESTDIR="$pkgdir" install
+	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="
+1b1f9bc964b0d582e3f2bbde17e96756a7b3154a768c4e51f22ce1d438b0c47ddc0fbb29bf37746d6542019d7ebf57463590a54f0c53b33657747eb4e34c08f9  pg_cron-1.4.1.tar.gz
+"

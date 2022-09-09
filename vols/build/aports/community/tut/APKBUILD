@@ -1,0 +1,29 @@
+# Contributor: Alexey Yerin <yyp@disroot.org>
+# Maintainer: Alexey Yerin <yyp@disroot.org>
+pkgname=tut
+pkgver=1.0.11
+pkgrel=0
+pkgdesc="TUI for Mastodon"
+url="https://github.com/RasmusLindroth/tut"
+arch="all"
+license="MIT"
+makedepends="go"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/RasmusLindroth/tut/archive/refs/tags/$pkgver.tar.gz
+"
+options="net !check" # no tests
+
+export GOPATH="$srcdir/go"
+export GOFLAGS="$GOFLAGS -modcacherw -trimpath"
+
+build() {
+	go build $GOFLAGS -o tut
+}
+
+package() {
+	install -D -m755 tut "$pkgdir"/usr/bin/tut
+}
+
+sha512sums="
+2888ae533abc0667b86fbfb1ed09db108c62e81128a80401394c75809ca683fe0560055a900911e79a80d82408f90e1385496c8ee125624099470c640e63fc5b  tut-1.0.11.tar.gz
+"

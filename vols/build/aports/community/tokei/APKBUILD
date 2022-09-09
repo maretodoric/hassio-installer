@@ -1,0 +1,28 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=tokei
+pkgver=12.1.2
+pkgrel=1
+pkgdesc="A blazingly fast CLOC (Count Lines Of Code) program"
+url="https://github.com/XAMPPRocky/tokei"
+arch="all !s390x !riscv64" # limited by cargo
+license="MIT AND Apache-2.0"
+makedepends="rust cargo"
+source="$pkgname-$pkgver.tar.gz::https://github.com/XAMPPRocky/tokei/archive/v$pkgver.tar.gz
+	minimize-size.patch
+	"
+
+build() {
+	cargo build --release --locked --features all
+}
+
+check() {
+	cargo test --release --locked --features all
+}
+
+package() {
+	install -Dm755 target/release/tokei "$pkgdir"/usr/bin/tokei
+}
+
+sha512sums="b8474cb3cad8cab8cb9c24b44a9b7bdaa436fde4e56ca25a8c6d9cbe342b27acf8041cda15da5e74b4fed5291b3eacd5b298f569e0c8041e9146f89847fe47ce  tokei-12.1.2.tar.gz
+896902676bbd85acbcc2ee62ab1f1ff5c55be986b9e8ba2ebd976a5be0df274184aa8e3354c89b1bb628cd70f14f9d5d5977701f09e3a406277d7c11d5b0426e  minimize-size.patch"

@@ -1,0 +1,21 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=winetricks
+pkgver=20220411
+pkgrel=0
+pkgdesc="Winetricks is an easy way to work around problems in Wine"
+url="https://github.com/Winetricks/winetricks"
+arch="x86 x86_64" # Limited by the wine pkg
+license="LGPL-2.1-or-later"
+options="!check" # Missing depends bashate & shellcheck
+depends="cabextract unzip wine xmessage"
+subpackages="$pkgname-doc $pkgname-bash-completion"
+source="https://github.com/Winetricks/winetricks/archive/$pkgver/winetricks-$pkgver.tar.gz"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+c4e77c5e62d2df56db6aa75979cc775f26472917108b0498c975458fd6f7ecbef52c329b7b6f33c12510176e105190bc538447b39348a42b7f1a8e07e5d92d09  winetricks-20220411.tar.gz
+"

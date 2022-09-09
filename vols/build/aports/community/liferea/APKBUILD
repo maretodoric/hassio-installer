@@ -1,0 +1,55 @@
+# Contributor: Erwan Rouchet <lucidiot@brainshit.fr>
+# Maintainer: Erwan Rouchet <lucidiot@brainshit.fr>
+pkgname=liferea
+pkgver=1.13.8
+pkgrel=0
+pkgdesc="Desktop news aggregator for online news feeds and weblogs"
+arch="all !riscv64" # webkit2gtk, libpeas
+url="https://lzone.de/liferea"
+license="GPL-2.0-or-later"
+depends="py3-gobject3 libpeas-python3"
+makedepends="
+	glib-dev
+	intltool
+	gobject-introspection-dev
+	libxml2-dev
+	libxslt-dev
+	sqlite-dev
+	gtk+3.0-dev
+	pango-dev
+	webkit2gtk-dev
+	json-glib-dev
+	gsettings-desktop-schemas-dev
+	libpeas-dev
+	"
+source="https://github.com/lwindolf/liferea/releases/download/v$pkgver/liferea-$pkgver.tar.bz2"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--disable-schemas-compile
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+doc() {
+	default_doc
+	mkdir -p "$subpkgdir/usr/share/liferea"
+	mv "$pkgdir/usr/share/liferea/doc" "$subpkgdir/usr/share/liferea/"
+}
+
+sha512sums="
+1c11066569b2cae429b483cbd0b9056cca08157d4ef3b205b9586cf2b89effccc2d3e21c4f498854b5f92e2151e234fcb57d1460abb67e05eb5f8d8a63f98731  liferea-1.13.8.tar.bz2
+"

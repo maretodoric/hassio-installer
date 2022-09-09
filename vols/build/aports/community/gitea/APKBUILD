@@ -1,0 +1,132 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: 6543 <6543@obermui.de>
+# Contributor: techknowlogick <techknowlogick@gitea.io>
+# Maintainer: 6543 <6543@obermui.de>
+pkgname=gitea
+pkgver=1.16.8
+pkgrel=1
+pkgdesc="A self-hosted Git service written in Go"
+url="https://gitea.io"
+arch="all"
+license="MIT"
+options="net"
+depends="git git-lfs gnupg"
+makedepends="go libcap"
+checkdepends="bash openssh openssh-keygen sqlite tzdata"
+install="$pkgname.pre-install"
+pkgusers="gitea"
+pkggroups="www-data"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://dl.gitea.io/gitea/$pkgver/gitea-src-$pkgver.tar.gz
+	$pkgname.initd
+	$pkgname.ini
+	fix-tests-ssh-hostkeys.patch
+	"
+
+# secfixes:
+#   1.16.7-r0:
+#     - CVE-2022-30781
+#   1.16.3-r0:
+#     - CVE-2022-27313
+#   1.14.6-r0:
+#     - CVE-2020-26160
+#   1.13.7-r0:
+#     - CVE-2021-29272
+#   1.13.6-r0:
+#     - CVE-2021-29134
+#   1.13.4-r0:
+#     - CVE-2021-28378
+#   1.13.2-r0:
+#     - CVE-2021-3382
+#   1.11.2-r0:
+#     - CVE-2021-45327
+#   1.5.2-r0:
+#     - CVE-2021-45326
+#   1.5.1-r0:
+#     - CVE-2021-45331
+#     - CVE-2021-45329
+
+# Skip tests for archs that fail unrelated in CI
+case "$CARCH" in
+	s390x|x86|armhf|armv7) options="$options !check" ;;
+esac
+
+export GOFLAGS="$GOFLAGS -modcacherw -trimpath"
+
+build() {
+	export GOPATH="$srcdir"
+	export TAGS="tidb sqlite sqlite_unlock_notify"
+	export GITEA_VERSION="$pkgver"
+	unset LDFLAGS
+	## make FHS compliant
+	LDFLAGS="$LDFLAGS -X code.gitea.io/gitea/modules/setting.CustomConf=/etc/gitea/app.ini"
+	LDFLAGS="$LDFLAGS -X code.gitea.io/gitea/modules/setting.AppWorkPath=/var/lib/gitea/"
+	LDFLAGS="$LDFLAGS -X code.gitea.io/gitea/modules/setting.StaticRootPath=/usr/share/webapps/gitea/"
+	export LDFLAGS
+
+	## make should run without any parallelism
+	make EXTRA_GOFLAGS="$GOFLAGS" backend -j1
+}
+
+check() {
+	local _home="$srcdir"/home
+	mkdir -p $_home
+	install -d -m700 $_home/.ssh
+	touch $_home/.gitconfig
+
+	## "make test" - modified (exclude broken tests)
+	## 'code.gitea.io/gitea/modules/migrations': github hase rate limits! 403 API
+	PACKAGES=$(go list ./... | grep -v /vendor/ | \
+		grep -v 'code.gitea.io/gitea/modules/migrations' | \
+		grep -v 'code.gitea.io/gitea/modules/charset' | \
+		grep -v 'code.gitea.io/gitea/models/migrations' | \
+		grep -v 'code.gitea.io/gitea/services/migrations' | \
+		grep -v 'code.gitea.io/gitea/integrations')
+	env HOME=$_home GO111MODULE=on go test -mod=vendor -tags='sqlite sqlite_unlock_notify' $PACKAGES
+
+	env HOME=$_home GITEA_WORK_DIR="$(pwd)" timeout -s ABRT 20m make test-sqlite
+}
+
+unpack() {
+	verify
+	initdcheck
+
+	local archdest="$srcdir/$pkgname-$pkgver"
+
+	mkdir -p "$archdest"
+
+	msg "Unpacking $pkgname-$pkgver.tar.gz..."
+	tar -C "$archdest" -zxf "$pkgname-$pkgver.tar.gz"
+}
+
+package() {
+	for dir in $pkgname $pkgname/git $pkgname/data $pkgname/db $pkgname/custom; do
+		install -d -m 750 -o gitea -g www-data \
+			"$pkgdir"/var/lib/$dir
+	done
+
+	install -d -m 755 -o gitea -g www-data "$pkgdir"/var/log/$pkgname
+
+	install -D -m 755 $pkgname "$pkgdir"/usr/bin/$pkgname
+
+	# Allow non root to bind to port 80.
+	setcap cap_net_bind_service=+ep \
+		"$pkgdir"/usr/bin/$pkgname
+
+	install -D -m 644 -o gitea -g www-data "$srcdir"/gitea.ini \
+		"$pkgdir"/etc/$pkgname/app.ini
+	chown gitea:www-data "$pkgdir"/etc/$pkgname
+
+	install -d -m 755 "$pkgdir"/usr/share/webapps/$pkgname
+	mv options public templates "$pkgdir"/usr/share/webapps/$pkgname/
+
+	install -D -m 755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+}
+
+sha512sums="
+f502a07c886cc2f15615693a90eda128478d0de833cbe18993ed1f5a1a81f45591b2c00791f8024eda97d948991838b2dc95fab189695179631df47e4d587419  gitea-1.16.8.tar.gz
+f859f46204fef596344fda53af7e945baca8639fd2839e90f2b4a8e361a2c77490be18473469cb40cb362671f5b2604e6ea18955dc0e56f44346ffaf2a838a91  gitea.initd
+431184faffa8996873d92d7b0d16bc4b1a0178d264cd2928d1f49b13ad3e6470d9ede7a18c12112deeeb38f0647ccc0b012e98bcbd96e7b8496a3dc18f5b1fb7  gitea.ini
+b16eb5d89a301c796046ebcb726015872f122756a324802f042d4cb8ec17d41ce0fa684e17c26ade265273984e2b621d579e929cb63ed7dbc12774257bd13e9f  fix-tests-ssh-hostkeys.patch
+"

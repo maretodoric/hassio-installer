@@ -1,0 +1,112 @@
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=pjproject
+pkgver=2.12.1
+pkgrel=0
+pkgdesc="CLI Softphone"
+url="https://www.pjsip.org/pjsua.htm"
+arch="all"
+license="GPL-2.0-or-later"
+depends_dev="openssl1.1-compat-dev alsa-lib-dev gsm-dev speex-dev speexdsp-dev
+	portaudio-dev libsrtp-dev libsamplerate-dev"
+makedepends="$depends_dev linux-headers"
+subpackages="$pkgname-dbg $pkgname-dev pjsua"
+source="https://github.com/pjsip/pjproject/archive/$pkgver/pjproject-$pkgver.tar.gz
+	pjproject_no_third_party.patch
+	execinfo.patch
+	"
+
+# secfixes:
+#   2.12.1-r0:
+#     - CVE-2022-24754
+#     - CVE-2022-24763
+#     - CVE-2022-24764
+#     - CVE-2022-24786
+#     - CVE-2022-24792
+#     - CVE-2022-24793
+#   2.12-r0:
+#     - CVE-2021-37706
+#     - CVE-2021-41141
+#     - CVE-2021-43299
+#     - CVE-2021-43300
+#     - CVE-2021-43301
+#     - CVE-2021-43302
+#     - CVE-2021-43303
+#     - CVE-2021-43804
+#     - CVE-2021-43845
+#     - CVE-2022-21722
+#     - CVE-2022-21723
+#     - CVE-2022-23608
+#   2.11.1-r0:
+#     - CVE-2021-32686
+#   2.11-r0:
+#     - CVE-2020-15260
+#     - CVE-2021-21375
+
+prepare() {
+	default_prepare
+	update_config_sub
+
+	# Remove target name from lib names
+	sed -i -e 's/-$(TARGET_NAME)//g' \
+		-e 's/= $(TARGET_NAME).a/= .a/g' \
+		-e 's/-$(LIB_SUFFIX)/$(LIB_SUFFIX)/g' \
+		$(find . -name '*.mak*' -o -name Makefile)
+
+	# Fix hardcoded prefix and flags
+	sed -i \
+		-e 's/poll@/poll@\nexport PREFIX := @prefix@\n/g' \
+		-e 's!prefix = /usr/local!prefix = $(PREFIX)!' \
+		-e '/PJLIB_CFLAGS/ s/(_CFLAGS)/(_CFLAGS) -fPIC/g' \
+		-e '/PJLIB_UTIL_CFLAGS/ s/(_CFLAGS)/(_CFLAGS) -fPIC/g' \
+		Makefile \
+		build.mak.in
+
+	# Use libsamplerate instead of bundled resample
+	sed -i -e "s/resample//" third_party/build/Makefile
+	sed -i -e "s#../../third_party/libsamplerate/src/samplerate.h#samplerate.h#" pjmedia/src/pjmedia/resample_libsamplerate.c
+}
+
+build() {
+	cd "$builddir"
+	export CFLAGS="-DNDEBUG $CFLAGS"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--enable-shared \
+		--enable-libsamplerate \
+		--with-external-speex \
+		--with-external-gsm \
+		--with-external-srtp \
+		--with-external-pa \
+		--disable-libwebrtc \
+		--disable-static
+
+	# TODO: make it build with only shared libs from system
+	# rm -r third_party
+	make dep
+	make all
+}
+
+package() {
+	cd "$builddir"
+	install -d "$pkgdir"/usr/lib
+	make -j1 DESTDIR="$pkgdir" prefix=/usr install
+	rm -f "$pkgdir"/usr/lib/*.a
+}
+
+pjsua() {
+	pkgdesc="pjsua is an open source command line SIP user agent (softphone)"
+	cd "$builddir"/pjsip-apps/bin/
+	install -D -m755 pjsua "$subpkgdir"/usr/bin/pjsua
+}
+
+sha512sums="
+9087456024b8886e56660cebc45c7093b3b91cd6b08a3926fa2c0de452989ac84ceb4e27413c0311bde95f271341ee44d9681f81f83602a4e16151f1831d773b  pjproject-2.12.1.tar.gz
+fe53b4e8a654dc4025a4bf6350f405953609abc9e7ed967882cb9eb9e6a659e348a0c3c7496c8093562a0dcc4a40459896d8ee1da7275dd089244338111bccbb  pjproject_no_third_party.patch
+59337a5ddf5f989b1cb5644cc644f4b7efc17f8f92ef595667813662eaeee4ad25494a3386385b1114c604fd028f9b22f150cf32879c03e9255d737dee20f436  execinfo.patch
+"

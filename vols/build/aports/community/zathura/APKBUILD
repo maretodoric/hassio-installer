@@ -1,0 +1,73 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Andrew Hills <ahills@ednos.net>
+# Contributor: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+# Maintainer: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+pkgname=zathura
+pkgver=0.4.9
+pkgrel=0
+pkgdesc="zathura - highly customizable and functional document viewer"
+url="https://git.pwmt.org/pwmt/zathura"
+arch="all"
+license="Zlib"
+makedepends="girara-dev file-dev sqlite-dev intltool check-dev libseccomp-dev
+	py3-docutils ncurses meson ninja py3-sphinx desktop-file-utils appstream-glib"
+checkdepends="mesa-dri-swrast dbus xvfb"
+subpackages="
+	$pkgname-doc
+	$pkgname-dev
+	$pkgname-lang
+	$pkgname-bash-completion:bashcomp:noarch
+	$pkgname-zsh-completion:zshcomp:noarch
+	$pkgname-fish-completion:fishcomp:noarch
+	"
+source="https://git.pwmt.org/pwmt/zathura/-/archive/$pkgver/zathura-$pkgver.tar.gz
+	fix-fish-completion.patch
+	"
+
+case "$CARCH" in
+ppc64le|s390x|riscv64) ;;
+*) makedepends="$makedepends texlive-dev" ;;
+esac
+
+build() {
+	abuild-meson build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+check() {
+	meson test --no-rebuild -v -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+bashcomp() {
+	depends=""
+	pkgdesc="Bash completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	amove usr/share/bash-completion/completions
+}
+
+zshcomp() {
+	depends=""
+	pkgdesc="Zsh completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel zsh"
+
+	amove usr/share/zsh/site-functions
+}
+
+fishcomp() {
+	depends=""
+	pkgdesc="Fish completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel fish"
+
+	amove usr/share/fish/completions
+}
+
+sha512sums="
+fbab65cba7ac37e4021233a4ae0356a85f4a88d2c1a2d8337cd627eae389856b6b4e692904233332d2fa14ad0300e8c52732059a75314a0ef147a02ca9f8db10  zathura-0.4.9.tar.gz
+c127c895b246e613690c13333ef18ceaf5b36f8383678c2625846743b549962c82b926d054da68d6e5c2d1ed58a9670a525274305f57ae309237f65a2af3aca4  fix-fish-completion.patch
+"

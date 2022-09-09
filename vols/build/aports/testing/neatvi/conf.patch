@@ -1,0 +1,14 @@
+diff --git a/conf.h b/conf.h
+index 4435a91..0e055cf 100644
+--- a/conf.h
++++ b/conf.h
+@@ -17,7 +17,8 @@ static struct filetype {
+ 	{"py", "\\.py$"},				/* python */
+ 	{"bib", "bib$"},				/* refer */
+ 	{"nm", "\\.nm$"},				/* neatmail */
+-	{"diff", "\\.(patch|diff)$"}			/* diff */
++	{"diff", "\\.(patch|diff)$"},			/* diff */
++	{"sh", ".$"}					/* everything else */
+ };
+ 
+ /* syntax highlighting patterns */

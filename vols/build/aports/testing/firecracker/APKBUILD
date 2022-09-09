@@ -1,0 +1,65 @@
+# Contributor: Dennis Przytarski <dennis@przytarski.com>
+# Maintainer: Dennis Przytarski <dennis@przytarski.com>
+pkgname=firecracker
+pkgver=1.0.0
+pkgrel=0
+pkgdesc="Secure and fast microVMs for serverless computing"
+url="https://github.com/firecracker-microvm/firecracker"
+arch="aarch64 x86_64"
+license="Apache-2.0"
+makedepends="rust cargo"
+subpackages="$pkgname-seccompiler"
+source="$pkgname-$pkgver.tar.gz::https://github.com/firecracker-microvm/firecracker/archive/v$pkgver.tar.gz"
+
+_target="$CTARGET"
+
+export CARGO_HOME="$srcdir"/cargo
+
+build() {
+	# build firecracker
+	cargo build -p firecracker \
+		--target $_target \
+		--release \
+		--verbose
+
+	# build jailer
+	cargo build -p jailer \
+		--target $_target \
+		--release \
+		--verbose
+
+	# build seccompiler
+	cargo build -p seccompiler \
+		--bin seccompiler-bin \
+		--target $_target \
+		--release \
+		--verbose
+}
+
+check() {
+	# test firecracker
+	cargo test -p firecracker \
+		--target $_target \
+		--verbose
+
+	# notest jailer
+
+	# notest seccompiler
+}
+
+package() {
+	install -Dm755 build/cargo_target/"$_target"/release/firecracker \
+		"$pkgdir"/usr/bin/firecracker
+	install -Dm755 build/cargo_target/"$_target"/release/jailer \
+		"$pkgdir"/usr/bin/jailer
+}
+
+seccompiler() {
+	pkgdesc="Seccompiler"
+	install -Dm755 "$builddir"/build/cargo_target/"$_target"/release/seccompiler-bin \
+		"$subpkgdir"/usr/bin/seccompiler-bin
+}
+
+sha512sums="
+4cfa940ed5b3346ab32474e935dcef4dd711e3433c7c82bf6203af15766402199c67861acfde2f0a0be4c2872f39da0cdd9e27735ad8b20f7f88b71694bcc167  firecracker-1.0.0.tar.gz
+"

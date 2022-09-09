@@ -1,0 +1,79 @@
+# Contributor: Christian Kampka <christian@kampka.net>
+# Contributor: omni <omni+alpine@hack.org>
+# Maintainer: Gennady Feldman <gena01@gmail.com>
+pkgname=vault
+pkgver=1.11.0
+pkgrel=0
+pkgdesc="tool for encryption as a service, secrets and privileged access management"
+url="https://www.vaultproject.io/"
+arch="all"
+license="MPL-2.0"
+makedepends="libcap bash make go python3 go-bindata-assetfs"
+install="$pkgname.pre-install"
+pkgusers="vault"
+pkggroups="vault"
+subpackages="$pkgname-openrc"
+options="!check"
+source="$pkgname-$pkgver.tar.gz::https://github.com/hashicorp/vault/archive/v$pkgver.tar.gz
+	vault.confd
+	vault.hcl
+	vault.initd
+	"
+
+# secfixes:
+#   1.9.4-r0:
+#     - CVE-2022-25243
+#     - CVE-2022-25244
+#   1.7.2-r0:
+#     - CVE-2021-32923
+#   1.7.1-r0:
+#     - CVE-2021-27400
+#     - CVE-2021-27668
+#   1.6.3-r0:
+#     - CVE-2021-3282
+#   1.5.7-r0:
+#     - CVE-2020-25594
+#     - CVE-2021-3024
+#   1.5.6-r0:
+#     - CVE-2020-35177
+#   1.5.4-r0:
+#     - CVE-2020-16250
+#     - CVE-2020-16251
+#     - CVE-2020-17455
+#     - CVE-2020-25816
+#   1.4.3-r0:
+#     - CVE-2020-13223
+
+build() {
+	export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+	make prep
+	go build -v -o bin/$pkgname \
+		-ldflags "-X github.com/hashicorp/vault/version.GitDescribe='$pkgver'"
+}
+
+package() {
+	install -m755 -D "$srcdir/$pkgname.initd" \
+		"$pkgdir/etc/init.d/$pkgname"
+
+	install -m644 -D "$srcdir/$pkgname.confd" \
+		"$pkgdir/etc/conf.d/$pkgname"
+
+	install -m755 -o root -g vault -D bin/$pkgname \
+		"$pkgdir/usr/sbin/$pkgname"
+
+	# Allow vault to use mlock as "vault" user.
+	setcap cap_ipc_lock=+ep \
+		"$pkgdir/usr/sbin/$pkgname"
+
+	install -m640 -o root -g vault -D "$srcdir/$pkgname.hcl" \
+		"$pkgdir/etc/$pkgname.hcl"
+
+	install -m750 -o vault -g vault -d "$pkgdir/var/lib/$pkgname"
+}
+
+sha512sums="
+5d716fdef05491b922d61ac0066802225be014a588d3c51392c7f4b24c9cc3bfc6ca7f52db8c19201eb1173d7b8d0967e27f2f981f160c0da79be1a3f079e415  vault-1.11.0.tar.gz
+6f3f30e5c9d9dd5117f18fce0e669f0cd752a6be4910405d6b394f15273372731ee887a5ba4c700293e5b8bc2bf40fd69d4337156f77b03549d2dc2c0a666bec  vault.confd
+eed200a6db0686a9f9948a2fce151340125cddc209522b4b6de22c447c78296eaf948c80ee8fd241e0093df6409477f2de1aea23edb97f27a4427396fe03ad2f  vault.hcl
+9a1846a10eff015cf7d4c8c2c20540c125213302925e54bdfae1c1ec9c43bf0e97b3433c041615c9fdc7d5e9468a0f606321991c597af3be92025bd5042c08df  vault.initd
+"

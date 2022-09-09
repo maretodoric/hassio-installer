@@ -1,0 +1,42 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Kevin Daudt <kdaudt@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=direnv
+pkgver=2.31.0
+pkgrel=2
+pkgdesc="Environment variable switcher for the shell"
+url="https://direnv.net"
+license="MIT"
+arch="all"
+depends="bash"
+makedepends="go"
+subpackages="$pkgname-doc $pkgname-fish::noarch"
+source="$pkgname-$pkgver.tar.gz::https://github.com/direnv/direnv/archive/v$pkgver.tar.gz"
+
+export GOMODCACHE="$srcdir/go"
+export GOFLAGS="$GOFLAGS -modcacherw"
+
+build() {
+	make GO_BUILD_FLAGS="-ldflags='-s -w'"
+}
+
+check() {
+	# Also has tests for tcsh and elvish, this manual call is done instead of
+	# tests to avoid unwanted tests like 'shellcheck' and 'go-fmt'
+	make test-go test-bash
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+fish() {
+	pkgdesc="configuration hooks for fish"
+	install_if="$pkgname=$pkgver-r$pkgrel fish"
+
+	amove usr/share/fish/vendor_conf.d
+}
+
+sha512sums="
+a67365c20c706c3ff5410fd8024df46d550468770656c858472ca48a1dfe9bbb95b8171a66d2ee5135ab7d0735e6ab15558f931e3248f2cafcee4a09017199cd  direnv-2.31.0.tar.gz
+"

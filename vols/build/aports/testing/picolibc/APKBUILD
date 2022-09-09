@@ -1,0 +1,74 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+
+_targets="
+	arm-none-eabi
+	riscv-none-elf
+	"
+pkgname=picolibc
+pkgver=1.7.7
+pkgrel=1
+pkgdesc="A C standard library based on newlib with focus on compact size"
+url="https://github.com/picolibc/picolibc"
+makedepends="meson"
+# s390x blocked by gcc-cross-embedded
+arch="all !s390x"
+license="GPL-2.0-only AND LGPL-2.1-only AND 0BSD AND BSD-3-Clause AND GPL-3.0-only AND LGPL-3.0-only"
+source="$pkgname-$pkgver.tar.xz::https://github.com/picolibc/picolibc/releases/download/$pkgver/picolibc-$pkgver.tar.xz"
+options="!check"
+
+for target in $_targets; do
+	targetnorm="${target//-/_}"
+	subpackages="picolibc-$target:$targetnorm $subpackages"
+	makedepends="binutils-$target gcc-$target newlib-$target $makedepends"
+done
+
+prepare() {
+	default_prepare
+
+	# Handle mismatch of target triples
+	mv "$builddir/scripts/cross-riscv64-unknown-elf.txt" \
+		"$builddir/scripts/cross-riscv-none-elf.txt"
+	sed -e 's/riscv64-unknown-elf/riscv-none-elf/g' \
+		-i "$builddir/scripts/cross-riscv-none-elf.txt"
+}
+
+build() {
+	for target in $_targets; do
+		# cannot use abuild-meson here, as target != host
+		meson \
+			--prefix=/usr/ \
+			--buildtype=plain \
+			--cross-file=scripts/cross-$target.txt \
+			-Dincludedir=picolibc/$target/include \
+			-Dlibdir=picolibc/$target/lib \
+			. build-$target
+		meson compile -C build-$target
+	done
+}
+
+package() {
+	for target in $_targets; do
+		depends="$depends picolibc-$target"
+	done
+	mkdir -p "$pkgdir"
+}
+
+_install_subpkg() {
+	target="${subpkgname#picolibc-}"
+	pkgdesc="A C standard library based on newlib with focus on compact size for $target"
+	depends="binutils-$target gcc-$target $depends"
+
+	DESTDIR="$subpkgdir" meson install -C "$builddir/build-$target"
+}
+
+arm_none_eabi() {
+	_install_subpkg
+}
+
+riscv_none_elf() {
+	_install_subpkg
+}
+
+sha512sums="
+afb8bd40601a0ecc46fffa15e23078d3a87b241212a48298f4d604ca482cba59dd3f0f7a7d4c7d69520d2b4261bb364da8fc4c46946c601c2423ab00920c08d9  picolibc-1.7.7.tar.xz
+"

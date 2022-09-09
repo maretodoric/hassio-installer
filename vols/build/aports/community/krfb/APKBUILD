@@ -1,0 +1,58 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=krfb
+pkgver=22.04.2
+pkgrel=0
+# armhf, s390x and riscv64 blocked by kwallet-dev and kxmlgui-dev
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/internet/org.kde.krfb"
+pkgdesc="Desktop sharing"
+license="GPL-3.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kcompletion-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdnssd-dev
+	kdoctools-dev
+	ki18n-dev
+	knotifications-dev
+	kwallet-dev
+	kwayland-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libvncserver-dev
+	pipewire-dev
+	plasma-wayland-protocols
+	qt5-qtbase-dev
+	qt5-qtx11extras-dev
+	samurai
+	xcb-util-dev
+	xcb-util-image-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/krfb-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+e84448001337988f9c74dbb3d2c714828265d845d3b49784a66f8bd5a0656faa8c5a44189d11ae6b47295291cf068005da34aa140839f430dfa352d580f87016  krfb-22.04.2.tar.xz
+"

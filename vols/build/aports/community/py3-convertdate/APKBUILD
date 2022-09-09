@@ -1,0 +1,32 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-convertdate
+pkgver=2.3.2
+pkgrel=1
+pkgdesc="Converts between Gregorian dates and other calendar systems"
+url="https://github.com/fitnr/convertdate"
+arch="noarch"
+license="MIT"
+depends="
+	py3-pymeeus
+	py3-tz
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://github.com/fitnr/convertdate/archive/v$pkgver/convertdate-v$pkgver.tar.gz"
+builddir="$srcdir/convertdate-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="a1c70564fafc697a5fb941d32603e8bfae565089a1a37bc3c2f8793bf926e6e97c752ffddb9192ae54e37ccafb0a02969b9f9086875595f1eb97cf264f96fde9  convertdate-v2.3.2.tar.gz"

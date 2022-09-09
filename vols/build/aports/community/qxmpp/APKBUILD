@@ -1,0 +1,35 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=qxmpp
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="Cross-platform C++ XMPP client and server library"
+arch="all"
+url="https://github.com/qxmpp-project/qxmpp"
+license="LGPL-2.1"
+makedepends="
+	cmake
+	qt5-qtbase-dev
+	"
+source="https://github.com/qxmpp-project/qxmpp/archive/v$pkgver/qxmpp-v$pkgver.tar.gz"
+subpackages="$pkgname-dev"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# tst_qxmppiceconnection and tst_qxmpptransfermanager require a network connection
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "(tst_qxmppiceconnection|tst_qxmpptransfermanager)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="5a0cb72899314e47846b8b47340738df20a8d198c2db8cfe38c2cc31615166e9d86c6aaf6931be16078b2f9decca2d767497ad32e1d6dd0f6af888406c33fee9  qxmpp-v1.4.0.tar.gz"

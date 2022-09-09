@@ -1,0 +1,178 @@
+# Contributor: Trevor R.H. Clarke <trevor@notcows.com>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=gdal
+pkgver=3.5.0
+pkgrel=1
+pkgdesc="A translator library for raster and vector geospatial data formats"
+url="https://gdal.org/"
+arch="all"
+license="MIT"
+depends_dev="gdal"
+makedepends="
+	armadillo-dev
+	cfitsio-dev
+	charls-dev
+	chrpath
+	curl-dev
+	expat-dev
+	freexl-dev
+	geos-dev
+	giflib-dev
+	hdf5-dev
+	json-c-dev
+	kealib-dev
+	libdap-dev
+	libdeflate-dev
+	libheif-dev
+	libkml-dev
+	libpng-dev
+	libwebp-dev
+	libxml2-dev
+	linux-headers
+	mariadb-dev
+	ogdi-dev
+	openexr-dev
+	openjpeg-dev
+	poppler-dev
+	libpq-dev
+	proj-dev
+	py3-numpy
+	py3-numpy-dev
+	py3-setuptools
+	python3-dev
+	qhull-dev
+	libspatialite-dev
+	sqlite-dev
+	swig
+	tiff-dev
+	unixodbc-dev
+	xerces-c-dev
+	zlib-dev
+	zstd-dev
+	"
+checkdepends="
+	pytest
+	"
+subpackages="
+	$pkgname-static
+	$pkgname-dev
+	py3-$pkgname:_py3
+	$pkgname-tools
+	"
+
+source="
+	https://github.com/OSGeo/gdal/releases/download/v$pkgver/gdal-$pkgver.tar.gz
+	10-atoll.patch
+	20-userfaultfd-detection.patch
+	"
+
+# Optional dependency netcdf-dev is not available on s390x
+case "$CARCH" in
+	s390x) ;;
+	*) makedepends="$makedepends netcdf-dev" ;;
+esac
+
+# Optional dependency librasterlite2-dev is only available on x86 and x86_64
+_with_librasterlite2="no"
+case "$CARCH" in
+	x86|x86_64)
+		makedepends="$makedepends librasterlite2-dev"
+		_with_librasterlite2="yes"
+		;;
+esac
+
+# Optional dependency java-jdk is not available on riscv64
+case "$CARCH" in
+	riscv64)
+		_with_java="no"
+		;;
+	*)
+		makedepends="$makedepends apache-ant java-jdk"
+		subpackages="$subpackages java-$pkgname:_java"
+		_with_java="--with-java=/usr/lib/jvm/default-jvm"
+		;;
+esac
+
+build() {
+	CPPFLAGS="$CPPFLAGS -I/usr/include/mysql/server -I/usr/include/tirpc" ./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--with-cfitsio=/usr \
+		--with-armadillo=yes \
+		--with-spatialite=yes \
+		--with-rasterlite2=$_with_librasterlite2 \
+		--with-cpp14 \
+		--with-dods-root=/usr \
+		--with-poppler \
+		--with-python \
+		$_with_java \
+		--with-mysql
+	make
+
+	cd "$builddir/swig/python"
+	python3 setup.py build
+
+	if [ "$_with_java" != "no" ]; then
+		cd "$builddir/swig/java"
+		make JAVA_HOME=/usr/lib/jvm/default-jvm
+	fi
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	chmod -x "$pkgdir"/usr/include/*.h
+}
+
+_py3() {
+	pkgdesc="$pkgdesc (Python3 bindings)"
+	depends="py3-numpy"
+
+	amove usr/lib/python3*
+}
+
+_java() {
+	pkgdesc="$pkgdesc (Java bindings)"
+	cd "$builddir"/swig/java
+	make
+
+	mkdir -p "$subpkgdir/usr/lib" "$subpkgdir/usr/share/java/"
+	chrpath -d .libs/*.so*
+	mv .libs/*.so* "$subpkgdir/usr/lib"
+	cp gdal.jar "$subpkgdir/usr/share/java/gdal-$pkgver.jar"
+	cd "$subpkgdir/usr/share/java/"
+	ln -s gdal-$pkgver.jar gdal.jar
+}
+
+tools() {
+	pkgdesc="$pkgdesc (command line utilities)"
+	depends="py3-$pkgname"
+
+	cd "$builddir"/swig/python/gdal-utils
+	chmod a+x scripts/*
+
+	install -d "$subpkgdir/usr/bin"
+	install -m755 scripts/*.py "$subpkgdir/usr/bin/"
+
+	for b in "$pkgdir"/usr/bin/*; do
+		amove usr/bin/"$(basename $b)"
+	done
+}
+
+check() {
+	# TODO: https://trac.osgeo.org/gdal/wiki/TestingNotes
+
+	apps/gdal-config --version | grep "$pkgver"
+
+	# confirms MBTiles support
+	apps/gdal_translate --formats | grep "MBTiles -raster,vector- (rw+v): MBTiles"
+
+	# confirms PostgreSQL/PostGIS support
+	apps/ogr2ogr --formats | grep "PostgreSQL -vector- (rw+): PostgreSQL/PostGIS"
+
+}
+sha512sums="
+a5a7c8b250c1dc73d9d7a82c32a7cf46284ac54428991fb106b7efbfd1f7712893014c7626a1d059db8e7921a6209172cd99d1749b4024fd8302b72517fc3042  gdal-3.5.0.tar.gz
+63ab07b2de79a5ff95c7a33bd7b431fd4f3d0407cfc9d47df55eaff858064a9869b241bae7d93b4b86fc2995d65cb2bed3e3767659ed9a6d92e00771910cf72c  10-atoll.patch
+15d8c25f1fdbb050ffa4082e16c7f506a50dd2827d947b663e532876c9d303982b6effb10c2eff50323aab867f5e48215736679d6a5b92f0e2266a09ad5aac53  20-userfaultfd-detection.patch
+"

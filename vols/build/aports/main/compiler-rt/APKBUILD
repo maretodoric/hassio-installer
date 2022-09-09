@@ -1,0 +1,89 @@
+# Contributor: Eric Molitor <eric@molitor.org>
+# Contributor: Travis Tilley <ttilley@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=compiler-rt
+# Note: Update together with llvm.
+pkgver=14.0.5
+pkgrel=0
+_llvmver=${pkgver%%.*}
+pkgdesc="LLVM compiler-rt runtime libraries"
+arch="all"
+url="https://llvm.org/"
+license="Apache-2.0"
+makedepends="
+	clang
+	cmake
+	libexecinfo-dev
+	linux-headers
+	llvm-dev~$_llvmver
+	llvm-static~$_llvmver
+	llvm-test-utils~$_llvmver
+	python3
+	samurai
+	"
+checkdepends="gtest-dev"
+provides="$pkgname-static=$pkgver-r$pkgrel"  # for backward compatibility (Alpine <3.16)
+source="https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/compiler-rt-$pkgver.src.tar.xz
+	https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/llvm-$pkgver.src.tar.xz
+	xray-ppc64-musl.patch
+
+	link-execinfo.patch
+	sanitizer-supported-arch.patch
+	sanitizer-ppc64-musl.patch
+	"
+builddir="$srcdir/$pkgname-$pkgver.src"
+options="!check"  # tests fail to build
+
+case "$CARCH" in
+	# Sanitizers are broken on other arches.
+	# Keep in sync with sanitizer-supported-arch.patch.
+	aarch64 | ppc64le | x86_64) _build_sanitizers='ON';;
+	*) _build_sanitizers='OFF';;
+esac
+
+prepare() {
+	default_prepare
+
+	sed -i 's|/usr/bin/env python$|/usr/bin/python3|' \
+		lib/hwasan/scripts/hwasan_symbolize
+
+	cd "$srcdir"
+
+	# monorepo layout
+	ln -sfv llvm-$pkgver.src llvm
+}
+
+build() {
+	# compiler-rt uses llvm intrinsic types for testing
+	# and therefore requires clang
+	# It also needs LLVM source for testing purposes
+	cmake -G Ninja -B build -Wno-dev \
+		-DCMAKE_C_COMPILER=clang \
+		-DCMAKE_CXX_COMPILER=clang++ \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCOMPILER_RT_INCLUDE_TESTS="$(want_check && echo ON || echo OFF)" \
+		-DCOMPILER_RT_BUILD_SANITIZERS=$_build_sanitizers \
+		-DCOMPILER_RT_BUILD_XRAY=ON \
+		-DCOMPILER_RT_INSTALL_PATH="/usr/lib/clang/$pkgver" \
+		-DLLVM_EXTERNAL_LIT="/usr/bin/lit"
+	cmake --build build
+}
+
+check() {
+	ninja -C build check-compiler-rt
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+e63792751013e144cec56f8e5f90ebf9cdf16a4dfac39bf21e12b2c3bfb83204fe4c470f9c45e03cebfe2c6b25d7f1e1dc7c93e736d17f678011f5e5321e9d40  compiler-rt-14.0.5.src.tar.xz
+03b9ecedd14eb034d16fde945d395672990b2140bff713a65e701711ef5934b967850762fcb2d75db72abb56ad0354d4f5d768f1005add979a859c93565004d2  llvm-14.0.5.src.tar.xz
+8ed6746474f135ebf77a0888957126ef3a5ded97551632198cf15659104d792487920324b74569dfc46140d26f0a268e2378d6f8878c1c9013b8e6f199eeb3b7  xray-ppc64-musl.patch
+50c68838f79c948b3a0bff6cb120f8c68cac9ad2254d6409b1cddf79cc8a776d1142b29678445d92b62fadc66f353fe89e14dac7aa6c3b4f08d883a06615d7e3  link-execinfo.patch
+9aaac8aa9217509cf377b44e20a8c8294b9972e03e9d4f7c1b0ac7c22bcdac6f6a0888ab16b7542e1d6b89a5ac9054c5d8ef8acd1ae1002cca2d0b3df86136a6  sanitizer-supported-arch.patch
+aed5efa8a9c4f3bcb3b377d3c69c3fef387ef73d712bb58d60622d02d09f42b827cd810cd0648ca2a0ed6cca794f98a6176522e528488caf2f9ce08e0138c931  sanitizer-ppc64-musl.patch
+"

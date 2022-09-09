@@ -1,0 +1,37 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=fnott
+pkgver=1.2.1
+pkgrel=0
+pkgdesc="Keyboard driven and lightweight Wayland notification daemon"
+url="https://codeberg.org/dnkl/fnott"
+license="MIT"
+arch="all"
+makedepends="
+	meson
+	pixman-dev
+	libpng-dev
+	wayland-protocols
+	wayland-dev
+	dbus-dev
+	tllist-dev
+	fcft-dev
+	scdoc
+	"
+subpackages="$pkgname-doc $pkgname-zsh-completion"
+source="$pkgname-$pkgver.tar.gz::https://codeberg.org/dnkl/fnott/archive/$pkgver.tar.gz"
+builddir="$srcdir/fnott"
+options="!check" # no test suite
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+7818a01893dd2e8ea7a55355981f83e2d358ce68e36af81fe062c05e1a3405662fb5e221a0509b7212c57ce431e3591d6e4c5d2a1242f2b76c48a00c66e23932  fnott-1.2.1.tar.gz
+"

@@ -1,0 +1,37 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Matt Smith <mcs@darkregion.net>
+# Maintainer:  Matt Smith <mcs@darkregion.net>
+pkgname=duplicity
+pkgver=0.8.23
+pkgrel=0
+pkgdesc="Encrypted bandwidth-efficient backup using the rsync algorithm"
+url="https://duplicity.gitlab.io/duplicity-web/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="python3 py3-boto gpg gpg-agent ncftp py3-fasteners py3-future"
+makedepends="python3-dev py3-setuptools librsync-dev gettext"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://launchpad.net/duplicity/0.8-series/$pkgver/+download/duplicity-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	# remove dep we don't need
+	sed -e '/u"setuptools_scm"/d' -i setup.py
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py build_ext
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="
+083cf0060a8c7a8472c6ee4ffbb87e85edf0fcdaba95862a9f272cc03d8ab3d18b584a8d256473e6cfab9eed6f993382b846b692a8c0dd46fd3a2d8215e54e45  duplicity-0.8.23.tar.gz
+"

@@ -1,0 +1,21 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-openssl
+pkgver=0.10.1
+pkgrel=6
+pkgdesc="Web-based system administration interface for open/librelssl"
+url="https://gitlab.alpinelinux.org/acf/acf-openssl"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core openssl"
+source="https://gitlab.alpinelinux.org/acf/acf-openssl/-/archive/v$pkgver/acf-openssl-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+08c8302ae528960350d10b73c9b733b4a8a0aee931345c9154a17850364f37e99cd8d28e35c94e0dc35f61bbbd952e8c4efccbc766e870ede52ef05a63e763fe  acf-openssl-v0.10.1.tar.gz
+"

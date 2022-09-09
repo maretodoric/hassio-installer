@@ -1,0 +1,29 @@
+# Contributor: Thomas Kienlen <kommander@laposte.net>
+# Maintainer: Thomas Kienlen <kommander@laposte.net>
+pkgname=dive
+pkgver=0.10.0
+pkgrel=5
+pkgdesc='Tool for exploring each layer in a docker image'
+url='https://github.com/wagoodman/dive'
+arch='all'
+license='MIT'
+depends='docker'
+makedepends='go'
+source="https://github.com/wagoodman/dive/archive/v$pkgver/dive-$pkgver.tar.gz"
+options='chmod-clean !check' # No test suite
+
+build() {
+	go build \
+		-trimpath \
+		-ldflags "
+			-s -w
+			-X main.version=$pkgver
+			" \
+		-o bin/dive .
+}
+
+package() {
+	install -Dm755 bin/dive "$pkgdir/usr/bin/dive"
+}
+
+sha512sums="a027d6f694acdc7680a733df2800e255db93df450704e748778860ac16a19040be855c04238c18d63b10b2042023cf3bf5e8ac9974362decd81dc0259fd0dd1c  dive-0.10.0.tar.gz"

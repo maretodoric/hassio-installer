@@ -1,0 +1,58 @@
+# Contributor: Oleg Titov <oleg.titov@gmail.com>
+# Maintainer: Oleg Titov <oleg.titov@gmail.com>
+pkgname=rav1e
+pkgver=0.5.1
+pkgrel=0
+pkgdesc="The fastest and safest AV1 encoder"
+url="https://github.com/xiph/rav1e"
+arch="all !s390x !riscv64" # no cargo for s390x
+license="BSD-2-Clause custom"
+makedepends="cargo cargo-c nasm openssl-dev"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/xiph/rav1e/archive/v$pkgver.tar.gz"
+
+[ "$CARCH" = armhf ] && options="$options !check" # tests takes >6h
+
+prepare() {
+	default_prepare
+
+	cargo fetch -v
+}
+
+build() {
+	cargo build --release --frozen
+	cargo cbuild --release \
+		--frozen \
+		--prefix /usr \
+		--library-type cdylib \
+		--library-type staticlib
+}
+
+check() {
+	cargo test --release --frozen \
+		--workspace --exclude rav1e
+}
+
+package() {
+	cargo install \
+		--locked \
+		--offline \
+		--path . \
+		--root "$pkgdir"/usr
+
+	cargo cinstall \
+		--release \
+		--frozen \
+		--prefix /usr \
+		--destdir "$pkgdir" \
+		--library-type cdylib \
+		--library-type staticlib
+
+	install -Dm0644 README.md PATENTS -t "$pkgdir"/usr/share/doc/rav1e
+
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+54fdc65527e83bed1c57916c48f03b5701cb1c41c3990326130f56c562174a97b571fb58f0f099108ccc00d8c0fd05c8a57be3fc043750dcddf804440ceeff39  rav1e-0.5.1.tar.gz
+"

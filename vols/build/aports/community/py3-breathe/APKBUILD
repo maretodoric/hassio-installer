@@ -1,0 +1,31 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-breathe
+_pkgname=breathe
+pkgver=4.34.0
+pkgrel=0
+pkgdesc="ReStructuredText and Sphinx bridge to Doxygen"
+url="https://breathe.readthedocs.org/"
+arch="noarch"
+license="BSD-3-Clause-Clear"
+depends="python3 py3-sphinx doxygen"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://github.com/michaeljones/breathe/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	make dev-test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7f3134575f1b8c4d7c96ebc735e33f656b5c6046de3fa2aee95d5e895fb33f0a83fb4b1c64dd69b9deca20b785868b42d6b1d5e39741500ff5f9d82bf3f130b4  py3-breathe-4.34.0.tar.gz
+"

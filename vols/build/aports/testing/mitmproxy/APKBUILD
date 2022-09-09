@@ -1,0 +1,80 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=mitmproxy
+pkgver=7.0.4
+pkgrel=2
+pkgdesc="Interactive TLS-capable intercepting HTTP proxy"
+url="https://mitmproxy.org/"
+license="MIT"
+arch="noarch !s390x !armhf" # limited by py3-zstandard
+depends="
+	python3
+	py3-asgiref
+	py3-blinker
+	py3-brotli
+	py3-certifi
+	py3-click
+	py3-cryptography
+	py3-flask
+	py3-h2
+	py3-hyperframe
+	py3-kaitaistruct
+	py3-ldap3
+	py3-msgpack
+	py3-passlib
+	py3-protobuf
+	py3-asn1
+	py3-openssl
+	py3-parsing
+	py3-pyperclip
+	py3-ruamel.yaml
+	py3-sortedcontainers
+	py3-tornado
+	py3-urwid
+	py3-wsproto
+	py3-publicsuffix2
+	py3-zstandard
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-hypothesis
+	py3-parver
+	py3-pytest
+	py3-pytest-asyncio
+	py3-requests
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mitmproxy/mitmproxy/archive/v$pkgver.tar.gz
+	skip-test-optmanager-x86.patch
+	"
+
+# secfixes:
+#   7.0.3-r0:
+#     - CVE-2021-39214
+
+prepare() {
+	default_prepare
+	# remove test file importing asynctest module, which doesn't support python3.8
+	# see: https://github.com/Martiusweb/asynctest/issues/132
+	rm test/mitmproxy/addons/test_readfile.py
+
+	# relax constraints on required dependencies
+	sed -E "s/, *<[0-9=.]*//" -i setup.py
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest --deselect "test/mitmproxy/test_version.py::test_get_version"
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+4224b44e609f84b974b5419c6ceb576845957968c786ee437bffb5fa5df685ce0712d5ef8c402d40c568406242f44692cc7f04037fadd19ecece8b112d73b7ae  mitmproxy-7.0.4.tar.gz
+30d677fe7899394e096d20f16d5522dc962518bebf4e23eaa954507a2dd99af61e568e6515363c74fd606d43cce21bc4c3272c6f08d2cf97d88981449cf9d1a2  skip-test-optmanager-x86.patch
+"

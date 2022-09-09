@@ -1,0 +1,25 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=wdisplays
+pkgver=1.1
+pkgrel=1
+pkgdesc="GUI display configurator for wlroots compositors"
+url="https://github.com/artizirk/wdisplays"
+license="GPL-3.0-or-later"
+arch="all"
+options="!check" # no test suite
+makedepends="meson wayland-dev libepoxy gtk+3.0-dev"
+source="https://github.com/artizirk/wdisplays/archive/$pkgver/wdisplays-$pkgver.tar.gz"
+
+build() {
+	abuild-meson . build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+sha512sums="
+1aabcb4fef1bde1b8f6bb9254804bba39fe5ebdd57ecc62894aca432527be54ead39ece4008f48ddf96a28111fc409fa5a093905c8017b79bb3f6495a0dc264d  wdisplays-1.1.tar.gz
+"

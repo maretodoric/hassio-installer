@@ -1,0 +1,63 @@
+# Contributor: Eric Molitor <eric@molitor.org>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=lld
+pkgver=14.0.5
+pkgrel=1
+_llvmver=${pkgver%%.*}
+pkgdesc="The LLVM Linker"
+url="https://llvm.org/"
+# s390x: limited by llvm-libunwind
+arch="all !s390x"
+license="Apache-2.0"
+makedepends="
+	cmake
+	libedit-dev
+	llvm$_llvmver-dev
+	llvm$_llvmver-static
+	llvm$_llvmver-test-utils
+	llvm-libunwind-dev
+	ninja
+	xz
+	zlib-dev
+	"
+checkdepends="gtest-dev bash llvm$_llvmver-test-utils"
+subpackages="$pkgname-libs $pkgname-dev $pkgname-doc"
+source="https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/lld-$pkgver.src.tar.xz"
+builddir="$srcdir/$pkgname-$pkgver.src"
+
+# Tests OOM on 32-bit
+case "$CARCH" in
+	s390x|x86|armhf|armv7) options="!check" ;;
+esac
+
+build() {
+	cmake -B build -G Ninja -Wno-dev \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_EXE_LINKER_FLAGS_MINSIZEREL_INIT="$LDFLAGS -Wl,-z,stack-size=2097152" \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_SKIP_INSTALL_RPATH=ON \
+		-DBUILD_SHARED_LIBS=ON \
+		-DLLVM_INCLUDE_TESTS="$(want_check && echo ON || echo OFF)" \
+		-DLLVM_EXTERNAL_LIT=/usr/bin/lit \
+		-DLLD_BUILT_STANDALONE=ON
+	cmake --build build
+}
+
+check() {
+	# ELF/eh-frame-hdr-augmentation.s is broken on armhf & armv7
+	case "$CARCH" in
+		armhf|armv7) rm test/ELF/eh-frame-hdr-augmentation.s;;
+	esac
+
+	ninja -C build check-lld
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	install -Dm 644 $builddir/docs/ld.lld.1 -t $pkgdir/usr/share/man/man1/
+}
+
+sha512sums="
+d47e4f22f3228385b95c8b604833925f69bb7a0ee56d7f6461c0f1753e871a891857f50ac17d88c035f19f2112f4b7c729e1d51798a83be1d629375b253ed658  lld-14.0.5.src.tar.xz
+"

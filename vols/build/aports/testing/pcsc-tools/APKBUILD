@@ -1,0 +1,36 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer:
+pkgname=pcsc-tools
+pkgver=1.6.0
+pkgrel=0
+pkgdesc="tools to test a PC/SC driver, card or reader or send commands"
+url="http://ludovic.rousseau.free.fr/softwares/pcsc-tools/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="pcsc-perl"
+makedepends="pcsc-lite-dev"
+subpackages="$pkgname-doc"
+source="http://ludovic.rousseau.free.fr/softwares/pcsc-tools/pcsc-tools-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+951014510dcfd011fc08c92a927ed8a39751c15cd9278e9bd61693a2743a82d4b88907e01e013738f6b5afb569cb4d9e9802ee575c731b83da33e92f96eb5d50  pcsc-tools-1.6.0.tar.bz2
+"

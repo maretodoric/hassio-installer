@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kmousetool
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kxmlgui
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/utilities/org.kde.kmousetool"
+pkgdesc="A program that clicks the mouse for you"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	qt5-qtbase-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	knotifications-dev
+	kxmlgui-dev
+	phonon-dev
+	libxt-dev
+	libxtst-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kmousetool-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+e2fb79977474c5fce8ba4e601e57f2a42fd107e038ce312913098b8e8ccae829d50afabfdc4ab40edb1f4c089d1e30dbdd5c6d8d4e11b1bad8975ca6b7ddbffc  kmousetool-22.04.2.tar.xz
+"

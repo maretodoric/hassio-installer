@@ -1,0 +1,156 @@
+# Contributor: Mathias LANG <pro.mathias.lang@gmail.com>
+# Maintainer: Mathias LANG <pro.mathias.lang@gmail.com>
+pkgname=ldc
+pkgver=1.29.0
+pkgrel=1
+_llvmver=14
+pkgdesc="The LLVM-based D Compiler"
+url="https://github.com/ldc-developers/ldc"
+# LDC does not support host compiling on most of the architecture Alpine supports
+arch="x86_64 aarch64"
+license="BSD-3-Clause AND BSL-1.0 AND ( Artistic-1.0 OR GPL-2.0-or-later ) AND NCSA AND MIT"
+depends="llvm-libunwind-dev tzdata $pkgname-static=$pkgver-r$pkgrel"
+makedepends="chrpath cmake curl-dev diffutils gdmd llvm$_llvmver-dev llvm$_llvmver-static
+	libedit-dev samurai zlib-dev"
+checkdepends="bash gdb grep llvm$_llvmver-test-utils"
+# A user might want to install the '-runtime' subpackage when they have
+# a dynamically-linked D program.
+subpackages="
+	$pkgname-dbg
+	$pkgname-runtime
+	$pkgname-static
+	$pkgname-bash-completion
+	"
+source="https://github.com/ldc-developers/ldc/releases/download/v$pkgver/ldc-$pkgver-src.tar.gz
+	arm.patch
+	musl.patch
+	"
+builddir="$srcdir/ldc-$pkgver-src/"
+
+build() {
+	# Note: The CI was running into OOM while building this package
+	# See https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/14364#note_122336
+	case "$CARCH" in x86_64)
+		export SAMUFLAGS="$SAMUFLAGS -j$((JOBS < 16 ? JOBS : 16))"
+		export DFLAGS="$DFLAGS -lowmem"
+		;;
+	esac
+
+	# First, build LDC using GDC
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	unset DFLAGS
+	cmake -G Ninja -B stage1 \
+		-DD_COMPILER='gdmd' \
+		-DADDITIONAL_DEFAULT_LDC_SWITCHES=' "-linker=bfd", "-link-defaultlib-shared", "-L--export-dynamic", "-L--eh-frame-hdr"' \
+		-DLLVM_ROOT_DIR="/usr/lib/llvm$_llvmver" \
+		$CMAKE_CROSSOPTS
+	ninja -C stage1
+
+	cmake -G Ninja -S . \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DD_COMPILER="$builddir/stage1/bin/ldmd2" \
+		-DC_SYSTEM_LIBS="unwind;m;pthread;rt;dl" \
+		-DADDITIONAL_DEFAULT_LDC_SWITCHES=' "-linker=bfd", "-link-defaultlib-shared", "-L--export-dynamic", "-L--eh-frame-hdr"' \
+		-DLLVM_ROOT_DIR="/usr/lib/llvm$_llvmver" \
+		$CMAKE_CROSSOPTS
+	ninja
+
+	# Build the test runners
+	# Use of `-L--export-dynamic` is needed so that exceptions work correctly
+	# (namely: function names should be available without debug infos).
+	ninja all-test-runners
+
+	# CMake added the rpaths to the shared libs (of stage1!) - strip them
+	chrpath -d "$builddir"/lib/*.so*
+	chrpath -d \
+		"$builddir"/bin/ldc2 \
+		"$builddir"/bin/ldmd2 \
+		"$builddir"/bin/ldc-build-runtime \
+		"$builddir"/bin/ldc-prune-cache
+}
+
+check() {
+	# Find the libraries we just built as final (not stage1!)
+	export LD_LIBRARY_PATH="$builddir"/lib
+
+	case "$CARCH" in
+		# Math & numeric related tests fail due to https://github.com/ldc-developers/ldc/issues/3270#issuecomment-613132406
+		# druntime-test-thread fails due to https://github.com/ldc-developers/ldc/issues/3403
+		aarch64)
+			_tests_ignore="|core\.thread\.fiber|std.*math.*|std\.numeric.*|std\.format|std\.algorithm\.sorting.*|druntime-test-thread|std\.complex.*"
+			;;
+		# https://github.com/ldc-developers/ldc/issues/3404
+		x86)
+			_tests_ignore="|druntime-test-thread"
+			;;
+	esac
+
+
+	# Note: The testsuite does not parallelize well, as the 'clean' target get run in parallel.
+	# Hence '-j${JOBS}' was left out on purpose
+	#
+	# - dmd-testsuite takes too long to run and has more to do with language checks
+	#	which are less relevant to us than platform integration tests
+	# - lit-test disabled because 'TEST 'LDC :: debuginfo/print_gdb.d' FAILED'
+	#	See https://gitlab.alpinelinux.org/alpine/aports/-/issues/11154
+	# - 'druntime-test-shared' fails, probably because it is using 'Object.factory'
+	# - 'druntime-test-stdcpp' fails for an unknown reason and is temporarily disabled
+	# - 'druntime-test-exceptions' fails for an unknown reason and is temporarily disabled
+	#
+	# The following two tests fail since v1.27.0, but seems to fail for unrelated reason.
+	# - 'druntime-test-cycles'
+	# - 'druntime-test-gc'
+	# Namely, the following assert is triggered:
+	# core.exception.AssertError@../../src/rt/lifetime.d(1250): Assertion failure
+	# ----------------
+	# ??:? _d_assert [0x7fc894efb1a0]
+	# ??:? void rt.lifetime.__unittest_L1236_C12() [0x5642121a5040]
+	#
+	# Link: https://github.com/ldc-developers/druntime/blob/8e135b4e978975b24536e2a938801a29b39dc9f6/src/rt/lifetime.d#L1250
+	# However this unittest is AFAICS unrelated to the two tests,
+	# and either succeed or isn't run on its own.
+	ctest --output-on-failure -E "dmd-testsuite|lit-tests|druntime-test-exceptions|druntime-test-shared|druntime-test-stdcpp|druntime-test-cycles|druntime-test-gc$_tests_ignore"
+}
+
+package() {
+	# Use -j1, the install is flaky with too many build jobs
+	DESTDIR="$pkgdir" ninja -j1 install
+
+	mkdir -p "$pkgdir"/usr/share/bash-completion
+	mv "$pkgdir"/etc/bash_completion.d "$pkgdir"/usr/share/bash-completion/completions
+}
+
+runtime() {
+	depends="libexecinfo-dev"
+	pkgdesc="Dynamic runtime library for D code compiled with $pkgname-$pkgver"
+
+	mkdir -p "$subpkgdir/usr/lib/"
+	for libn in "libdruntime" "libphobos2";
+	do
+		mv "$pkgdir"/usr/lib/$libn-ldc-shared.so* "$subpkgdir/usr/lib/"
+	done
+	# As of LDC v1.28.0, JIT is not supported for LLVM >= 12
+	# https://github.com/ldc-developers/ldc/blob/v1.28.0/CMakeLists.txt#L452
+	#mv "$pkgdir"/usr/lib/libldc-jit.so* "$subpkgdir/usr/lib"
+
+	mv "$pkgdir"/usr/lib/*.so* "$subpkgdir/usr/lib/"
+}
+
+static() {
+	depends="libexecinfo-static"
+	pkgdesc="$pkgdesc (static library)"
+
+	mkdir -p "$subpkgdir/usr/lib/"
+	mv "$pkgdir"/usr/lib/*.a "$subpkgdir/usr/lib/"
+}
+
+sha512sums="
+f8a1e23150b84ef31d3616b9be8ca4c1a64df2b3f26fbedb1119a7d2d3dacad10cd86b6b9bf79728c8c725213f8f7ae88acdeb7a0d9e2f3f5068857f97c39a7e  ldc-1.29.0-src.tar.gz
+6288960d2550a8561f37a698b01efb276503380ec2c6c2a6260637b8edf5816d4ce036b5911e7b0bf10fd34f162da2af040f628a12017a2321125e60f45319c5  arm.patch
+d3d01765e8a33e19604016f20957df712c72701ac222171fb57ca47b270cd27a056525a63da11abfdc0e2c76b8bdc3f322df5a98511ca04e1753fc1ae1aec97e  musl.patch
+"

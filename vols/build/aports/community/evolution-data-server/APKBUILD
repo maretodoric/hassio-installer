@@ -1,0 +1,51 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=evolution-data-server
+pkgver=3.44.2
+pkgrel=0
+pkgdesc="data server for evolution"
+options="!check" # Tests fail on the builders, passes CI
+url="https://projects.gnome.org/evolution"
+arch="all !s390x !riscv64" # gnome-online-accounts-dev
+license="GPL-2.0-or-later"
+depends_dev="libgdata-dev gcr-dev icu-dev"
+makedepends="$depends_dev gperf flex bison glib-dev gtk+3.0-dev libsecret-dev
+	libsoup-dev libxml2-dev nss-dev sqlite-dev krb5-dev gnu-libiconv-dev
+	openldap-dev json-glib-dev webkit2gtk-dev libgweather4-dev
+	cmake libical-dev libcanberra-dev vala gobject-introspection-dev
+	gnome-online-accounts-dev libphonenumber-dev samurai"
+subpackages="$pkgname-dev $pkgname-lang"
+source="https://download.gnome.org/sources/evolution-data-server/${pkgver%.*}/evolution-data-server-$pkgver.tar.xz"
+
+build() {
+	CFLAGS="$CFLAGS -I/usr/include/gnu-libiconv" \
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DSYSCONF_INSTALL_DIR=/etc \
+		-DCMAKE_BUILD_TYPE=None \
+		-DENABLE_GOA=ON \
+		-DENABLE_INTROSPECTION=ON \
+		-DENABLE_VALA_BINDINGS=ON \
+		-DWITH_PHONENUMBER=ON \
+		-DWITH_LIBDB=OFF \
+		-DWITH_GWEATHER4=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# failing tests on s390x. -locale tests fail due to musl not supporting LC_ADDRESS.
+	case "$CARCH" in
+		s390x) ;;
+		*) CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "(test-book-cache-cursor-change-locale|test-sqlite-cursor-change-locale)"
+	esac
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cf7fefeb00899cddca0fb9abeddead582ae944f41960c815813312ecf9bde5a19bcd41fa7038eddf7d5c7cf568fda51e9dbb0603bebec54284ce6ac1f9c10305  evolution-data-server-3.44.2.tar.xz
+"

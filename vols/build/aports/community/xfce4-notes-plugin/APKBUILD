@@ -1,0 +1,33 @@
+# Contributor:
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xfce4-notes-plugin
+pkgver=1.9.0_pre20201224
+pkgrel=2
+pkgdesc="Notes plugin for the Xfce4 desktop"
+url="http://goodies.xfce.org/projects/panel-plugins/xfce4-notes-plugin"
+arch="all"
+license="GPL"
+makedepends="xfce4-panel-dev libxfce4ui-dev xfce4-dev-tools vala"
+subpackages="$pkgname-lang"
+#source="https://archive.xfce.org/src/panel-plugins/xfce4-notes-plugin/${pkgver%.*}/xfce4-notes-plugin-$pkgver.tar.bz2
+source="https://dev.alpinelinux.org/archive/xfce4-notes-plugin/xfce4-notes-plugin-${pkgver#*_pre}.tar.gz
+	"
+
+builddir="$srcdir"/xfce4-notes-plugin
+
+build() {
+	./autogen.sh \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="a671e11ebd2e01a7f01dda3d1b2c037ce0ec3bdb3d3dbb050a54e5866d70516d7e3419616c8b612b481aa03574d32a6da2d0fde58e5cbdd4fb68042d0aa676f1  xfce4-notes-plugin-20201224.tar.gz"

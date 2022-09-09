@@ -1,0 +1,69 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kget
+pkgver=22.04.2
+pkgrel=0
+# ppc64le, s390x and riscv64 blocked by polkit -> kio
+# armhf blocked by extra-cmake-modules
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kde.org/applications/internet/org.kde.kget"
+pkgdesc="A versatile and user-friendly download manager"
+license="GPL-2.0-or-later AND LGPL-2.0-only AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	gpgme-dev
+	kcmutils-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdelibs4support-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kitemmodels-dev
+	kitemviews-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kparts-dev
+	kservice-dev
+	ktextwidgets-dev
+	kwallet-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libktorrent-dev
+	libmms-dev
+	plasma-workspace-dev
+	qca-dev
+	qt5-qtbase-dev
+	samurai
+	sqlite-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kget-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+c0fdc051f1882b4a775e1a6b6131351fa7763cc0183bd40dbbde9def39503b1b09da4d174cd5a7c6ac3a6045f3a8ceb26e289fadf374245ef63fd19385743a21  kget-22.04.2.tar.xz
+"

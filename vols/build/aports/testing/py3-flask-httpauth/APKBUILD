@@ -1,0 +1,32 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-flask-httpauth
+pkgver=4.4.0
+pkgrel=1
+pkgdesc="Basic and Digest HTTP authentication for Flask routes"
+url="https://pypi.python.org/pypi/Flask-HTTPAuth"
+arch="noarch"
+license="MIT"
+depends="py3-flask python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/F/Flask-HTTPAuth/Flask-HTTPAuth-$pkgver.tar.gz"
+builddir="$srcdir"/Flask-HTTPAuth-$pkgver
+
+replaces="py-flask-httpauth" # Backwards compatibility
+provides="py-flask-httpauth=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+de5d13f81b8fcabafaaf62756ff03b30ed01b873d5a9fc850c42d30059aa5f2e489c4ebc46fd11e625eaf8b59a84f5a8a84156167e4ccd5f9f5f8c8281bbb4e8  Flask-HTTPAuth-4.4.0.tar.gz
+"

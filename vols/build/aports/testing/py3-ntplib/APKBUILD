@@ -1,0 +1,31 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-ntplib
+_pkgname=ntplib
+pkgver=0.3.4
+pkgrel=2
+pkgdesc="Python module that offers a simple interface to query NTP servers"
+options="net" # Requires connecting to pool.ntp.org
+url="https://pypi.python.org/pypi/ntplib"
+arch="noarch"
+license="MIT"
+replaces="py-ntplib" # for backwards compatibility
+provides="py-ntplib=$pkgver-r$pkgrel" # for backwards compatibility
+depends="python3"
+makedepends="python3-dev py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/cf-natali/ntplib/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m unittest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="368852f3fcc9e9a1c90340656bcf8e9b1143d62f616a1f177567eed419125466d572e57bac9a25465c775499cfb6b5ce1b1ee9a93c54e93667d751285757709e  py3-ntplib-0.3.4.tar.gz"

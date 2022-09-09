@@ -1,0 +1,12 @@
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 8b800d9..f04df2c 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -141,7 +141,6 @@ add_boost_test(base
+     icinga_macros/simple
+     icinga_legacytimeperiod/simple
+     icinga_legacytimeperiod/advanced
+-    icinga_legacytimeperiod/dst
+     icinga_legacytimeperiod/dst_isinside
+     icinga_perfdata/empty
+     icinga_perfdata/simple

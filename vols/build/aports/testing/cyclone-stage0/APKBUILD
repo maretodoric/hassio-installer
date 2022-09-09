@@ -1,0 +1,38 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=cyclone-stage0
+pkgver=0.34.0
+pkgrel=0
+pkgdesc="Cyclone version used to initially bootstrap the Cyclone compiler"
+url="https://justinethier.github.io/cyclone/"
+# s390x: ck on s390x does not have ck_pr_cas_8 (used by cyclone)
+arch="all !s390x"
+license="MIT"
+depends="!cyclone"
+makedepends="ck-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/justinethier/cyclone-bootstrap/archive/refs/tags/v$pkgver.tar.gz"
+builddir="$srcdir/cyclone-bootstrap-$pkgver"
+
+# Provide cyclone-bootstrap for community/cyclone.
+# See the comment in community/cyclone for more information.
+provides="cyclone-bootstrap"
+provider_priority=1 # lowest
+
+export PREFIX=/usr
+export DATADIR=$PREFIX/lib/cyclone
+
+build() {
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+}
+
+sha512sums="
+581866985709bff90a4f4fab9a24fc013ee43225b04fb2bd1128da02f0164de55f6d7d80d5cfcff5eedaf23b3fc38dc3c46e6f376e2f341b4991a3f1c54cd53b  cyclone-stage0-0.34.0.tar.gz
+"

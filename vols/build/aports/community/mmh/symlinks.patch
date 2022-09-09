@@ -1,0 +1,11 @@
+--- a/uip/Makefile.in
++++ b/uip/Makefile.in
+@@ -35,7 +35,7 @@
+ 
+ COMPILE = $(CC) -c $(DEFS) -DVERSION="\"$(VERSION)\"" $(INCLUDES) $(CFLAGS)
+ LINK    = $(CC) $(LDFLAGS) -o $@
+-LN = ln
++LN = ln -s
+ 
+ INSTALL         = @INSTALL@
+ INSTALL_PROGRAM = @INSTALL_PROGRAM@

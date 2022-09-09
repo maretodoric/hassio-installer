@@ -1,0 +1,38 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=glibmm
+pkgver=2.66.4
+pkgrel=0
+pkgdesc="C++ wrapper for the GLib toolkit"
+url="https://www.gtkmm.org/"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="glib-dev libsigc++-dev perl meson m4 doxygen graphviz"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://download.gnome.org/sources/glibmm/${pkgver%.*}/glibmm-$pkgver.tar.xz"
+
+build() {
+	abuild-meson -Dbuild-documentation=true . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+dev() {
+	mkdir -p "$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/lib/glibmm-2.4 "$subpkgdir"/usr/lib/
+	default_dev
+}
+
+doc() {
+	default_doc
+	mkdir -p "$subpkgdir"/usr/share/
+	mv "$pkgdir"/usr/share/devhelp "$subpkgdir"/usr/share/
+}
+
+sha512sums="
+9b1e0c09a11182384313ea4a7ba484ebab894528e08169a610387f207b5a7f8db9338466cd3e9eb3fa55e1c12817351ea27c39d6503208af67ba619f9d249c75  glibmm-2.66.4.tar.xz
+"

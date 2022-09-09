@@ -1,0 +1,21 @@
+# Maintainer: Sam Stuewe <samuel.stuewe@gmail.com>
+pkgname=sx
+pkgver=2.1.7
+pkgrel=0
+pkgdesc="A simple alternative to xinit and startx"
+url="https://github.com/Earnestly/sx"
+arch="noarch"
+license="MIT"
+options="!check"  # No test suite.
+subpackages="$pkgname-doc"
+depends="xauth xorg-server"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Earnestly/sx/archive/$pkgver.tar.gz"
+
+package() {
+	make PREFIX="/usr" DESTDIR="$pkgdir" install
+	chmod +x "$pkgdir"/usr/bin/sx
+}
+
+sha512sums="
+3b5893236209fd1e5b1a6cb64ad83df830d822d9a413c627110ef5087b1da6d6c43665e5bd24f49059fbfb57511545ceddd16377ac21ffc38464a66b8ad9dbec  sx-2.1.7.tar.gz
+"

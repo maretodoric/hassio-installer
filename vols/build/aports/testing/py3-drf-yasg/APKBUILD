@@ -1,0 +1,34 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=py3-drf-yasg
+pkgver=1.20.0
+pkgrel=1
+pkgdesc="Automated generation of real Swagger/OpenAPI 2.0 schemas from Django Rest Framework code"
+options="!check" # Missing dependencies
+url="https://pypi.org/project/drf-yasg/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-django py3-coreschema py3-ruamel.yaml py3-inflection
+	py3-six py3-uritemplate py3-coreapi"
+makedepends="py3-setuptools py3-setuptools_scm py3-pbr"
+# Requires unpackaged datadiff pytest-pythonpath pytest-django
+checkdepends="py3-pytest py3-pytest-cov py3-pytest-xdist"
+source="$pkgname-$pkgver.tar.gz::https://github.com/axnsan12/drf-yasg/archive/$pkgver.tar.gz"
+builddir="$srcdir"/drf-yasg-$pkgver
+
+replaces="py-drf-yasg" # Backwards compatibility
+provides="py-drf-yasg=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	git init # Workaround
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py --quiet install --prefix=/usr --root="$pkgdir"
+}
+
+
+sha512sums="
+ad16d90b4640cd419cdc9698bdf898161d49b6910b23920237cf77c52baa8e3e7ac21193c6e03cc3dec7f9e4d1651a1fe070d6680c5c4c5df44bdd103ddb32c3  py3-drf-yasg-1.20.0.tar.gz
+"

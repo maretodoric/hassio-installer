@@ -1,0 +1,41 @@
+# Contributor: Nick Black <dankamongmen@gmail.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=nlohmann-json
+pkgver=3.10.5
+pkgrel=0
+pkgdesc="JSON for Modern C++"
+url="https://github.com/nlohmann/json"
+arch="noarch"
+license="MIT"
+makedepends="cmake"
+subpackages="$pkgname-doc"
+source="nlohmann-json-$pkgver.tar.gz::https://github.com/nlohmann/json/archive/v$pkgver.tar.gz"
+options="net" # Required for downloading test data
+builddir="$srcdir/json-$pkgver"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DJSON_MultipleHeaders=ON
+	cmake --build build
+
+	make -C doc
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "cmake_fetch_content_(configure|build)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	install -dm755 "$pkgdir"/usr/share/doc/$pkgname
+	mv doc/mkdocs "$pkgdir"/usr/share/doc/$pkgname/
+}
+
+sha512sums="
+4a9d6416f383e76bf95425fc02a4e12c605fcbcae910b704e354396a493454cf8a1ffbecba11f231e020ffd2842908df7e67dbc09f62d1202d40b6815c24cfd2  nlohmann-json-3.10.5.tar.gz
+"

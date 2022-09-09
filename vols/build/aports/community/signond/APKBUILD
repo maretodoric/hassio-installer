@@ -1,0 +1,40 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=signond
+pkgver=8.61
+pkgrel=0
+arch="all"
+url="https://gitlab.com/accounts-sso/signond"
+pkgdesc="A D-Bus service which performs user authentication on behalf of its clients"
+license="LGPL-2.1-only"
+makedepends="
+	qt5-qtbase-dev
+	doxygen
+	graphviz
+	"
+source="https://gitlab.com/accounts-sso/signond/-/archive/VERSION_$pkgver/signond-VERSION_$pkgver.tar.gz"
+checkdepends="cmd:dbus-launch"
+subpackages="$pkgname-doc $pkgname-static $pkgname-dev"
+# Tests broken https://gitlab.com/accounts-sso/signond/-/issues/10
+options="!check"
+builddir="$srcdir/$pkgname-VERSION_$pkgver"
+
+build() {
+	qmake-qt5 \
+		PREFIX=/usr \
+		LIBDIR=/usr/lib \
+		CONFIG+=rtti
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	INSTALL_ROOT="$pkgdir" make install
+}
+
+sha512sums="
+1652ee8e97d6aee036075f5416909649c5848e33c3c71f367176f3e5d6f9c360fd7a46c65ba877d58b3ae8fb8df0712938c5e073409ba945d66d8afeacfd6f72  signond-VERSION_8.61.tar.gz
+"

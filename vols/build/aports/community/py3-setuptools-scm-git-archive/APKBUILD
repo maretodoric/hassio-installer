@@ -1,0 +1,25 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=py3-setuptools-scm-git-archive
+pkgver=1.2
+pkgrel=0
+pkgdesc="setuptools_scm plugin for git archives"
+url="https://github.com/Changaco/setuptools_scm_git_archive/"
+arch="noarch"
+license="MIT"
+depends="python3 py3-setuptools_scm"
+options="!check" # no tests
+source="https://pypi.python.org/packages/source/s/setuptools_scm_git_archive/setuptools_scm_git_archive-$pkgver.tar.gz"
+builddir="$srcdir/setuptools_scm_git_archive-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+ffe55c988c240e731f141247de55afbe3d07b537d70262221f4e98d5887a905f8f98d14ffcf1b6ca2684b770079e62948b75b8d926ae8c0e576f88647088498b  setuptools_scm_git_archive-1.2.tar.gz
+"

@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libsurvive
+pkgver=1.01
+pkgrel=0
+pkgdesc="Open Source Lighthouse Tracking System"
+url="https://github.com/cntools/libsurvive"
+arch="all"
+license="MIT"
+depends="xr-hardware"
+depends_dev="
+	blas-dev
+	eigen-dev
+	lapack-dev
+	libpcap-dev
+	libusb-dev
+	zlib-dev
+	"
+makedepends="$depends_dev
+	cmake
+	sciplot
+	"
+subpackages="$pkgname-static $pkgname-dev $pkgname-bash-completion $pkgname-web::noarch"
+source="https://github.com/cntools/libsurvive/releases/download/v$pkgver/libsurvive-v$pkgver-source.zip"
+options="!check" # Requires live test data
+builddir="$srcdir/$pkgname"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_STATIC=OFF
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	install -Dm644 useful_files/81-vive.rules "$pkgdir"/usr/lib/udev/rules.d/81-vive.rules
+	install -Dm644 survive_autocomplete.sh "$pkgdir"/usr/share/bash-completion/completions/survive
+}
+
+web() {
+	depends="$pkgname websocketd"
+	mkdir -p "$subpkgdir"/usr/share/webapps
+	cp -r "$builddir"/tools/viz "$subpkgdir"/usr/share/webapps/survive-viz
+
+	amove usr/bin/survive-websocketd
+}
+
+sha512sums="
+6033d2524581bdefb0e1ed6e27c8044ba6ff32aa997845124c0b29d1a5a3f082a50605b2b654a642051ad0f22c6c8ad4ea8ca98888e28443d52ab68eb566effc  libsurvive-v1.01-source.zip
+"

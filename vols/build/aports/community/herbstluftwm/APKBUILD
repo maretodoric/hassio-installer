@@ -1,0 +1,59 @@
+# Contributor: Łukasz Jendrysik
+# Contributor: Eivind Uggedal <eu@eju.no>
+# Maintainer: prspkt <prspkt@protonmail.com>
+pkgname=herbstluftwm
+pkgver=0.9.4
+pkgrel=1
+pkgdesc="Manual tiling window manager"
+url="https://herbstluftwm.org"
+arch="all"
+license="BSD-2-Clause"
+makedepends="
+	asciidoc
+	cmake
+	freetype-dev
+	glib-dev
+	libxfixes-dev
+	libxft-dev
+	libxinerama-dev
+	libxrandr-dev
+	python3
+	py3-setuptools
+	samurai
+	"
+subpackages="$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	$pkgname-fish-completion
+	py3-$pkgname:python_bindings
+	"
+source="https://herbstluftwm.org/tarballs/herbstluftwm-$pkgver.tar.gz"
+
+build() {
+	cmake -G Ninja -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBASHCOMPLETIONDIR=/usr/share/bash-completion/completions \
+		-DFISHCOMPLETIONDIR=/usr/share/fish/completions \
+		-DZSHCOMPLETIONDIR=/usr/share/zsh/site-functions
+	cmake --build build
+
+	cd python
+	python3 setup.py build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+python_bindings() {
+	pkgdesc="Python bindings for herbstluftwm"
+	depends="python3"
+
+	cd "$builddir"/python
+	python3 setup.py install --prefix=/usr --root="$subpkgdir"
+}
+
+sha512sums="
+068438d14b0addcd17a0c0bda1d33ec4aaff08a3c85698a49e9d3dd0c07f91e315f936d73c11b0c159b8735373ea1efe8a572a0976fc327f4aaa6a0f08436e9d  herbstluftwm-0.9.4.tar.gz
+"

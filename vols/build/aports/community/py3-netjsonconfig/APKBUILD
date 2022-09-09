@@ -1,0 +1,37 @@
+# Contributor: Alex Denes <caskd@redxen.eu>
+# Maintainer: Alex Denes <caskd@redxen.eu>
+pkgname=py3-netjsonconfig
+_pkgname=netjsonconfig
+pkgver=1.0.1
+pkgrel=0
+pkgdesc="Python library that converts NetJSON DeviceConfiguration objects into real router configurations"
+url="http://netjsonconfig.openwisp.org/"
+arch="noarch"
+license="GPL-3.0-only"
+depends="
+	py3-jinja2
+	py3-jsonschema
+"
+checkdepends="
+	py3-nose>=2
+"
+makedepends="py3-setuptools_scm"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+options="!check" # requires nose > 2.0
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="
+75b9c275de3c26e79bcd06090b953d9a052460f6143e930d67d749321965880b31c00736b94d9831319cfa583c5f057d1fe6b320a881550b0fd25d1552dd336e  netjsonconfig-1.0.1.tar.gz
+"

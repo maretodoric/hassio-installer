@@ -1,0 +1,91 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=timed
+pkgver=3.6.14
+pkgrel=0
+pkgdesc="The time daemon manages system time, timezone and settings, executing actions at given time and managing the event queue"
+url="https://github.com/sailfishos/timed"
+arch="all"
+license="LGPL-2.1-only"
+depends="tzdata-timed"
+depends_dev="
+	elogind-dev
+	libdsme-dev
+	libiodata-dev
+	qt5-qtbase-dev
+	sailfish-access-control
+	"
+makedepends="$depends_dev
+	cmd:iodata-qt5-type-to-c++
+	"
+subpackages="$pkgname-dev"
+install="$pkgname.pre-install"
+source="https://github.com/sailfishos/timed/archive/$pkgver/timed-$pkgver.tar.gz
+	timed-qt5.privileges
+	timed-qt5.desktop
+	0001-Fixes-build.patch
+	"
+pkggroups="users"
+
+prepare() {
+	default_prepare
+
+	# The build system refers to qmacro.h in a different location
+	# Taken from upstream RPM packaging
+	mkdir -p src/h/timed-qt5
+	ln -f src/lib/qmacro.h src/h/timed-qt5/qmacro.h
+
+	# Fix location of the path
+	sed -e 's|etc/dbus-1|usr/share/dbus-1|' \
+		-i src/server/server.pro \
+		-i tests/ut_networktime/ut_networktime.pro
+}
+
+build() {
+	cd src/server
+	find . -name "*.type" | while read -r i; do
+		iodata-qt5-type-to-c++ \
+			-o $i.cpp \
+			-d $i.h \
+			$i
+	done
+
+	cd "$builddir"
+	qmake-qt5 -recursive \
+		PREFIX=/usr \
+		CONFIG+="dsme_dbus_if ofono"
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	INSTALL_ROOT="$pkgdir" make install
+
+	setcap cap_sys_time+ep "$pkgdir"/usr/bin/timed-qt5
+
+	install -Dm755 "$srcdir"/timed-qt5.desktop -t "$pkgdir"/etc/xdg/autostart
+	install -Dm644 \
+		-t "$pkgdir"/usr/share/mapplauncherd/privileges.d \
+		"$srcdir"/timed-qt5.privileges
+	install -dm755 -g users "$pkgdir"/var/lib/timed
+	ln -s /usr/share/zoneinfo/UTC "$pkgdir"/var/lib/timed/localtime
+
+	# Remove installed tests
+	rm -r "$pkgdir"/opt
+
+	# Remove systemd stuff
+	rm -rf "$pkgdir"/usr/lib/systemd
+
+	# Remove setcaps script, we already do this in our packaging
+	rm "$pkgdir"/usr/lib/oneshot.d/setcaps-timed-qt5.sh
+}
+
+sha512sums="
+546df55f7471d59071b423e4bd67936d975e35a0d611eeb0214a27f34fe139056b630e0ea2c1fb024d3bb4a79928ea0adb383c9b464c228624d46ffc1423d0f7  timed-3.6.14.tar.gz
+cd3eea6801d53b5a082392083705dc4a8c78dfcc4e0a980d8b55123e0426a157b3aa69af80b3d4156baf524c205ecd64bec7e4ee61550b43ae7445809451c950  timed-qt5.privileges
+b6e22c8175f91fccf5adca37c6d64a9a5f26f38069d0e235a4b5f1fe351cd5cadb9ed796eef763a9b7332884ed91c629a88116514442ae9be27a632e8ebfd34d  timed-qt5.desktop
+cd4f9a4ff4322f30ae2b687143d77a5a10e8f64fe340c28e5b39430401db12d037bf438667631cbc628d413772a1528c9dc578d5dbab374e4a2f1a87fa4f28cc  0001-Fixes-build.patch
+"

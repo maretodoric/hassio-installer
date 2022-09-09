@@ -1,0 +1,32 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Antoine Fontaine <antoine.fontaine@epfl.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-async-timeout
+_pkgname=async-timeout
+pkgver=4.0.2
+pkgrel=0
+pkgdesc="Timeout context manager for asyncio programs"
+url="https://pypi.python.org/pypi/async_timeout"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-typing-extensions"
+checkdepends="py3-pytest py3-pytest-cov py3-pytest-asyncio"
+makedepends="python3-dev py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m pytest
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+}
+
+sha512sums="
+e9884a525b99bc1a3a15c958a1dbb25a92cb286bb7360b03b0be3198e61685970628c8fef6dc478beba3f031e0ff6f03b1fcc3c2c34032d7fea6f8b65850ac38  py3-async-timeout-4.0.2.tar.gz
+"

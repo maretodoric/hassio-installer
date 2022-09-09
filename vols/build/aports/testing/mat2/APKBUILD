@@ -1,0 +1,42 @@
+# Maintainer: Waweic <waweic@activ.ism.rocks>
+# Contributor: Waweic <waweic@activ.ism.rocks>
+pkgname=mat2
+pkgver=0.12.4
+pkgrel=0
+pkgdesc="Metadata removal tool, supporting a wide range of commonly used file formats"
+url="https://0xacab.org/jvoisin/mat2"
+arch="noarch !s390x !riscv64" #librsvg missing for s390x and riscv64
+license="LGPL-3.0-or-later"
+depends="
+	exiftool
+	gdk-pixbuf
+	librsvg
+	mailcap
+	poppler-glib
+	py3-cairo
+	py3-gobject3
+	py3-mutagen
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="ffmpeg"
+source="https://0xacab.org/jvoisin/mat2/-/archive/$pkgver/mat2-$pkgver.tar.gz"
+subpackages="$pkgname-doc"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 -m unittest discover -v
+}
+
+package() {
+	python3 setup.py install --skip-build --prefix=/usr --root="$pkgdir"
+	install -Dm 644 doc/mat2.1 -t "$pkgdir/usr/share/man/man1"
+	install -Dm 644 doc/*.md -t "$pkgdir/usr/share/doc/$pkgname"
+}
+
+sha512sums="
+20936c80d0fa31dae9ee14c3d853c0e63a87b2d3ad5838a17bdbbc3e7cb4cf73462c9a9573d2aeab6e4ab0d6c18ce24c63a80e1a7cd044724c8ecc639d13da80  mat2-0.12.4.tar.gz
+"

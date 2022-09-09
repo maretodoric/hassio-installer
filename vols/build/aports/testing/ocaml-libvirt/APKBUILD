@@ -1,0 +1,74 @@
+# Contributor: Fernando Casas Schossow <casasfernando@outlook.com>
+# Maintainer: Fernando Casas Schossow <casasfernando@outlook.com>
+pkgname=ocaml-libvirt
+_pkgname=libvirt-ocaml
+pkgver=0.6.1.5_git20220503
+_commit=562ac8c3a9193fa5f24cb64f3b2f3eebe3cd723a
+pkgrel=0
+pkgdesc="OCaml binding for libvirt"
+url="https://libvirt.org/ocaml/"
+# s390x: libvirt-dev unavailable
+# riscv64: limited by ocaml aport
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later-WITH-linking-exception"
+makedepends="autoconf automake ocaml ocaml-findlib-dev libvirt-dev perl gawk"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/libvirt/libvirt-ocaml/-/archive/$_commit/libvirt-ocaml-$_commit.tar.gz"
+options="!check" # there is no test suite/unit tests
+builddir="$srcdir/$_pkgname-$_commit"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+prepare() {
+	default_prepare
+	autoreconf -i
+}
+
+build() {
+	export OCAMLPARAM="safe-string=0,_"
+	./configure \
+		--host=$CHOST \
+		--build=$CBUILD \
+		--target=$CTARGET \
+		--prefix=/usr
+	make
+}
+
+package() {
+	export DESTDIR="$pkgdir"
+	export OCAMLFIND_DESTDIR="$DESTDIR/usr/lib/ocaml"
+	mkdir -p "$OCAMLFIND_DESTDIR" "$OCAMLFIND_DESTDIR/stublibs"
+
+	# FIXME: if META.libvirt exists `make install` will fail with
+	# error msg "ocamlfind: Package libvirt is already installed"
+	rm -vf libvirt/META.libvirt
+
+	make install
+	install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+	install -D -m644 COPYING.LIB "$pkgdir/usr/share/licenses/$pkgname/COPYING.LIB"
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+527b9f29fbb6db17ffd1f89cea821d01c8a7db567bc2d6b2034f228cc75536b1321602c91cab2cb686e62ee674d0619fd33a24ec35401fbfdbf95e1b36c3e5ce  ocaml-libvirt-0.6.1.5_git20220503.tar.gz
+"

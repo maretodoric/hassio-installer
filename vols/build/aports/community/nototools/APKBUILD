@@ -1,0 +1,39 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=nototools
+pkgver=0.2.16
+pkgrel=1
+pkgdesc="Noto fonts support tools and scripts"
+url="https://github.com/googlefonts/nototools"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-fonttools"
+makedepends="
+	py3-setuptools
+	py3-setuptools_scm
+	"
+options="!check" # requires ttxn
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/n/notofonttools/notofonttools-$pkgver.tar.gz"
+builddir="$srcdir/notofonttools-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install \
+		--prefix=/usr \
+		--root="$pkgdir"
+
+	mkdir -p "$pkgdir"/usr/share/nototools
+	cp -r third_party "$pkgdir"/usr/share/nototools
+}
+
+sha512sums="
+3c70c29f8411ae3eedc2738e0b2f42f9c0b675494bbdc107a8b43612fba08401c704ec94db63bb92aa1648b168f9e0d9e8139b8c61dc3b43973876d105324554  notofonttools-0.2.16.tar.gz
+"

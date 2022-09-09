@@ -1,0 +1,39 @@
+# Contributor: Nathan Johnson <nathan@nathanjohnson.info>
+# Maintainer: Dave Hall <skwashd@gmail.com>
+pkgname=composer
+pkgver=2.3.7
+pkgrel=0
+pkgdesc="Dependency manager for PHP"
+url="https://getcomposer.org/"
+arch="noarch"
+license="MIT"
+_php=php8
+depends="$_php $_php-phar $_php-curl $_php-iconv $_php-mbstring $_php-openssl $_php-zip"
+checkdepends="git"
+options="net"
+source="$pkgname-$pkgver.phar::https://getcomposer.org/download/$pkgver/composer.phar"
+
+# secfixes:
+#   2.3.5-r0:
+#     - CVE-2022-24828
+#   2.1.9-r0:
+#     - CVE-2021-41116
+#   2.0.13-r0:
+#     - CVE-2021-29472
+
+check() {
+	cd "$srcdir"
+	$_php $pkgname-$pkgver.phar -Vn
+	$_php $pkgname-$pkgver.phar -n diagnose || true # fails as pub-keys are missing
+}
+
+package() {
+	install -m 0755 -D "$srcdir"/$pkgname-$pkgver.phar "$pkgdir"/usr/bin/$pkgname.phar
+	printf "#!/bin/sh\n\n/usr/bin/php8 /usr/bin/composer.phar \"\$@\"\n"\
+		> "$pkgdir"/usr/bin/$pkgname
+	chmod +x "$pkgdir"/usr/bin/$pkgname
+}
+
+sha512sums="
+d33529f334d068e34088ca362c06abc9a13e5888f8d0fdf7b4c50138a45fd1c777a920ebf444c79de3b8b53a7579afc6d28e1f7bf78dc9931bd246a8ac804aef  composer-2.3.7.phar
+"

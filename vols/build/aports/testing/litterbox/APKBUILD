@@ -1,0 +1,30 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=litterbox
+pkgver=1.8
+pkgrel=3
+pkgdesc="IRC logger"
+arch="all"
+url="https://git.causal.agency/litterbox/"
+license="GPL-3.0-or-later"
+options="!check" # v1.7 not a real test suite
+makedepends="libretls-dev sqlite-dev"
+subpackages="$pkgname-doc"
+source="https://git.causal.agency/litterbox/snapshot/litterbox-$pkgver.tar.gz"
+
+build() {
+	# configure script is not gnu-autoconf
+	./configure \
+		--prefix=/usr \
+		--bindir=/usr/bin \
+		--mandir=/usr/share/man
+	make all
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+ef49f1591eb70b80d8cd71eb4bf43ec02d09e20061627ad6900e32935b06a48ee52787cbc9debc7ac871b38d91e58ffe190d3c9fabe4cc764fb669cdd07a4c39  litterbox-1.8.tar.gz
+"

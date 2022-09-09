@@ -1,0 +1,90 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=krita
+pkgver=5.0.6
+pkgrel=2
+# armhf and armv7 blocked by build failures
+arch="all !armv7 !armhf"
+url="https://krita.org/"
+pkgdesc="Free digital painting application. Digital Painting, Creative Freedom!"
+license="GPL-2.0-or-later"
+depends="qt5-qtbase-sqlite"
+makedepends="
+	boost-dev
+	eigen-dev
+	exiv2-dev
+	extra-cmake-modules
+	fftw-dev
+	giflib-dev
+	gsl-dev
+	karchive-dev
+	kcompletion-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kguiaddons-dev
+	ki18n-dev
+	kitemmodels-dev
+	kitemviews-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	lcms2-dev
+	libheif-dev
+	libjpeg-turbo-dev
+	libmypaint-dev
+	libraw-dev
+	libxi-dev
+	opencolorio-dev
+	openexr-dev
+	poppler-qt5-dev
+	py3-qt5
+	py3-sip
+	python3-dev
+	qt5-qtbase-dev
+	qt5-qtmultimedia-dev
+	qt5-qtsvg-dev
+	qt5-qttools-dev
+	quazip-dev
+	samurai
+	tiff-dev
+	xcb-util-dev
+	zlib-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/krita/$pkgver/krita-$pkgver.tar.xz"
+subpackages="$pkgname-lang $pkgname-python"
+options="!check" # Breaks compilation on Musl https://bugs.kde.org/show_bug.cgi?id=412058
+
+build() {
+	GIT_DIR=. cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON \
+		-DBUILD_TESTING=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+python() {
+	pkgdesc="$pkgdesc (python plugin)"
+	depends="python3 py3-qt5"
+
+	amove \
+		usr/share/krita/pykrita \
+		usr/lib/kritaplugins/kritapykrita.so \
+		usr/lib/krita-python-libs \
+		usr/bin/kritarunner
+}
+
+sha512sums="
+7ad92b750a1c54bf79b279730ad84119030ff532f5a8a77f2040776304dbb768a67dfa1bf67ac72c0c984b7e508e59476640f1b41ea38d3f525d52c7eb6cde9f  krita-5.0.6.tar.xz
+"

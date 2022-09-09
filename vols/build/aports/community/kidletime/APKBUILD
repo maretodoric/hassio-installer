@@ -1,0 +1,43 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kidletime
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Monitoring user activity"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-only"
+depends_dev="qt5-qtx11extras-dev"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kidletime-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# solidmttest is broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "solidmttest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+f7445c1d929b5e993731f64ad735aac22272b6cf4ffb6486879000392d8d00024d1c6c83937d1898a43d7f09bb4f547bf7e0332d2b3ea939e8978bdd9260778d  kidletime-5.95.0.tar.xz
+"

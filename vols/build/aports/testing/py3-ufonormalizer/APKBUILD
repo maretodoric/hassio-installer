@@ -1,0 +1,31 @@
+# Contributor: Sascha Brawer <sascha@brawer.ch>
+# Maintainer: Sascha Brawer <sascha@brawer.ch>
+pkgname=py3-ufonormalizer
+_pyname=ufonormalizer
+pkgver=0.4.2
+pkgrel=2
+pkgdesc="Normalize the XML and other data inside UFO font design sources"
+url="https://github.com/unified-font-object/ufoNormalizer"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/u/$_pyname/$_pyname-$pkgver.zip"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	# Make files world-readable so others than root can run the installed script.
+	chmod -R a+r "$pkgdir"/usr/lib/python3*/site-packages
+}
+
+
+sha512sums="023e52fc6bf3bebdd75b81efc61f8ab3e4c6a62dfb3f6e63efb5a9f4998fcd471be37caab6d8f59733d6f68b1486dfd3f675fb2835f693f5705c7e93a3f07429  ufonormalizer-0.4.2.zip"

@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-jaraco.itertools
+pkgver=6.0.3
+pkgrel=2
+pkgdesc="jaraco.itertools"
+url="https://github.com/jaraco/jaraco.itertools"
+arch="noarch"
+license="MIT"
+depends="
+	py3-inflect
+	py3-more-itertools
+	python3
+	"
+# py3-setuptools_scm is required to set version of python module
+makedepends="
+	py3-setuptools
+	py3-setuptools_scm
+	"
+checkdepends="
+	py3-pytest
+	py3-pytest-black
+	py3-pytest-cov
+	py3-pytest-flake8
+	"
+source="https://pypi.python.org/packages/source/j/jaraco.itertools/jaraco.itertools-$pkgver.tar.gz"
+options="!check" # Black failure https://github.com/jaraco/jaraco.itertools/issues/11
+builddir="$srcdir/jaraco.itertools-$pkgver"
+
+# backwards compatibility for old name
+replaces="py3-jaraco-itertools"
+provides="py3-jaraco-itertools=$pkgver-r$pkgrel"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+5ceb11c6a5f1c88fa6191f1153b5450614d9fc87ae08acbe4a417d8bf6089f5dae747b1cee95a29763ffc595c291ab02198cf94b48eca34ce766735c6dc44e30  jaraco.itertools-6.0.3.tar.gz
+"

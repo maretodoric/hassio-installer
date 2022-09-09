@@ -1,0 +1,45 @@
+# Contributor: Timo Teräs <timo.teras@iki.fi>
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=libebml
+pkgver=1.4.2
+pkgrel=0
+pkgdesc="C++ library to parse Extensible Binary Meta-Language files"
+url="https://www.matroska.org"
+arch="all"
+options="!check"  # No test suite.
+license="LGPL-2.1-or-later"
+makedepends="cmake"
+subpackages="$pkgname-dev"
+source="http://dl.matroska.org/downloads/libebml/libebml-$pkgver.tar.xz
+	limits.patch
+	"
+
+# secfixes:
+#   1.4.2-r0:
+#     - CVE-2021-3405
+#   1.3.6-r0:
+#     - CVE-2019-13615
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		$CMAKE_CROSSOPTS
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+}
+
+sha512sums="
+b9535b60ba2716053819d48e345f161ad797a74678fdf60797d652da9dfa7cab905669dac744f30a81083341462bac6f2a0e69fa7d80ee59cf7414bffbd667d5  libebml-1.4.2.tar.xz
+86fff529035fd048a736c19026660a492987fb0f525356fbb4259c3ad2d1f2550e6bcaa81e07132ae558560427ba8b2c103cf987c67896a4fdbae737eb42cd69  limits.patch
+"

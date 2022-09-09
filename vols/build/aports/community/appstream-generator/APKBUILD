@@ -1,0 +1,35 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Pablo Correa Gomez <ablocorrea@hotmail.com>
+pkgname=appstream-generator
+pkgver=0.8.8
+pkgrel=1
+pkgdesc="fast AppStream metadata generator"
+url="https://github.com/ximion/appstream-generator"
+arch="x86_64 aarch64" # ldc
+license="LGPL-3.0-or-later"
+depends="optipng ffmpeg"
+makedepends="meson ldc ldc-runtime appstream-dev libarchive-dev gir-to-d
+	cairo-dev gdk-pixbuf-dev librsvg-dev freetype-dev fontconfig-dev
+	pango-dev yarn lmdb-dev glibd-dev libsoup-dev gobject-introspection-dev
+	coreutils curl-dev" # needs cp with preserve-ownership
+options="net"
+subpackages="$pkgname-doc"
+source="https://github.com/ximion/appstream-generator/archive/v$pkgver/appstream-generator-$pkgver.tar.gz
+	"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+69ee98e2ec5f6c0625eb8f57efce8565b4d1d279dbec82d4c5b726a20421730dd4f4bf281c0c3616f74127115b6e429c4aa45ef3685695a4ad559afccb8d6c75  appstream-generator-0.8.8.tar.gz
+"

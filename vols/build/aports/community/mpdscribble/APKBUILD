@@ -1,0 +1,33 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=mpdscribble
+pkgver=0.24
+pkgrel=2
+pkgdesc="last.fm client for mpd"
+options="!check" # No test target
+url="https://github.com/MusicPlayerDaemon/mpdscribble"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="meson libmpdclient-dev curl-dev libgcrypt-dev boost-dev"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="https://www.musicpd.org/download/mpdscribble/$pkgver/mpdscribble-$pkgver.tar.xz
+	mpdscribble.initd"
+
+build() {
+	abuild-meson \
+		-Dsystemd=disabled \
+		-Dtest=false \
+		-Dsyslog=enabled \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+	install -D -m755 "$srcdir"/mpdscribble.initd "$pkgdir"/etc/init.d/mpdscribble
+}
+
+sha512sums="
+cca57f54f69ec1c870805cc58057e6325b6f5897370c315dcd6a64c5dd28ac07fdbddaa8b56f8c1fd88e71d27505f1a87decd68fbdff1f3fe1eaadec8ae80dae  mpdscribble-0.24.tar.xz
+b82d3e5678aba145a5c8d172ebf74960d164e3e934426cc755948d795743bb07158f502705d40c1730a40b6a6d73e84c5792419adaf6ab83ec7c33756f0abb43  mpdscribble.initd
+"

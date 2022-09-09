@@ -1,0 +1,38 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=sad
+pkgver=0.4.20
+pkgrel=1
+pkgdesc="CLI search and replace - a batch file edit tool"
+url="https://github.com/ms-jpq/sad"
+arch="aarch64 armhf armv7 ppc64le x86 x86_64"  # limited by rust/cargo
+license="MIT"
+makedepends="cargo"
+source="https://github.com/ms-jpq/sad/archive/v$pkgver/sad-$pkgver.tar.gz"
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -D -m755 target/release/sad -t "$pkgdir"/usr/bin/
+}
+
+sha512sums="
+993e733ab5d8a8c81953a27708cacbb651e996f623c665646c777c4ee694c42481b39a00677c460c28b20834da6864268915c2a510d0ec9818473dbc7348f018  sad-0.4.20.tar.gz
+"

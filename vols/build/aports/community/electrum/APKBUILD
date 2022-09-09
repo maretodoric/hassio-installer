@@ -1,0 +1,55 @@
+# Maintainer: Michał Adamski <michal@ert.pl>
+pkgname=electrum
+pkgver=4.1.5
+pkgrel=4
+pkgdesc="Lightweight Bitcoin Wallet"
+url="https://electrum.org/"
+arch="noarch"
+license="MIT"
+depends="
+	libsecp256k1
+	python3
+	py3-aiohttp
+	py3-aiohttp-socks
+	py3-aiorpcx
+	py3-attrs
+	py3-bitstring
+	py3-certifi
+	py3-dnspython
+	py3-ecdsa
+	py3-protobuf
+	py3-pycryptodomex
+	py3-qrcode
+	"
+
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-pyside2 py3-mock"
+source="
+	https://download.electrum.org/$pkgver/Electrum-$pkgver.tar.gz
+	0001-apk-add-instead-of-apt-get-install.patch
+"
+builddir="$srcdir/Electrum-$pkgver"
+
+case "$CARCH" in
+	# pyside2 is not available
+	armhf|ppc64le|s390x) options="$options !check"
+esac
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# PySide2 UI tests are failing, because .ui files are missing in the tarball
+	# setting CI variable skips them, because upstream can't run them either
+	CI=1 python3 -m pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm -r "${pkgdir:?}"/home
+}
+sha512sums="
+fbffd2366c8521e37da21dce0a59ca140f63635df5a2f31d5faafbc1267384bc6c76f66502a19cdcb4d4100f249c12bc336a54795a8b840bf299b5fda4bc1c8e  Electrum-4.1.5.tar.gz
+ccc8b3e286369a76d396e52e3db9b20a493dec179346a64a2fe4266d3ab1d775c07cf742d9c602f606030ecd95589a27f709e5f4b7b996fa5ccc0feb854dda9b  0001-apk-add-instead-of-apt-get-install.patch
+"

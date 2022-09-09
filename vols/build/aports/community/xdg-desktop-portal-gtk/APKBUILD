@@ -1,0 +1,34 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=xdg-desktop-portal-gtk
+pkgver=1.14.0
+pkgrel=0
+pkgdesc="Gtk implementation of xdg-desktop-portal"
+url="https://github.com/flatpak/xdg-desktop-portal-gtk"
+arch="all !riscv64 !s390x"  # blocked by xdg-desktop-portal->flatpak->polkit
+license="LGPL-2.1-or-later"
+depends="xdg-desktop-portal"
+makedepends="gtk+3.0-dev dbus-dev gnome-desktop-dev"
+subpackages="$pkgname-lang"
+source="https://github.com/flatpak/xdg-desktop-portal-gtk/releases/download/$pkgver/xdg-desktop-portal-gtk-$pkgver.tar.xz"
+options="!check"  # no tests provided
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -rf "$pkgdir"/usr/lib/systemd
+}
+
+sha512sums="
+b0ba54e1ddbdfbd22b8b31bf4ece261dc0beba303e642f10afc72659dd5477438a30688c9d018e3d1ed2adbc053ddf4e3a2d70de8cac03d9519355772862fafc  xdg-desktop-portal-gtk-1.14.0.tar.xz
+"

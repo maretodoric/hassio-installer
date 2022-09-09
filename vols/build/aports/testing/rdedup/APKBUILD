@@ -1,0 +1,28 @@
+# Contributor: tcely <rdedup+aports@tcely.33mail.com>
+# Maintainer:
+pkgname=rdedup
+pkgver=3.2.1
+pkgrel=1
+pkgdesc="Data deduplication with compression and public key encryption"
+url="https://github.com/dpc/rdedup"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le" # limited by cargo
+license="MPL-2.0"
+makedepends="cargo clang-dev libsodium-dev openssl-dev xz-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/dpc/rdedup/archive/v$pkgver.tar.gz"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+375265eab7c133000682fd8bf6bf023d69042571a737e707671874a9c5bada4c05742fd397207661f0c8334f0818e8a52707c412ca5cbec636469f6d9c7448c9  rdedup-3.2.1.tar.gz
+"

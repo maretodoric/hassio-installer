@@ -1,0 +1,31 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=py3-rstr
+pkgver=3.2.0
+pkgrel=0
+pkgdesc="Random string generator"
+url="https://github.com/leapfrogonline/rstr"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-build py3-installer py3-setuptools py3-wheel"
+checkdepends="py3-pytest"
+source="https://files.pythonhosted.org/packages/source/r/rstr/rstr-$pkgver.tar.gz"
+builddir="$srcdir/rstr-$pkgver"
+
+build() {
+	python3 -m build --no-isolation --wheel
+}
+
+check() {
+	python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		dist/rstr-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+4e6613c68572c12755f3284baa97477843f39668f0753114a92b9d32c45cb7492fec299818ae4f7ea9bdf511ab715ef1dc0ef7d15af50bcb32fd9208f0e1af6e  rstr-3.2.0.tar.gz
+"

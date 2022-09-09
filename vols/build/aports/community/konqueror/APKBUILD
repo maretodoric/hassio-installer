@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=konqueror
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="KDE File Manager & Web Browser"
+# armhf blocked by extra-cmake-modules
+# s390x, ppc64le and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !s390x !ppc64le !riscv64"
+url="https://konqueror.org/"
+license="GPL-2.0-or-later AND GFDL-1.2-only AND LicenseRef-KDE-Accepted-LGPL"
+makedepends="
+	extra-cmake-modules
+	kactivities-dev
+	karchive-dev
+	kcmutils-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdelibs4support-dev
+	kdesu-dev
+	kdoctools-dev
+	kiconthemes-dev
+	kinit-dev
+	kparts-dev
+	kwindowsystem-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/konqueror-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+options="!check" # Requires OpenGL and running D-Bus server
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+a29699257245057bdd4150165163471fe10c1c4626f2d19b199a9c2d92d654deb859c5191f5ca5c2185366fd85d44c3194658d7c7f89286e758475fbb7480f1e  konqueror-22.04.2.tar.xz
+"

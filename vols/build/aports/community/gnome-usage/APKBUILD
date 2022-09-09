@@ -1,0 +1,26 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-usage
+pkgver=3.38.1
+pkgrel=0
+pkgdesc="System resources status"
+url="https://wiki.gnome.org/Apps/Usage"
+# s390x and riscv64 blocked by polkit -> tracker
+arch="all !s390x !riscv64"
+license="GPL-3.0-or-later"
+makedepends="meson glib-dev gtk+3.0-dev libdazzle-dev libgtop-dev vala
+	libhandy1-dev tracker-dev"
+options="!check" # no tests
+subpackages="$pkgname-lang $pkgname-dbg"
+source="https://download.gnome.org/sources/gnome-usage/${pkgver%.*}/gnome-usage-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="8c4621d0340e2fc893ffcc3dc54f2088971c764fbb80302eb171e9f066f62424e532319f9d89c1157945a4721c40eef5253ea4e6ff6f702f5953e61f99d36f07  gnome-usage-3.38.1.tar.xz"

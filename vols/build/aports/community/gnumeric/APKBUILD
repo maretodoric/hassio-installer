@@ -1,0 +1,64 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=gnumeric
+pkgver=1.12.51
+pkgrel=1
+pkgdesc="GNOME Spreadsheet Program"
+url="https://www.gnome.org/projects/gnumeric"
+# s390x and riscv64 blocked by librsvg -> goffice
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later OR GPL-3.0-or-later"
+makedepends="
+	autoconf
+	automake
+	bison
+	desktop-file-utils
+	flex
+	goffice-dev
+	gtk+3.0-dev
+	intltool
+	itstool
+	libtool
+	libxml2-utils
+	libxslt-dev
+	py3-gobject3-dev
+	python3-dev
+	rarian
+	gtk-doc
+	"
+checkdepends="
+	perl-exporter
+	perl-file-basedir
+	perl-xml-parser
+	"
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/gnumeric/${pkgver%.*}/gnumeric-$pkgver.tar.xz"
+options="!check" # failing tests
+
+prepare() {
+	default_prepare
+	autoreconf -vif
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--with-python \
+		--disable-static
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+c46164d9deb29831ab059613548743d84cb15461ac363305a28097832eb69d3fbf3cf8784c420c777bd09e32212b2ef6237bfa56ca28a7e08fd3befde9dfed36  gnumeric-1.12.51.tar.xz
+"

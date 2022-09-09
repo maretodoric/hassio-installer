@@ -1,0 +1,30 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-rst.linker
+pkgver=2.3.0
+pkgrel=0
+pkgdesc="Tools for adding metadata and hyperlinks to reStructuredText"
+url="https://github.com/jaraco/rst.linker"
+arch="noarch"
+license="MIT"
+depends="py3-dateutil py3-sphinx"
+makedepends="py3-build py3-installer py3-setuptools_scm py3-wheel"
+checkdepends="py3-path py3-pytest"
+source="https://files.pythonhosted.org/packages/source/r/rst.linker/rst.linker-$pkgver.tar.gz"
+builddir="$srcdir/rst.linker-$pkgver"
+
+build() {
+	python3 -m build --skip-dependency-check --no-isolation --wheel
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" --compile-bytecode 0 dist/rst.linker-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+a4190c3349c85ee52d17498c99c7879be3f0a98cfc0b5966cc2f6161f9b374d52a64be7035691256d96d4c2ebb2272d5d10802e5e716efedf78859e418e561e0  rst.linker-2.3.0.tar.gz
+"

@@ -1,0 +1,55 @@
+# Contributor: Jakub Panek <me@panekj.dev>
+# Maintainer: Jakub Panek <me@panekj.dev>
+pkgname=xplr
+pkgver=0.19.0
+pkgrel=0
+pkgdesc="A hackable, minimal, fast TUI file explorer"
+url="https://xplr.dev"
+# s390x, riscv64 limited by rust
+arch="all !s390x !riscv64"
+license="MIT"
+makedepends="cargo luajit-dev"
+options="net"
+source="
+	https://github.com/sayanarijit/xplr/archive/refs/tags/v$pkgver/xplr-$pkgver.tar.gz
+	remove-vendored-lua.patch
+	"
+
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --offline --release
+}
+
+check() {
+	cargo build --frozen --offline
+	# cargo test doesn't build target/debug/xplr binary
+	cargo test --frozen
+}
+
+package() {
+	cargo install --frozen --offline --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	install -Dm644 -t "$pkgdir"/usr/share/applications "$builddir"/assets/desktop/xplr.desktop
+	install -Dm644 "$builddir"/assets/icon/xplr.svg "$pkgdir"/usr/share/pixmaps/xplr.svg
+	install -Dm644 "$builddir"/assets/icon/xplr.svg "$pkgdir"/usr/share/icons/hicolor/scalable/apps/xplr.svg
+	install -Dm644 "$builddir"/assets/icon/xplr16.png "$pkgdir"/usr/share/icons/hicolor/16x16/apps/xplr.png
+	install -Dm644 "$builddir"/assets/icon/xplr32.png "$pkgdir"/usr/share/icons/hicolor/32x32/apps/xplr.png
+	install -Dm644 "$builddir"/assets/icon/xplr64.png "$pkgdir"/usr/share/icons/hicolor/64x64/apps/xplr.png
+	install -Dm644 "$builddir"/assets/icon/xplr128.png "$pkgdir"/usr/share/icons/hicolor/128x128/apps/xplr.png
+}
+
+sha512sums="
+0b1e229320f30ce5c49f043c6ee6e1dc33eae4611398bc19a2436fe3b36b4e57cc1644733c3c6d279b199d3e0165301c83669093dfc46e06cdeed44ad55f8968  xplr-0.19.0.tar.gz
+1f77540b2278414da92c292fa68ed7c91b7eae1821895286a2c711580fb4e50777a02ca73035636e7801fa57843b01106bad538821d5df47d604380a8778348b  remove-vendored-lua.patch
+"

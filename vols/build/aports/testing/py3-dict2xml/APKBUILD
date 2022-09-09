@@ -1,0 +1,27 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-dict2xml
+_pyname=dict2xml
+pkgver=1.7.1
+pkgrel=0
+pkgdesc="Small utility to convert a python dictionary into an XML string"
+options="!check" # Requires unpackaged 'NoseOfYeti'
+url="https://github.com/delfick/python-dict2xml"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools"
+_pypiprefix="${_pyname%${_pyname#?}}"
+source="https://files.pythonhosted.org/packages/source/$_pypiprefix/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --optimize=1
+}
+
+sha512sums="
+37dfbd2b2f1732dfd09bab910f6a8dbe5a644545aa9d4fa82d5dadba3754a04aa39e25de777ec1a2174729ae214eb4b27b5d4c1a2b5e760abd7d7b76308b1a25  dict2xml-1.7.1.tar.gz
+"

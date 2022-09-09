@@ -1,0 +1,42 @@
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Contributor: Mike Crute <mike@crute.us>
+pkgname=libupnp
+pkgver=1.14.12
+pkgrel=1
+pkgdesc="Portable Open Source UPnP Development Kit"
+url="https://pupnp.github.io/pupnp/"
+arch="all"
+license="BSD-3-Clause"
+makedepends="cmake samurai"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pupnp/pupnp/archive/refs/tags/release-$pkgver.tar.gz
+disable-failing-test.patch"
+builddir="$srcdir"/pupnp-release-$pkgver
+
+# secfixes:
+#   1.12.1-r1:
+#     - CVE-2020-13848
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-Dblocking_tcp_connections=OFF \
+		-Dreuseaddr=ON \
+		-Dsamples=OFF
+	cmake --build build
+}
+
+check() {
+	cmake --build build --target test
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+aab17aa12f15d110bfab20cbcbae5f54926b6ca7a30bce10b9287cd39919a06a5e9f1493405e1d561c0d58ba46926f87009df891e4e4f37097df1c3c67635ca9  libupnp-1.14.12.tar.gz
+11db07bf4fb8d28da9c2c34da7f709b228616e12d3103208a8ceb420d1247fe1eeefa8dad2f69f18571522d26e3637e77d55252062e961690a1a7d84fec9271b  disable-failing-test.patch
+"

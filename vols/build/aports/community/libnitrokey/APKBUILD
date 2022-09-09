@@ -1,0 +1,32 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libnitrokey
+pkgver=3.7
+pkgrel=0
+arch="all"
+url="https://nitrokey.com/"
+pkgdesc="Communicate with Nitrokey devices in a clean and easy manner"
+license="LGPL-3.0-or-later"
+makedepends="
+	cmake
+	hidapi-dev
+	"
+source="https://github.com/Nitrokey/libnitrokey/archive/v$pkgver/libnitrokey-v$pkgver.tar.gz"
+subpackages="$pkgname-dev"
+options="!check" # No tests
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+000fb9addc59eff0346e61716de0948ab16415db39885349ba23f3e267623ec57175c63a127c8b3b51f0b2676e698ecfc7595e0b86a2eddf09f5934ab39a51a8  libnitrokey-v3.7.tar.gz
+"

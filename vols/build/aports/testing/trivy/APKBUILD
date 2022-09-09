@@ -1,0 +1,32 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=trivy
+pkgver=0.29.2
+pkgrel=0
+pkgdesc="Simple and comprehensive vulnerability scanner for containers"
+url="https://github.com/aquasecurity/trivy"
+arch="all"
+# s390x: tests SIGSEGV: https://github.com/aquasecurity/trivy/issues/430
+# ppc64le: FTBFS: build constraints exclude all Go files in [...]
+# riscv64: modernc.org/libc@v1.14.1 build constraints exclude all Go files
+arch="$arch !s390x !ppc64le !riscv64"
+license="Apache-2.0"
+makedepends="btrfs-progs-dev go linux-headers lvm2-dev"
+source="https://github.com/aquasecurity/trivy/archive/v$pkgver/trivy-$pkgver.tar.gz"
+options="net !check" # needs tinygo to turn go into wasm for tests
+
+build() {
+	make build VERSION=$pkgver
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm755 $pkgname "$pkgdir"/usr/bin/$pkgname
+}
+
+sha512sums="
+c50d0bccaf6dfcd0d6efb619756d73f91a169847fc79c1f33005de62d3d1ba74fdee2af7064478373d612356ca8a76f6fa494a6ae6ed87754597304bf213aba9  trivy-0.29.2.tar.gz
+"

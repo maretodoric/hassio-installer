@@ -1,0 +1,24 @@
+# Maintainer: Martijn Braam <martijn@brixit.nl>
+pkgname=py3-cobs
+_pyname=cobs
+pkgver=1.1.4
+pkgrel=2
+pkgdesc="Consistent Overhead Byte Stuffing"
+options="!check" # Testsuite runs 0 tests
+url="https://pypi.org/project/cobs/"
+arch="all"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools python3-dev"
+_pypiprefix="${_pyname%${_pyname#?}}"
+source="https://files.pythonhosted.org/packages/source/$_pypiprefix/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir=$srcdir/$_pyname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="0cd6a6e68eaeaf45f3e8d5a0e1bcd20ca8c390fcebfb9b14a47d84a6c04de39d04b0e2411a8c6842a65331331ade318e292aac82b29c7761bf0307b64ae81673  cobs-1.1.4.tar.gz"

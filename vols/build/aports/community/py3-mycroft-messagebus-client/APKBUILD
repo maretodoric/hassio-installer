@@ -1,0 +1,34 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-mycroft-messagebus-client
+pkgver=0.9.5
+pkgrel=1
+pkgdesc="A simple interface for the MyCroft messagebus"
+url="https://github.com/MycroftAI/mycroft-messagebus-client"
+arch="noarch"
+license="Apache-2.0"
+depends="
+	py3-pyee
+	py3-websocket-client
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/m/mycroft-messagebus-client/mycroft-messagebus-client-$pkgver.tar.gz"
+builddir="$srcdir/mycroft-messagebus-client-$pkgver"
+
+build() {
+	MYCROFT_LOOSE_REQUIREMENTS=1 python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	MYCROFT_LOOSE_REQUIREMENTS=1 python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+ea4e0aeb0765c99fa3a5a8f19da0a5a82957fe288d85378bb3de3ce3382765a310e233110c331de0c5e622c4c7ee3f1317c2e63fd8fa3ae591a9573bd5608979  mycroft-messagebus-client-0.9.5.tar.gz
+"

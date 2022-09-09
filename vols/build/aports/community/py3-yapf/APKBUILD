@@ -1,0 +1,27 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-yapf
+pkgver=0.31.0
+pkgrel=3
+pkgdesc="A formatter for Python files"
+url="https://github.com/google/yapf"
+arch="noarch"
+license="Apache-2.0"
+depends="python3"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/google/yapf/archive/v$pkgver/py3-yapf-$pkgver.tar.gz"
+builddir="$srcdir/yapf-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="5f376e985e182aab289c41e4071fd98c0784e5292974e2efcc4beaaca68cb83068b297e228a46f51f0d9370634dbd32948bdbd03e6b65c76b43efba0fe0d3454  py3-yapf-0.31.0.tar.gz"

@@ -1,0 +1,55 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=openmp
+pkgver=14.0.5
+pkgrel=0
+_llvmver=${pkgver%%.*}
+pkgdesc="LLVM OpenMP Runtime Library"
+url="https://openmp.llvm.org/"
+arch="all !s390x" # LIBOMP_ARCH = UnknownArchitecture
+license="Apache-2.0"
+options="!check" # 6 tests failing
+depends_dev="$pkgname"
+makedepends="
+	clang
+	cmake
+	elfutils-dev
+	libffi-dev
+	llvm$_llvmver-dev
+	llvm$_llvmver-static
+	perl
+	samurai
+	"
+checkdepends="llvm$_llvmver-test-utils"
+subpackages="$pkgname-dev"
+source="https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver/openmp-$pkgver.src.tar.xz"
+builddir="$srcdir/$pkgname-$pkgver.src"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DLIBOMP_INSTALL_ALIASES=OFF \
+		-DCLANG_TOOL=/usr/bin/clang \
+		-DLINK_TOOL=/usr/bin/llvm-link \
+		-DOPT_TOOL=/usr/bin/opt \
+		-DOPENMP_LLVM_TOOLS_DIR=/usr/lib/llvm$_llvmver/bin \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	cmake --build build --target check-openmp
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	rm -f "$pkgdir"/usr/lib/libarcher_static.a
+}
+
+sha512sums="
+79d3aeb4cfeeab53cf7bbba5053c88f0cf9892a82c725bc64b71a1163b5b8442a3ed24bc12c1b179f306fbf959922ae0e271085b03c2415c0af465bfd65ee64f  openmp-14.0.5.src.tar.xz
+"

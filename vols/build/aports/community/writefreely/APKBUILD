@@ -1,0 +1,48 @@
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=writefreely
+pkgver=0.13.1
+pkgrel=7
+pkgdesc="Federated blogging from write.as"
+url="https://writefreely.org"
+# riscv64: limited by nodejs
+arch="all !riscv64"
+license="AGPL-3.0-or-later"
+pkgusers="$pkgname"
+pkggroups="$pkgname"
+makedepends="go go-bindata sqlite-dev nodejs-less nodejs-less-plugin-clean-css npm"
+install="$pkgname.pre-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/writefreely/writefreely/archive/v$pkgver.tar.gz
+	config.ini"
+options="!check"
+
+build() {
+	make ui
+	make build
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -d -o $pkgname -g $pkgname "$pkgdir"/var/lib/$pkgname
+	install -d -o $pkgname -g $pkgname "$pkgdir"/var/lib/$pkgname/keys
+	install -d -o $pkgname -g $pkgname "$pkgdir"/var/lib/$pkgname/data
+
+	install -dm755 "$pkgdir"/usr/share/$pkgname/pages
+	install -dm755 "$pkgdir"/usr/share/$pkgname/static
+	install -dm755 "$pkgdir"/usr/share/$pkgname/templates
+
+	install -Dm644 "$srcdir"/config.ini "$pkgdir"/etc/writefreely/config.ini
+
+	install -Dm755 "$builddir"/cmd/$pkgname/$pkgname "$pkgdir"/usr/bin/$pkgname
+	cp -r "$builddir"/pages/* "$pkgdir"/usr/share/writefreely/pages
+	cp -r "$builddir"/static/* "$pkgdir"/usr/share/writefreely/static
+	cp -r "$builddir"/templates/* "$pkgdir"/usr/share/writefreely/templates
+}
+
+sha512sums="
+59106f78d1040c30c9ef5ebc6240e4f8f4a2ef4cbbb5531eabd3a040c341e27059dd7242227e288e84b8f9f953b5aa2600988cb1de45d404727f6a9d1e027db2  writefreely-0.13.1.tar.gz
+27685562af68e5c03850cf346e95f87657dfceffc396441ca3315ca2065ccd4ea86dbd831b0c3f1dce99de4a6317eaf495ce979d5e98c3feeebbd0fbc793fa30  config.ini
+"

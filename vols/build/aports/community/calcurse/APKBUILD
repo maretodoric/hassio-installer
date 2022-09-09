@@ -1,0 +1,40 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Bartłomiej Piotrowski <nospam@bpiotrowski.pl>
+# Maintainer: Roberto Oliveira <robertoguimaraes8@gmail.com>
+pkgname=calcurse
+pkgver=4.8.0
+pkgrel=0
+pkgdesc="A text-based personal organizer"
+url="https://calcurse.org/"
+license="BSD-2-Clause"
+arch="all"
+makedepends="ncurses-dev"
+checkdepends="tzdata"
+subpackages="$pkgname-doc"
+source="https://calcurse.org/files/calcurse-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--disable-nls \
+		--enable-docs \
+		--without-asciidoc
+	make
+}
+
+check() {
+	make -j1 -C "$builddir" check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+ea156c4320abf97fdb5abc29ff1f9bc659a3cab0e571295ed04b42dd742c4c45a7d5958dc2d386fc0ee7bd733969a6275405d5cf10cd645c75cb97b6b9e571d6  calcurse-4.8.0.tar.gz
+"

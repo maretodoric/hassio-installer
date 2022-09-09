@@ -1,0 +1,55 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-maps
+pkgver=42.1
+pkgrel=0
+pkgdesc="simple map client"
+url="https://wiki.gnome.org/Apps/Maps"
+arch="all !s390x !riscv64" # limited by gjs
+license="GPL-2.0-or-later"
+depends="
+	geoclue
+	gfbgraph
+	gjs
+	libgweather4
+	libhandy1
+	"
+makedepends="
+	folks-dev
+	geoclue-dev
+	geocode-glib-dev
+	gjs-dev
+	glib-dev
+	gobject-introspection-dev
+	gtk+3.0-dev
+	libchamplain-dev
+	libgee-dev
+	libgweather4-dev
+	libhandy1-dev
+	libxml2-dev
+	meson
+	rest-dev
+	"
+checkdepends="
+	appstream-glib
+	desktop-file-utils
+	"
+subpackages="$pkgname-lang"
+source="https://download.gnome.org/sources/gnome-maps/${pkgver%.*}/gnome-maps-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+a01bf5eefa541542930e53750ac216cd93e4b409a171b57ed18525020cd2dc55db596ab68885ab9d607999c971f8e4ec2b746507157aab32b863a17a222a6fc2  gnome-maps-42.1.tar.xz
+"

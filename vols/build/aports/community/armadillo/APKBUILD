@@ -1,0 +1,41 @@
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=armadillo
+pkgver=11.0.1
+pkgrel=0
+pkgdesc="C++ library for linear algebra & scientific computing"
+url="http://arma.sourceforge.net/"
+arch="all"
+license="Apache-2.0"
+options="!check"  # Armadillo must be installed before the tests can be compiled
+depends_dev="
+	hdf5-dev
+	superlu-dev
+	"
+makedepends="
+	arpack-dev
+	cmake
+	hdf5-dev
+	openblas-dev
+	superlu-dev
+	"
+subpackages="$pkgname-dev"
+source="https://downloads.sourceforge.net/project/arma/armadillo-$pkgver.tar.xz"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	mkdir -p "$pkgdir/usr/lib/cmake"
+	mv "$pkgdir/usr/share/Armadillo/CMake"/* "$pkgdir/usr/lib/cmake"
+	rm -rf "$pkgdir/usr/share"
+}
+
+sha512sums="
+d291e2fdd6bf4d44ada94d9ea98689b474cb37cc141a6fb4fe8c76368c95f944969cdab58002d2b77523280fd45b6d436fad8648e0cbdd045c63f4fac12a7ed5  armadillo-11.0.1.tar.xz
+"

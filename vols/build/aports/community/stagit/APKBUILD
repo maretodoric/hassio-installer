@@ -1,0 +1,24 @@
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=stagit
+pkgver=1.0
+pkgrel=1
+pkgdesc="static git page generator"
+url="https://www.codemadness.org/stagit.html"
+arch="all"
+license="MIT"
+options="!check" # No tests exist
+makedepends="libgit2-dev"
+subpackages="$pkgname-doc"
+source="https://codemadness.org/releases/stagit/stagit-$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir" MANPREFIX=/usr/share/man install
+}
+
+sha512sums="
+d18d7adadf85979f3062f0d4c41580d06f11a39c8864184d5a37822689bd372bb26139c7ae16728d71e240f90e2dbe6ce829cd27ee2ea684474974341c208813  stagit-1.0.tar.gz
+"

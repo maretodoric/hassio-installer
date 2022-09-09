@@ -1,0 +1,50 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=cln
+pkgver=0_git20211105
+_gitrev=280cc69e7235f176669202a319dd493b234a5b70
+pkgrel=0
+pkgdesc="C++ class library for numbers"
+url="https://www.ginac.de/CLN/"
+# armv7, armhf: error ../src/libcln.so.6.0.6: undefined reference to '_divu_16_rest' etc
+arch="all !armv7 !armhf"
+license="GPL-2.0-or-later"
+makedepends="cmake gmp-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$_gitrev.tar.gz::https://www.ginac.de/CLN/cln.git/?p=cln.git;a=snapshot;h=$_gitrev;sf=tgz"
+builddir="$srcdir/$pkgname-${_gitrev:0:7}"
+
+# asm routines have problems on arm, hppa and sparc
+case $CARCH in
+	arm*) _no_asm=-DNO_ASM;;
+esac
+
+build() {
+	export CPPFLAGS="$CPPFLAGS $_no_asm"
+	# "-B build" leads to error: build/conftest.s cannot be read
+	cmake \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_PREFIX_PATH=/usr \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCLN_USE_GMP=ON \
+		.
+	cmake --build .
+}
+
+check() {
+	cmake --build . --target check
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build . --target install
+	cd ./doc && mkdir -pv $pkgdir/usr/share/doc/cln/examples  && \
+	cp -rpv ./cln.texi ./polynomial ./ratseries $pkgdir/usr/share/doc/cln/
+	cd ../examples && rm -rv ./C* ./Make* ./cmake* \
+		contfrac e fibonacci legendre lucaslehmer nextprime perfnum pi && \
+	cp -rpv ./* $pkgdir/usr/share/doc/cln/examples
+}
+
+sha512sums="
+368f33746ef06005d30756ecb4b4e775485be624cc6cb3ff83ff8f887f3ad5d9d994319c06083085ce4831e68960bd0d1ff4df0fd38a9d4c28067acc50c80bde  cln-280cc69e7235f176669202a319dd493b234a5b70.tar.gz
+"

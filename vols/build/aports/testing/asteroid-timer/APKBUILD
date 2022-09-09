@@ -1,0 +1,39 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-timer
+pkgver=0_git20210517
+pkgrel=0
+_commit="7a7e9475f7032dec63cea1bdb943828fadac363f"
+pkgdesc="Default timer app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-timer"
+# armhf blocked by qml-asteroid
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="
+	mapplauncherd
+	nemo-qml-plugin-alarms
+	"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-timer/archive/$_commit/asteroid-timer-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+ddc5610385f896b093bf8bde497890520c939418b022c5cd4cb1e5990fb3bb609c967ea842bc59b29f7d018fb9e2bc2e031406d2c73767bddc395bee87401df0  asteroid-timer-7a7e9475f7032dec63cea1bdb943828fadac363f.tar.gz
+"

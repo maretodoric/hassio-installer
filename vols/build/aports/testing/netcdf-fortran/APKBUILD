@@ -1,0 +1,46 @@
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=netcdf-fortran
+pkgver=4.5.4
+pkgrel=0
+pkgdesc="NetCDF fortran bindings"
+url="https://www.unidata.ucar.edu/software/netcdf/"
+arch="all !s390x"
+license="Apache-2.0"
+makedepends="
+	cmake
+	doxygen
+	gfortran
+	graphviz
+	m4
+	netcdf-dev
+	"
+depends_dev="
+	netcdf-dev
+	"
+subpackages="
+	$pkgname-doc
+	$pkgname-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Unidata/netcdf-fortran/archive/v$pkgver.tar.gz"
+
+build() {
+	FCFLAGS="$FCFLAGS -fallow-argument-mismatch" \
+	FFLAGS="$FFLAGS -fallow-argument-mismatch" \
+	./configure \
+		--prefix=/usr \
+		--disable-static
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -rf $pkgdir/usr/include/CMakeFiles
+}
+
+check() {
+	make check
+}
+sha512sums="
+a704f6483f2c8b8bf2353615a3e4b784294bd790588cfc13193c617e776e330edb17fa16da69e1a0b6c767308992321e01399ba2067c32f6ae6b3cb9ff72c3ee  netcdf-fortran-4.5.4.tar.gz
+"

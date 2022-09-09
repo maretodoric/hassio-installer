@@ -1,0 +1,41 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xfwm4
+pkgver=4.16.1
+pkgrel=0
+pkgdesc="Xfce window manager, compatible with Gnome, Gnome2, KDE2, and KDE3"
+url="https://xfce.org/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="hicolor-icon-theme"
+subpackages="$pkgname-lang"
+makedepends="libxfce4ui-dev libwnck3-dev libxrandr-dev libxcomposite-dev
+	libxfixes-dev libxdamage-dev libxrender-dev libepoxy-dev dbus-glib-dev
+	libxpresent-dev intltool"
+source="https://archive.xfce.org/src/xfce/xfwm4/${pkgver%.*}/xfwm4-$pkgver.tar.bz2
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib \
+		--localstatedir=/var \
+		--disable-static \
+		--enable-compositor \
+		--enable-startup-notification \
+		--enable-xpresent \
+		--enable-xsync
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+sha512sums="f0d5d00e58202457d0d7d5f9772e7b2aa3f3339850065609baab7d379248a628d147464cc605698970134b87d58b7867b8c09d0a3a45ab84b2f3aa95be26f0b9  xfwm4-4.16.1.tar.bz2"

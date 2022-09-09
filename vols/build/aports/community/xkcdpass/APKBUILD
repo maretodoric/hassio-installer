@@ -1,0 +1,38 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=xkcdpass
+pkgver=1.19.3
+pkgrel=1
+pkgdesc="Generate secure multiword passwords/passphrases"
+url="https://github.com/redacted/XKCD-password-generator"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-xkcdpass"
+makedepends="python3-dev py3-setuptools"
+subpackages="py3-$pkgname:py3"
+source="https://files.pythonhosted.org/packages/source/x/xkcdpass/xkcdpass-$pkgver.tar.gz
+	python-to-python3.patch"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD"/build/lib python3 tests/test_xkcdpass.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+py3() {
+	pkgdesc="Python library for $pkgname"
+	depends="python3"
+
+	amove usr/lib/python*
+}
+
+sha512sums="
+5336e57edd7fbeb655573910b0c0868381a8b43d5ccbb8d388cc24ef16ba094c27517a4fe7b11dbfc7ff906b65a303f90b20cdf9bc551b844453640378b5e555  xkcdpass-1.19.3.tar.gz
+23a7c50a96e7d854bdbfdb87852229b147d1f892d05f9d64d899199c0eb7276638c908f8dee17880cf4f611a17565ce1c117c5dfaca9117379ce1e7655f30808  python-to-python3.patch
+"

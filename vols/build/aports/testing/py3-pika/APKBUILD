@@ -1,0 +1,40 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-pika
+_pkgname=pika
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="Python3 AMQP client library"
+options="!check" # failures=1
+url="https://pika.readthedocs.org"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-tornado py3-twisted"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-coverage
+	py3-codecov
+	py3-mock
+	py3-nose
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/pika/pika/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-pika" # Backwards compatibility
+provides="py-pika=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	nosetests
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+0b5db7e09e589b35b42221970dc16c1fe26a7a7be35ab64a23574ae8d2eff72d700f6c95b457f8a4558f6835f3a80f464479e1db75826382776e74819412014b  py3-pika-1.2.0.tar.gz
+"

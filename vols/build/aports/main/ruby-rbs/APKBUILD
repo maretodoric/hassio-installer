@@ -1,0 +1,64 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ruby-rbs
+_gemname=rbs
+# Keep version in sync with "Bundled gems" (https://stdgems.org) for the
+# packaged Ruby version.
+pkgver=2.1.0
+pkgrel=0
+pkgdesc="Type Signature for Ruby"
+url="https://github.com/ruby/rbs"
+arch="all"
+license="BSD-2-Clause AND Ruby"
+depends="ruby ruby-bundler"
+checkdepends="ruby-rake ruby-test-unit"
+makedepends="ruby-dev ruby-rdoc"
+subpackages="$pkgname-doc"
+source="https://github.com/ruby/rbs/archive/v$pkgver/$_gemname-$pkgver.tar.gz
+	gemspec.patch
+	"
+builddir="$srcdir/$_gemname-$pkgver"
+options="!check"  # FIXME: require gems that are not packaged yet
+
+build() {
+	gem build $_gemname.gemspec
+
+	gem install \
+		--local \
+		--install-dir dist \
+		--bindir dist/bin \
+		--ignore-dependencies \
+		--document ri \
+		--verbose \
+		$_gemname
+}
+
+check() {
+	GEM_PATH='dist' rake test
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+
+	cd "$builddir"/dist
+
+	mkdir -p "$gemdir"
+	cp -r doc extensions gems specifications "$gemdir"/
+
+	# Remove unnecessary files and rubbish...
+	find "$gemdir"/extensions/ -name mkmf.log -delete
+
+	cd "$gemdir"/gems/$_gemname-$pkgver
+	rm -r ext/
+}
+
+doc() {
+	pkgdesc="$pkgdesc (ri docs)"
+
+	amove "$(ruby -e 'puts Gem.default_dir')"/doc
+}
+
+sha512sums="
+2f815e20223f6b7b29bbe46df191900c8aa2895f486ad3d2163cb7f8b654f676fc400de0fac2b699e645507bd077776e498a7ee80cab0eed0c779258af9a2004  rbs-2.1.0.tar.gz
+dccca910f2c936007882c762b9b40c95e6281b3ba1c08daaaa81b711acd7e45f61a8c7cd6bf26acb5fd33c4a0c8895934100d59508ecde6c9cf0f5befc78ac46  gemspec.patch
+"

@@ -1,0 +1,40 @@
+# Contributor: August Klein <amatcoder@gmail.com>
+# Maintainer: August Klein <amatcoder@gmail.com>
+pkgname=nzbget
+pkgver=21.1
+pkgrel=0
+pkgdesc="Usenet downloader"
+url="https://nzbget.net"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="libxml2-dev ncurses-dev openssl-dev"
+subpackages="$pkgname-doc"
+source="https://github.com/nzbget/nzbget/releases/download/v$pkgver/nzbget-$pkgver-src.tar.gz"
+
+prepare() {
+	default_prepare
+
+	update_config_sub
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-parcheck \
+		--with-tlslib=OpenSSL
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+d8dc1ad324f675c5505e623049a14c022475267aa03dcd5d8fd6cf9ed3b776cc2776077b61d035e252937ea4b6bf8f90bd33e715cfd842d2e012615df3ffeafb  nzbget-21.1-src.tar.gz
+"

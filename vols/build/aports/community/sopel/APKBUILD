@@ -1,0 +1,52 @@
+# Contributor: Kevin Daudt <kdaudt@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=sopel
+pkgver=7.1.9
+pkgrel=0
+pkgdesc="easy-to-use and highly extensible IRC Bot framework"
+url="https://sopel.chat/"
+arch="noarch"
+license="EFL-2.0"
+depends="python3 ipython py3-requests py3-geoip2 py3-enchant py3-dnspython
+	py3-xmltodict py3-praw py3-tz py3-sqlalchemy"
+makedepends="py3-pbr py3-setuptools"
+checkdepends="py3-pytest py3-pytest-vcr py3-requests-mock"
+install="$pkgname.pre-install"
+options="net" # tests require network
+pkgusers="sopel"
+pkggroups="sopel"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sopel-irc/sopel/archive/v$pkgver.tar.gz
+	add-tpaste-us.patch
+	sopel.initd
+	sopel.conf
+	update-requirements.patch"
+
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# Make sure pkg_resources can find sopel
+	export PYTHONPATH="sopel-dist"
+	python3 setup.py develop --install-dir=sopel-dist --no-deps
+
+	python3 pytest_run.py sopel test
+
+	unset PYTHONPATH
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+	install -Dm0755 "$srcdir"/sopel.initd "$pkgdir"/etc/init.d/sopel
+	install -Dm0644 "$srcdir"/sopel.conf "$pkgdir"/etc/conf.d/sopel
+}
+
+sha512sums="
+55fd81f7d16bf3a46c216a0ae68b72df3cc2f4d1d282786f87eadadf51d19838f92d2e29a6a424905099dbf9e27ea495f6d54e676947dcd5c3edcff1d7b5aea3  sopel-7.1.9.tar.gz
+6095cbdb1d9e0b4c0ae91febb86637cf9a9f88ae04461fd81af15c23e6ca2f410231308ec76012fb8c0e28818967cebc92a0c2799add6aa564299e9fb79b8793  add-tpaste-us.patch
+1d6b39697d767085530f1db5ba763554c6503ab82b792bdb48c7fef65e4424fe30740ab758ebd3f1ccdd6f2340a9ac9e3dfe44fff064969106717169160ece7b  sopel.initd
+d90379dc5a2d8c8ff52a15d1c341d4cbad919707fadc578d4ae78db45efafad5e6add270876aa982086ac78d99729b0346aa565512190b9fc8cd77020ba91445  sopel.conf
+d88de4a9d4aa7791e91b1349cfb3d85fd8a5a6f1d1af642d57e61096c21551908f0648f8ff082d5552fc141f1103086b081a01acacf48654e3c1f632b6910c07  update-requirements.patch
+"

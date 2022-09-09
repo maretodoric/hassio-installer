@@ -1,0 +1,56 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=grantlee-editor
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Utilities and tools to manage themes in KDE PIM applications "
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org/"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	akonadi-mime-dev
+	extra-cmake-modules
+	grantleetheme-dev
+	karchive-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	kimap-dev
+	knewstuff-dev
+	kpimtextedit-dev
+	ktexteditor-dev
+	kxmlgui-dev
+	libkleo-dev
+	messagelib-dev
+	pimcommon-dev
+	qgpgme
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	samurai
+	syntax-highlighting-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/grantlee-editor-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+1c737f881cdeea39658565d01f2172e2a721abba01776d6f1e5da25f0e47391bbb82bfbd60aaf8734266fe14c7e8c24e0917c25fbdfc48774a23615c0e7b5213  grantlee-editor-22.04.2.tar.xz
+"

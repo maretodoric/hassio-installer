@@ -1,0 +1,51 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xf86-video-ati
+pkgver=19.1.0
+pkgrel=1
+_commitid='5eba006e4129e8015b822f9e1d2f1e613e252cda'
+pkgdesc="ATI video driver"
+url="https://xorg.freedesktop.org/wiki/"
+arch="all"
+license="MIT"
+subpackages="$pkgname-doc"
+depends="mesa-dri-ati"
+makedepends="
+	automake
+	autoconf
+	libtool
+	util-macros
+	libdrm-dev
+	libxi-dev
+	mesa-dev
+	eudev-dev
+	pixman-dev
+	xorg-server-dev
+	xorgproto
+	"
+options="!check" # No testsuite
+source="https://gitlab.freedesktop.org/xorg/driver/xf86-video-ati/-/archive/$_commitid/xf86-video-ati-$_commitid.tar.gz
+	"
+builddir="$srcdir/$pkgname-$_commitid"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--enable-glamor \
+		LDFLAGS="$LDFLAGS -Wl,-z,lazy"
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+7644c4224d888cfd472b376a7cbe86079249324cb78bacc3185c55477a0d11458e3ecdaa82128a341f5773c0bf34dcaacaabf718225990810f01a8783d282ba5  xf86-video-ati-5eba006e4129e8015b822f9e1d2f1e613e252cda.tar.gz
+"

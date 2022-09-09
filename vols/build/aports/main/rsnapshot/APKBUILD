@@ -1,0 +1,38 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=rsnapshot
+pkgver=1.4.4
+pkgrel=0
+pkgdesc="Local and remote filesystem snapshot utility"
+url="https://rsnapshot.org/"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="perl rsync openssh-client"
+makedepends="$depends_dev"
+options="!check" # failing tests
+subpackages="$pkgname-doc"
+source="https://rsnapshot.org/downloads/rsnapshot-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+da45039457b9f3feb53b823f6ee36e8f7447d0689281d1bc857c6fedd450db2fdf8a98e66ba6e135a86654666888f7744ad9ff0aabbd605e1fc09dd5f1f7b838  rsnapshot-1.4.4.tar.gz
+"

@@ -1,0 +1,36 @@
+# Contributor: Kyle Parisi <kyleparisi@gmail.com>
+# Maintainer: Kyle Parisi <kyleparisi@gmail.com>
+pkgname=zerotier-one
+pkgver=1.10.0
+pkgrel=0
+pkgdesc="ZeroTier One allows systems to join and participate in ZeroTier virtual networks."
+url="https://www.zerotier.com/"
+arch="all !s390x !riscv64" # rust
+license="GPL-3.0-or-later"
+makedepends="linux-headers cargo openssl-dev"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/zerotier/ZeroTierOne/archive/$pkgver.tar.gz
+	$pkgname.initd
+	"
+builddir="$srcdir"/ZeroTierOne-$pkgver
+
+build() {
+	make
+}
+
+check() {
+	make selftest
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -d "$pkgdir"/usr/lib/modules-load.d
+	echo "tun" > "$pkgdir"/usr/lib/modules-load.d/$pkgname.conf
+}
+
+sha512sums="
+214878b002cc12dd0c0f920f1e7fd8881152b7232938c9a7994c808af066b739b04a6c1571a0ffca3ec4c703fbf126017b68b48cd9567bf4570055009ba70662  zerotier-one-1.10.0.tar.gz
+a63f8e649d63a3de58a556b3adca440cd0c0d4b36239ea547d555b97852d89d0a1446f348d35e98f77faabe1fe4ffb76868b8290ad9f2b4cd8b6c599945a176c  zerotier-one.initd
+"

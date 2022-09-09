@@ -1,0 +1,57 @@
+# Contributor: Leon Marz <main@lmarz.org>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=openvdb
+pkgver=9.1.0
+pkgrel=1
+pkgdesc="Sparse volume data structure and tools"
+url="https://www.openvdb.org/"
+arch="aarch64 x86_64" # tests fail on all other arches
+license="MPL-2.0"
+makedepends="cmake libtbb-dev blosc-dev boost-dev python3-dev gtest-dev samurai"
+subpackages="$pkgname-static $pkgname-nanovdb:nanovdb:noarch $pkgname-tools:tools $pkgname-dev py3-$pkgname:python"
+source="$pkgname-$pkgver.tar.gz::https://github.com/AcademySoftwareFoundation/openvdb/archive/v$pkgver.tar.gz"
+
+# deadlocked unit tests on builders
+[ "$CARCH" = "aarch64" ] && options="$options !check"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DOPENVDB_BUILD_PYTHON_MODULE=ON \
+		-DOPENVDB_BUILD_UNITTESTS=ON \
+		-DOPENVDB_BUILD_NANOVDB=ON \
+		-DOPENVDB_ENABLE_RPATH=OFF
+
+	cmake --build build -j$((JOBS > 24 ? 24 : ${JOBS:-$(nproc)}))
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=1 ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+tools() {
+	pkgdesc="$pkgdesc (Tools)"
+	amove /usr/bin
+}
+
+nanovdb() {
+	pkgdesc="$pkgdesc (nanovdb)"
+	amove /usr/include/nanovdb
+}
+
+python() {
+	pkgdesc="$pkgdesc (Python bindings)"
+	amove /usr/lib/python3*
+}
+
+sha512sums="
+434be61b03efec5d0022594d81064dce5f67595c1e34934d79e13627e573d2819bf947ca5b433fdca134642975b83eda71b46cf802f57e135d1611dbe2e5757e  openvdb-9.1.0.tar.gz
+"

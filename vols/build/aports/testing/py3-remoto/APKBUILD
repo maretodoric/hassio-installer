@@ -1,0 +1,32 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-remoto
+_pkgname=remoto
+pkgver=1.2.1
+pkgrel=1
+pkgdesc="Execute remote commands or processes"
+url="https://github.com/alfredodeza/remoto"
+arch="noarch"
+license="MIT"
+depends="py3-execnet"
+makedepends="py3-setuptools"
+checkdepends="py3-mock py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/r/remoto/remoto-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# Remove installed-tests
+	rm -rf "$pkgdir"/usr/lib/python3*/site-packages/remoto/tests
+}
+
+sha512sums="c2593d93bd53f5aada39318f575dc27ddbbd1cb86dae75db6111b49eff0708d7f242072ee173c57aad466a4e5dc2c4f6d173cbc85c3764c7060205afc4583e53  py3-remoto-1.2.1.tar.gz"

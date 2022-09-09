@@ -1,0 +1,43 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=songrec
+pkgver=0.3.0
+pkgrel=0
+pkgdesc="An open-source Shazam client for Linux"
+url="https://github.com/marin-m/SongRec"
+# s390x and riscv64 blocked by rust
+arch="all !s390x !riscv64"
+license="GPL-3.0-only"
+makedepends="
+	alsa-lib-dev
+	cargo
+	gdk-pixbuf-dev
+	glib-dev
+	gtk+3.0-dev
+	openssl-dev
+	pango-dev
+	"
+source="https://github.com/marin-m/songrec/archive/$pkgver/songrec-$pkgver.tar.gz"
+# net required to download Rust dependencies
+# no tests
+options="net !check"
+builddir="$srcdir/SongRec-$pkgver"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+
+	mv packaging/rootfs/usr/share "$pkgdir"/usr
+}
+
+sha512sums="
+53a307c886428e9970cd0f1d18552f4efbeca28179c0290aabba39426daec080635f3816435eef7b372b830bbadacf8882551511db6df847d7bb463ea1b75d47  songrec-0.3.0.tar.gz
+"

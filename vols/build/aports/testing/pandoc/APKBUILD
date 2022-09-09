@@ -1,0 +1,55 @@
+# Contributor: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+# Maintainer: Jean-Louis Fuchs <jean-louis.fuchs@adfinis-sygroup.ch>
+pkgname=pandoc
+pkgver=2.16.2
+pkgrel=0
+pkgdesc="universal markup converter"
+url="https://pandoc.org/"
+# limited by ghc
+arch="x86_64"
+license="GPL-2.0-or-later"
+makedepends="ghc cabal zlib-dev libffi-dev"
+subpackages="$pkgname-doc"
+source="https://hackage.haskell.org/package/pandoc-$pkgver/pandoc-$pkgver.tar.gz
+	cabal.project.freeze
+	"
+
+# Cabal seems to be built without sandbox, moving the cabal-dir into src
+export CABAL_DIR="$srcdir/cabal"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/cabal.project.freeze" .  # Created using "cabal freeze"
+	cabal update
+	cabal configure \
+		--prefix='/usr' \
+		--enable-tests \
+		--enable-split-sections \
+		--ghc-option="-split-sections" \
+		--ghc-option="-j" \
+		--ghc-option="-O1" \
+		--flags="+embed_data_files -trypandoc +static"
+}
+
+build() {
+	cabal install --only-dependencies
+	cabal build --jobs=${JOBS:-1}
+}
+
+check() {
+	cabal test
+}
+
+package() {
+	_bindir="$pkgdir/usr/bin"
+	mkdir -p "$_bindir"
+	cabal install \
+		--installdir="$_bindir" \
+		--install-method=copy
+	install -Dm644 man/pandoc.1 "$pkgdir"/usr/share/man/man1/pandoc.1
+}
+
+sha512sums="
+0e1026a93ee0dbd0523c4787b9cabec16d0a2e3b29a6914fd73859b9d6d9c0c71421b8949dfaa551c610c6dfa53de05f5d358cbeb43ad1213039b9ea6d63f9a1  pandoc-2.16.2.tar.gz
+457d390a5235196d3c3815a37fe41e678f58797e4ab791f1da16b30f020378292a022f2a3bbd49517213eb2d9676aa634bfa6c1fe37ee13f0b386c0c06cdf63f  cabal.project.freeze
+"

@@ -1,0 +1,27 @@
+# Contributor: prspkt <prspkt@protonmail.com>
+# Maintainer: prspkt <prspkt@protonmail.com>
+pkgname=foliate
+pkgver=2.6.4
+pkgrel=0
+pkgdesc="Simple and modern eBook viewer"
+url="https://johnfactotum.github.io/foliate"
+arch="noarch !s390x !riscv64" # missing gjs
+license="GPL-3.0-or-later"
+depends="gjs webkit2gtk"
+makedepends="gettext-dev glib-dev iso-codes-dev meson"
+subpackages="$pkgname-lang"
+source="https://github.com/johnfactotum/foliate/archive/$pkgver/foliate-$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+	ln -s com.github.johnfactotum.Foliate "$pkgdir"/usr/bin/foliate
+}
+
+sha512sums="
+af58efa2c33451617dbf7327b56551557d762ac80f1b489d5da1c5a46ebbfe329052149deb8b2f4c7729a7fd46deccd5500fd96c0a662b731c871c1ad8061cd3  foliate-2.6.4.tar.gz
+"

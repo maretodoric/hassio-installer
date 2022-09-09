@@ -1,0 +1,27 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=pdfarranger
+pkgver=1.8.2
+pkgrel=0
+pkgdesc="Helps merge or split PDF documents and rotate, crop and rearrange pages"
+url="https://github.com/jeromerobert/pdfarranger"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="desktop-file-utils ghostscript gsettings-desktop-schemas
+	gtk+3.0 poppler-glib py3-atspi py3-cairo py3-dateutil py3-gobject3
+	py3-img2pdf>=0.3.4 py3-pikepdf>=1.17.0"
+makedepends="py3-setuptools py3-distutils-extra intltool"
+options="!check" # tests require dogtail package
+subpackages="$pkgname-lang $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jeromerobert/pdfarranger/archive/$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --optimize=1
+}
+
+sha512sums="
+e0b1ed59158681766e6b707a207363a8ccd38bdc76311600d338ef443e0ee79405af6afb65b878a68d7e52d2ea35f6a7aa700d9aaf46b31bcf64fd863c8784f2  pdfarranger-1.8.2.tar.gz
+"

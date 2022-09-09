@@ -1,0 +1,63 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gcompat
+pkgver=1.0.0
+pkgrel=4
+pkgdesc="The GNU C Library compatibility layer for musl"
+url="https://git.adelielinux.org/adelie/gcompat"
+# riscv64 is broken https://build.alpinelinux.org/buildlogs/build-edge-riscv64/community/gcompat/gcompat-1.0.0-r2.log
+arch="all !riscv64"
+options="!check lib64" # No test suite
+license="NCSA"
+makedepends="libucontext-dev musl-obstack-dev"
+replaces="libc6-compat"
+source="https://git.adelielinux.org/adelie/gcompat/-/archive/$pkgver/gcompat-$pkgver.tar.gz"
+
+case "$CARCH" in
+	armel) _ld="ld-linux.so.3" ;;
+	armhf | armv7) _ld="ld-linux-armhf.so.3" ;;
+	aarch64) _ld="ld-linux-aarch64.so.1" ;;
+	x86) _ld="ld-linux.so.2" ;;
+	x86_64) _ld="ld-linux-x86-64.so.2" ;;
+	s390x)	_ld="ld64.so.1" ;;
+	ppc64le) _ld="ld64.so.2" ;;
+esac
+
+case "$CARCH" in
+	aarch64*)	ARCH="aarch64" ;;
+	arm*)		ARCH="arm" ;;
+	x86)		ARCH="i386" ;;
+	x86_64)		ARCH="x86_64" ;;
+	ppc)		ARCH="powerpc" ;;
+	ppc64*)		ARCH="powerpc64" ;;
+	s390*)		ARCH="s390x" ;;
+	riscv64)	ARCH="riscv64" ;;
+esac
+
+build() {
+	make \
+		WITH_LIBUCONTEXT=1 \
+		WITH_OBSTACK=musl-obstack \
+		LINKER_PATH="/lib/ld-musl-$ARCH.so.1" \
+		LOADER_NAME="$_ld"
+}
+
+package() {
+	make \
+		LINKER_PATH="/lib/ld-musl-$ARCH.so.1" \
+		LOADER_NAME="$_ld" \
+		WITH_LIBUCONTEXT=1 \
+		WITH_OBSTACK=musl-obstack \
+		DESTDIR="$pkgdir" \
+		install
+
+	# Required symlink on 64-bit platforms
+	case "$CARCH" in
+		x86_64|ppc64le|aarch64)
+			mkdir "$pkgdir"/lib64
+			ln -s ../lib/$_ld "$pkgdir"/lib64/$_ld
+			;;
+	esac
+}
+
+sha512sums="ec23d31b8b233ca2c6093cb822c31e6db00c408a154bf0495beb484d7fb40c2a2a34690572aca02f969a1c2faa642a9660f45604f792bb843543c7a48297062d  gcompat-1.0.0.tar.gz"

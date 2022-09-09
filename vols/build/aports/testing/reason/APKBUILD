@@ -1,0 +1,132 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer:
+pkgname=reason
+pkgver=3.8.0
+pkgrel=0
+pkgdesc="Simple, fast & type safe code that leverages the JavaScript & OCaml ecosystems"
+url="https://reasonml.github.io/"
+arch="all !riscv64" # restricted by ocaml
+license="MIT"
+checkdepends="nodejs utop-full"
+makedepends="
+	bash
+	dune
+	ocaml
+	ocaml-compiler-libs
+	ocaml-cppo-dev
+	ocaml-findlib-dev
+	ocaml-fix-dev
+	ocaml-menhir
+	ocaml-menhir-dev
+	ocaml-merlin-extend-dev
+	ocaml-ocamlbuild-dev
+	ocaml-ppx_derivers-dev
+	ocaml-result-dev
+	ocaml-seq-dev
+	ocaml-utop-dev
+	ocamlbuild
+	ocaml-bigarray-compat-dev
+	ocaml-camomile-dev
+	ocaml-charinfo_width-dev
+	ocaml-csexp-dev
+	ocaml-lambda-term-dev
+	ocaml-lwt-dev
+	ocaml-lwt_log-dev
+	ocaml-lwt_react
+	ocaml-mew-dev
+	ocaml-mew_vi-dev
+	ocaml-mmap-dev
+	ocaml-ocplib-endian-dev
+	ocaml-react-dev
+	ocaml-trie-dev
+	ocaml-zed-dev
+	"
+options="!check"  # FIXME: tests cannot find reason's modules
+provides="$pkgname-reactjs=$pkgver-r$pkgrel"
+subpackages="
+	ocaml-$pkgname-dev:_libdev
+	$pkgname-merlin
+	$pkgname-rtop
+	ocaml-$pkgname:_lib
+	"
+source="$pkgname-$pkgver.tar.bz2::https://github.com/reasonml/reason/releases/download/$pkgver/reason-$pkgver.tbz"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	export OCAMLPATH=/usr/lib/ocaml
+	dune build --root . @install --no-buffer --verbose
+}
+
+check() {
+	dune runtest --no-buffer --verbose
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--prefix=/usr \
+		--libdir=/usr/lib/ocaml \
+		--mandir="$pkgdir/usr/share/man"
+
+	cd "$pkgdir"
+
+	# There's just a readme and changelog.
+	rm -Rf usr/doc
+
+	# Just for internal tests.
+	rm -fv usr/bin/testOprint
+}
+
+_libdev() {
+	pkgdesc="$pkgdesc (development files)"
+	depends="ocaml-$pkgname=$pkgver-r$pkgrel"
+
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml/$pkgname \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+merlin() {
+	pkgdesc="Reason extension to Merlin - context sensitive completion"
+	depends="merlin"
+
+	amove usr/bin/ocamlmerlin-reason
+}
+
+rtop() {
+	pkgdesc="REPL for Reason based on Utop"
+	depends="$pkgname=$pkgver-r$pkgrel
+		ocaml-$pkgname=$pkgver-r$pkgrel
+		ocaml-menhir-dev
+		utop-full"
+
+	amove usr/bin/rtop
+	amove usr/lib/ocaml/rtop
+}
+
+_lib() {
+	pkgdesc="$pkgdesc (library)"
+	depends="ocaml-runtime ocaml-menhir ocaml-ppx_derivers"
+
+	amove usr/lib/ocaml/$pkgname
+}
+
+sha512sums="
+c5dcec810a1981b78b19271a8a255f4087628514725d6818419b141be6346a62b28fe8d0f10855efe420ede2839bfe562aa5abf21f29d66250e5c0d02323d6d8  reason-3.8.0.tar.bz2
+"

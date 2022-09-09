@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=buho
+pkgver=2.1.2
+pkgrel=0
+pkgdesc="Note taking app based on MauiKit"
+# armhf blocked by qt5-qtdeclarative
+# s390x, ppc64le and riscv64 blocked by qt5-qtwebview
+arch="all !armhf !s390x !ppc64le !riscv64"
+url="https://invent.kde.org/maui/buho"
+license="GPL-2.0-or-later"
+depends="
+	kde-icons
+	mauikit-texteditor
+	"
+makedepends="
+	attica-dev
+	extra-cmake-modules
+	kconfig-dev
+	ki18n-dev
+	kio-dev
+	knotifications-dev
+	mauikit-dev
+	mauikit-accounts-dev
+	mauikit-filebrowsing-dev
+	qt5-qtbase-dev
+	qt5-qtbase-sqlite
+	qt5-qtdeclarative-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	qt5-qtwebview-dev
+	samurai
+	syntax-highlighting-dev
+	"
+source="https://download.kde.org/stable/maui/buho/$pkgver/buho-$pkgver.tar.xz"
+options="!check" # No tests available
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+7ce6eda0fedf103d6f8f08c51a092264e82de04fa5c07c5ec37dbaba8dc8cf1379d8b62eea8442254688501a59e17ac094609a5c8886c4d1b68df3a96f5ef9bf  buho-2.1.2.tar.xz
+"

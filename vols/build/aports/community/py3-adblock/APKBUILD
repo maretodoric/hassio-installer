@@ -1,0 +1,61 @@
+# Contributor: omni <omni+alpine@hack.org>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=py3-adblock
+_pkgname=python-adblock
+pkgver=0.5.2
+pkgrel=1
+pkgdesc="Python wrapper for Brave's adblocking library"
+url="https://github.com/ArniDagur/python-adblock"
+arch="all !s390x !riscv64" # limited by rust/cargo
+arch="$arch !ppc64le" # limited by ring crate
+license="Apache-2.0 MIT"
+makedepends="
+	py3-installer
+	py3-setuptools
+	cargo
+	maturin
+	openssl1.1-compat-dev
+	"
+checkdepends="
+	py3-pytest
+	"
+subpackages="$pkgname-doc:doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ArniDagur/python-adblock/archive/refs/tags/$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	export RUSTFLAGS="-C target-feature=-crt-static"
+	maturin build --release --strip --manylinux off \
+		--cargo-extra-args="--locked --all-features"
+
+	# (I couldn't word it better than the Void Linux package maintainer: )
+	# Drop platform specifiers from the wheel; pip will refuse to install,
+	# e.g., an armv7l wheel on an aarch64 system even if the masterdir is
+	# armv7l. The wheel is correct; no need for name compatibility checks.
+	mv target/wheels/adblock-"$pkgver"-*.whl \
+		target/wheels/adblock-"$pkgver"-py3-none-any.whl
+}
+
+check() {
+	local python_path="$(python3 -c \
+		'from distutils.sysconfig import get_python_lib; print(get_python_lib())')"
+	mkdir -vp testdir
+	export PYTHONPATH="testdir$python_path:$PYTHONPATH"
+
+	python3 -m installer -d testdir \
+		target/wheels/adblock-"$pkgver"-py3-none-any.whl
+	pytest -v -k 'not test_version_numbers_all_same'
+}
+
+package() {
+	install -Dm755 target/release/libadblock.so -t "$pkgdir/usr/lib"
+	python3 -m installer -d"$pkgdir" \
+		target/wheels/adblock-"$pkgver"-py3-none-any.whl
+
+	install -Dm0644 LICENSE-APACHE "$pkgdir/usr/share/licenses/$pkgname/LICENSE-APACHE"
+	install -Dm0644 LICENSE-MIT "$pkgdir/usr/share/licenses/$pkgname/LICENSE-MIT"
+}
+
+sha512sums="
+f69bbde5a510882cd71454153ed12f0697517e030f9fb6774c5b166daf0db9f754a965085fc5e612c7dd3d093a31e22c1a9c064b167429d2aae4e93e3ca7bf7e  py3-adblock-0.5.2.tar.gz
+"

@@ -1,0 +1,37 @@
+# Contributor: Eivind Uggedal <eu@eju.no>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-jwt
+pkgver=2.4.0
+pkgrel=0
+pkgdesc="Python3 JSON Web Token implementation"
+url="https://github.com/jpadilla/pyjwt"
+license="MIT"
+arch="noarch"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://github.com/jpadilla/pyjwt/archive/$pkgver/py3-jwt-$pkgver.tar.gz"
+builddir="$srcdir/pyjwt-$pkgver"
+
+replaces="py-jwt" # Backwards compatibility
+provides="py-jwt=$pkgver-r$pkgrel" # Backwards compatibility
+
+# secfixes:
+#   2.4.0-r0:
+#     - CVE-2022-29217
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+c1044de436394d7758bdfcc9256a1ff4534881b9e5cd29b6055bcfed349b4d0d3e0b802a8163740adf63f624394e7ef7f61a91e3b49f7bae914165a2549ce771  py3-jwt-2.4.0.tar.gz
+"

@@ -1,0 +1,30 @@
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Maintainer: Michael Mason <ms13sp@gmail.com>
+pkgname=minicom
+pkgver=2.8
+pkgrel=0
+pkgdesc="menu driven communications program for terminals"
+url="https://tracker.debian.org/pkg/minicom"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="ncurses-dev gettext-dev linux-headers"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://salsa.debian.org/minicom-team/minicom/-/archive/$pkgver/minicom-$pkgver.tar.gz
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="5ced0ff79cec11464154561130ddc6a38865170d4e4d80185ada540ba173fe89e35703b6d7fd0cf86caef6e020fcad1d7b1fdb4d4f55e3ddb906aea6a4b81b36  minicom-2.8.tar.gz"

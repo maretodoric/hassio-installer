@@ -1,0 +1,109 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=okular
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+# ppc64le blocked by qt5-qtwebengine -> purpose
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://okular.kde.org/"
+pkgdesc="A universal document viewer"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later"
+depends="$pkgname-common"
+makedepends="
+	discount-dev
+	djvulibre-dev
+	ebook-tools-dev
+	extra-cmake-modules
+	kactivities-dev
+	karchive-dev
+	kbookmarks-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdegraphics-mobipocket-dev
+	kdoctools-dev
+	kiconthemes-dev
+	kio-dev
+	kirigami2-dev
+	kjs-dev
+	kparts-dev
+	kpty-dev
+	kwallet-dev
+	kwindowsystem-dev
+	libkexiv2-dev
+	libspectre-dev
+	phonon-dev
+	poppler-qt5-dev
+	purpose-dev
+	qca-dev
+	qt5-qtbase-dev
+	qt5-qtspeech-dev
+	threadweaver-dev
+	samurai
+	zlib-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/okular-$pkgver.tar.xz"
+subpackages="
+	$pkgname-common
+	$pkgname-common-qml:common_qml
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-lang
+	$pkgname-mobile
+	"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DOKULAR_UI=both
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# All other tests are broken, require OpenGL, etc
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -R "^shelltest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+common() {
+	pkgdesc="Common files for okular and okular-mobile"
+	amove usr/lib/qt5/plugins
+	find "$pkgdir"/usr -name "libOkular5Core.so.*" -exec mv {} "$subpkgdir"/usr/lib/ +
+	amove usr/share/okular
+	amove usr/share/config.kcfg
+	amove usr/share/qlogging-categories5
+	amove usr/share/icons
+	amove usr/share/metainfo
+	amove usr/share/kconf_update
+}
+
+common_qml() {
+	pkgdesc="Common qml files for okular-mobile and other packages"
+	depends="kirigami2"
+
+	amove usr/lib/qt5/qml
+}
+
+mobile() {
+	depends="$pkgname-common $pkgname-common-qml kirigami2"
+
+	amove usr/bin/okularkirigami
+	amove usr/share/applications/org.kde.okular.kirigami.desktop
+	amove usr/share/applications/org.kde.mobile*
+}
+
+sha512sums="
+5958fae2aa28026e2a30e63bdd4cfef05f9cfe7b1eee3e711a634b9ab278c4dcf41b6001db0976693ccaa4d2c234c03f5ed34a683c301e5153388d72f9f52e49  okular-22.04.2.tar.xz
+"

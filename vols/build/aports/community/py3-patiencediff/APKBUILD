@@ -1,0 +1,28 @@
+# Maintainer: Pedro Filipe <xpecex@outlook.com>
+pkgname=py3-patiencediff
+pkgver=0.2.2
+pkgrel=1
+pkgdesc="Patiencediff Python and C implementations"
+url="https://www.breezy-vcs.org/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="python3"
+makedepends="python3-dev py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/breezy-team/patiencediff/archive/v$pkgver.tar.gz"
+builddir="$srcdir/patiencediff-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+}
+
+sha512sums="
+fb7c4db590b0a09b79314fd7cda255253dfeb9fa6158b58cbb1fce69bc81361823cb8cadca56fd93d22eee40af0778536e9402a029d0c133d269154c79ffb0c3  py3-patiencediff-0.2.2.tar.gz
+"

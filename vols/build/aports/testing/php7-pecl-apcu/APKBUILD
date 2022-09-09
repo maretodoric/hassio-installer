@@ -1,0 +1,44 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=php7-pecl-apcu
+_extname=apcu
+pkgver=5.1.21
+pkgrel=0
+pkgdesc="PHP 7 extension APC User Cache - PECL"
+url="https://pecl.php.net/package/apcu"
+arch="all"
+license="PHP-3.01"
+depends="php7-common"
+makedepends="php7-dev"
+checkdepends="php7-pcntl php7-session"
+source="php-pecl-$_extname-$pkgver.tgz::https://pecl.php.net/get/$_extname-$pkgver.tgz"
+builddir="$srcdir/$_extname-$pkgver"
+provides="php7-apcu=$pkgver-r$pkgrel" # for backward compatibility
+replaces="php7-apcu" # for backward compatibility
+
+build() {
+	phpize7
+	./configure --prefix=/usr --with-php-config=php-config7
+	make
+}
+
+check() {
+	local _modules="/usr/lib/php7/modules"
+	make NO_INTERACTION=1 REPORT_EXIT_STATUS=1 test \
+		PHP_TEST_SHARED_EXTENSIONS=" \
+		-d extension=$_modules/pcntl.so \
+		-d extension=modules/$_extname.so" TESTS=--show-diff
+}
+
+package() {
+	make INSTALL_ROOT="$pkgdir"/ install
+	install -D -m644 apc.php "$pkgdir"/usr/share/php7/apcu/apc.php
+
+	local _confdir="$pkgdir"/etc/php7/conf.d
+	install -d $_confdir
+	echo "extension=$_extname" > $_confdir/$_extname.ini
+}
+
+sha512sums="
+a6ffe8349760d27cde0d86017a59a68e9639bf385e606622d807094f4e5fb305bb25b9ce00077d0856f4d223d44329f7a6314c229b62c78d8e2b085593c92bb3  php-pecl-apcu-5.1.21.tgz
+"

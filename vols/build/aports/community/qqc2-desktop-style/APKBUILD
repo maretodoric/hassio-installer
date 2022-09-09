@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=qqc2-desktop-style
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="A style for Qt Quick Controls 2 to make it follow your desktop theme"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> kconfigwidgets
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/Frameworks"
+license="LGPL-3.0-only AND (GPL-2.0-only OR GPL-3.0-only)"
+depends="
+	qt5-qtgraphicaleffects
+	qt5-qtquickcontrols2
+	"
+depends_dev="
+	kconfigwidgets-dev
+	kiconthemes-dev
+	kirigami2-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtx11extras-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	samurai
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/qqc2-desktop-style-$pkgver.tar.xz"
+subpackages="$pkgname-dev"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+0bfe525eda2148753e85ea65d21e8139245e8d485ff3f50c79213028ab942d098cf5a238d6b3dd5964ddcf3fabf611af6863bd93714d40802b3288c4e6b6154b  qqc2-desktop-style-5.95.0.tar.xz
+"

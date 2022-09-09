@@ -1,0 +1,31 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=pass-git-helper
+pkgver=1.2.0
+pkgrel=0
+pkgdesc="git credential helper interfacing with pass, the standard unix password manager."
+url="https://github.com/languitar/pass-git-helper"
+arch="noarch"
+license="LGPL-3.0-only"
+depends="python3 pass py3-xdg"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-pytest-cov py3-pytest-mock"
+source="$pkgname-$pkgver.tar.gz::https://github.com/languitar/pass-git-helper/archive/v$pkgver.tar.gz"
+
+provides="py3-pass-git-helper=$pkgver-r$pkgrel"
+replaces="py3-pass-git-helper"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+3ff782acc3232df32fdf1e7ba48203b36e96e0efe6e16d7505a1a9a59112c3ac93213a4ad9866c72cf9d7e6bb5050670aac3e4327ab2543e335c0b6aea624819  pass-git-helper-1.2.0.tar.gz
+"

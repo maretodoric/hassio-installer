@@ -1,0 +1,55 @@
+# Contributor: Grigory Kirillov <txgk@bk.ru>
+# Maintainer: Grigory Kirillov <txgk@bk.ru>
+pkgname=fheroes2
+pkgver=0.9.16
+pkgrel=0
+pkgdesc="Recreation of HoMM2 game engine"
+url="https://github.com/ihhub/fheroes2"
+arch="all"
+license="GPL-2.0-only"
+options="!check" # no test suite
+makedepends="
+	gettext
+	sdl2-dev
+	sdl2_image-dev
+	sdl2_mixer-dev
+	zlib-dev
+	"
+subpackages="$pkgname-lang"
+source="https://github.com/ihhub/fheroes2/archive/$pkgver/fheroes2-$pkgver.tar.gz"
+install="$pkgname.post-install"
+langdir="/usr/share/$pkgname/files/lang"
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+build() {
+	make FHEROES2_WITH_IMAGE=1 FHEROES2_DATA=/usr/share/fheroes2
+
+	# hu lt nl tr:
+	#   these languages require iconv TRANSLIT extension to be built (musl doesn't support that)
+	# ro:
+	#   just fails to build because "ISO-8859-16" charset is not portable
+	# fr:
+	#   fails with "make: *** [Makefile:33: fr.mo] Error 254"
+	for lang in hu lt nl tr ro fr; do
+		rm files/lang/$lang.po
+	done
+
+	make -C files/lang
+}
+
+package() {
+	install -Dm755 src/dist/fheroes2 -t "$pkgdir"/usr/bin/
+	install -Dm644 script/packaging/common/fheroes2.desktop -t "$pkgdir"/usr/share/applications/
+	install -Dm644 files/data/*.h2d -t "$pkgdir"/usr/share/"$pkgname"/files/data/
+	install -Dm644 files/lang/*.mo -t "$pkgdir"/usr/share/"$pkgname"/files/lang/
+	install -Dm755 script/demo/download_demo_version.sh -t "$pkgdir"/usr/share/"$pkgname"/
+	install -Dm755 script/homm2/extract_homm2_resources.sh -t "$pkgdir"/usr/share/"$pkgname"/
+	install -Dm644 src/resources/fheroes2.png -t "$pkgdir"/usr/share/pixmaps/
+	install -dm755 "$pkgdir"/usr/share/fheroes2/data
+	install -dm755 "$pkgdir"/usr/share/fheroes2/maps
+}
+
+sha512sums="
+6b954cd1d0d151c209fe5e94793e3f9bfdd5fd7a5eeb207e79475eb7c76f13934483ccce89a9f6790bb07c87d3456970feef4d3bbca7ab94261361ffa8a77ee1  fheroes2-0.9.16.tar.gz
+"

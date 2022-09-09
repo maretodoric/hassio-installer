@@ -1,0 +1,35 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=seahorse
+pkgver=42.0
+pkgrel=0
+pkgdesc="GNOME application for managing PGP keys."
+url="https://projects.gnome.org/seahorse/"
+# riscv64 disabled due to missing rust in recursive dependency
+arch="all !s390x !riscv64" # limited by libhandy
+license="GPL-2.0-or-later"
+depends="openssh dconf gnome-keyring gnupg-dirmngr"
+makedepends="vala libxml2-utils
+	yelp-tools intltool itstool gpgme-dev libsoup-dev
+	libsm-dev libsecret-dev gobject-introspection-dev
+	gtk+3.0-dev gcr-dev glib-dev meson libhandy1-dev
+	cmake libpwquality-dev openldap-dev avahi-dev"
+checkdepends="appstream-glib desktop-file-utils"
+subpackages="$pkgname-lang $pkgname-doc"
+source="https://download.gnome.org/sources/seahorse/${pkgver%.*}/seahorse-$pkgver.tar.xz"
+build() {
+	abuild-meson . builddir
+	meson compile ${JOBS:+-j ${JOBS}} -C builddir
+}
+
+check() {
+	meson test --no-rebuild -v -C builddir
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C builddir
+}
+
+sha512sums="
+2a961a4054360c9a4fe0e9e360d6ea621a65325db8e40365e75d747cfe751c2dc3230ff51ffe0435d24766a91e8a042b8c01183fd58a70974a7ad095af8d247e  seahorse-42.0.tar.xz
+"

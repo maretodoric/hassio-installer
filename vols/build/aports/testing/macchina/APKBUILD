@@ -1,0 +1,41 @@
+# Contributor: Jakub Panek <me@panekj.dev>
+# Maintainer: Dominika Liberda <ja@sdomi.pl>
+pkgname=macchina
+pkgver=6.0.6
+pkgrel=0
+pkgdesc="System information fetcher, with an (unhealthy) emphasis on performance"
+url="https://github.com/Macchina-CLI/macchina"
+arch="all !s390x !riscv64" # s390x and riscv64 blocked by cargo
+license="MIT"
+makedepends="cargo"
+options="net"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Macchina-CLI/macchina/archive/refs/tags/v$pkgver.tar.gz
+	minimize-size.patch"
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --release
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/macchina -t "$pkgdir/usr/bin"
+
+	install -Dm644 doc/*.1 -t "$pkgdir/usr/share/man/man1"
+	install -Dm644 doc/*.7 -t "$pkgdir/usr/share/man/man7"
+
+	install -Dm644 contrib/themes/* -t "$pkgdir"/usr/share/macchina/themes
+}
+
+sha512sums="
+9e88d06c58925d396c5c92627e950f9e3de71e8d9d1c36ef7c2e5888bc8800f41f990ea08f2855d4b3aebfd9754df6aa88e65384e2750e325cb4e3f7d4527156  macchina-6.0.6.tar.gz
+e7fe1542f9d1cd38a2d90c7333bbef7f7631d05341a3d269458cf81d5022a03737ef30d15b11fad8d4c8ce13288a79bc307f002d49b191f7e306f3a64d8b36df  minimize-size.patch
+"

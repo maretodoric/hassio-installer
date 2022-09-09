@@ -1,0 +1,30 @@
+# Contributor: Olliver Schinagl <oliver@schinagl.nl>
+# Maintainer: Olliver Schinagl <oliver@schinagl.nl>
+pkgname=gitlab-release-cli
+pkgver=0.10.0
+pkgrel=4
+pkgdesc="GitLab Release command-line tool"
+url="https://gitlab.com/gitlab-org/release-cli"
+license="MIT"
+arch="all"
+makedepends="go"
+options="!check"  # No selftest available
+subpackages="$pkgname-doc"
+source="https://gitlab.com/gitlab-org/release-cli/-/archive/v$pkgver/release-cli-v$pkgver.tar.bz2"
+builddir="$srcdir/${pkgname##gitlab-}-v$pkgver"
+
+build() {
+	make build
+}
+
+package() {
+	install -D -m 0755 "$builddir/bin/release-cli" \
+	        "$pkgdir/usr/bin/release-cli"
+
+	install -D -d "$pkgdir/usr/share/doc/$pkgname"
+	cp -T -a "$builddir/docs/" "$pkgdir/usr/share/doc/$pkgname"
+}
+
+sha512sums="
+d4e8b74cbac6322afecb532a57e1be1079e4061a53efb78b4ef751fd62515e2286fd7cb5337b4454459114528ea4965705bfdf746837884e3a787b2e9f3cc3dd  release-cli-v0.10.0.tar.bz2
+"

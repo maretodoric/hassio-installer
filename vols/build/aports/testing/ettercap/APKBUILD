@@ -1,0 +1,46 @@
+# Contributor: Karim Kanso <kaz.kanso@gmail.com>
+# Maintainer: Karim Kanso <kaz.kanso@gmail.com>
+pkgname=ettercap
+pkgver=0.8.3.1
+pkgrel=0
+pkgdesc="Multipurpose sniffer/interceptor/logger for switched LAN"
+url="https://www.ettercap-project.org/"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="cmake make gcc musl-dev ncurses-dev curl-dev libpcap-dev
+	libnet-dev pcre-dev flex bison linux-headers geoip-dev
+	check-dev"
+subpackages="$pkgname-doc lib$pkgname:libs"
+source="https://github.com/Ettercap/ettercap/releases/download/v$pkgver/ettercap-$pkgver.tar.gz
+	none-build-type.patch"
+
+build() {
+	mkdir build
+	cd build
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		$CMAKE_CROSSOPTS \
+		-DENABLE_GTK=OFF \
+		-DINSTALL_DESKTOP=OFF \
+		-DBUNDLED_LIBS=OFF \
+		-DENABLE_TESTS=ON \
+		..
+	make
+}
+
+check() {
+	make -C build test
+}
+
+package() {
+	make -C  build DESTDIR="$pkgdir" install
+}
+
+sha512sums="5e3d79578e16b9a2a90a87dcd9b40696ac8dec439e017cbf60f209402e577e7563062769bb76a470d20d1a14269134b28d57d356380af6b5883e4824656b9807  ettercap-0.8.3.1.tar.gz
+9aae86ee1599b4ffa0b9c0c5acc7939675db12c02d53f0e47d6e18acc513c020e0dbc63812536f8d8716132e0f8aeaf2ff737b0c9d11e8d814074ded82093b7c  none-build-type.patch"

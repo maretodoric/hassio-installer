@@ -1,0 +1,21 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-tinydns
+pkgver=0.11.0
+pkgrel=4
+pkgdesc="Web-based system administration interface for tinydns"
+url="https://gitlab.alpinelinux.org/acf/acf-tinydns"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core tinydns"
+source="https://gitlab.alpinelinux.org/acf/acf-tinydns/-/archive/v$pkgver/acf-tinydns-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+2237d95e124988de0c61ebf370b3c320cb19d32bcf2cef2a33591f51a9e84b5b4cf7edea60e5b49da170737e5c38b299f03ad60deffc30da93beba3db4b4b9c7  acf-tinydns-v0.11.0.tar.gz
+"

@@ -1,0 +1,45 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=wasm-pack
+pkgver=0.10.3
+pkgrel=0
+pkgdesc="rust to wasm build tool"
+url="https://github.com/rustwasm/wasm-pack"
+arch="all !s390x !riscv64" # rust
+license="Apache-2.0"
+depends="rust-wasm"
+makedepends="
+	cargo
+	curl-dev
+	openssl-dev
+	"
+source="https://github.com/rustwasm/wasm-pack/archive/refs/tags/v$pkgver/wasm-pack-v$pkgver.tar.gz"
+options="!check" # most tests fail outside of x86_64
+
+export CARGO_PROFILE_RELEASE_LTO=true
+export CARGO_PROFILE_RELEASE_PANIC=abort
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=s
+export OPENSSL_NO_VENDOR=1
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+check() {
+	cargo test --frozen
+}
+
+package() {
+	install -Dm755 target/release/wasm-pack \
+		-t "$pkgdir"/usr/bin
+}
+
+sha512sums="
+6d63fda83e075b24c072ac3373e198583311401bd7af7fd96569fff026124bc42574b4a60825235e2c6a6c37c987f500c78a56e3675ddd40298b7a2ea5318e78  wasm-pack-v0.10.3.tar.gz
+"

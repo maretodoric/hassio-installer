@@ -1,0 +1,63 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=lua-http
+pkgver=0.4
+pkgrel=1
+pkgdesc="HTTP Library for Lua that supports HTTP(S) 1.0, 1.1 and 2.0"
+url="https://github.com/daurnimator/lua-http"
+arch="noarch"
+license="MIT"
+depends="lua-binaryheap lua-cqueues lua-basexx lua-fifo lua-lpeg lua-lpeg_patterns>=0.5 lua-ossl"
+checkdepends="lua-busted lua5.1-compat53 lua5.2-compat53 lua5.1-bit32 luajit"
+source="$pkgname-$pkgver.tar.gz::https://github.com/daurnimator/lua-http/archive/v$pkgver.tar.gz
+	fix-cookie-spec-test.patch"
+
+case "$CARCH" in
+	# FIXME: Some tests fail with "Address not available".
+	# and ppc64le hangs
+	aarch64|arm*|ppc64le) options="!check";;
+esac
+
+_luaversions="5.1 5.2 5.3"
+for _v in $_luaversions; do
+	checkdepends="$checkdepends lua$_v lua$_v-busted"
+	subpackages="$subpackages lua$_v-${pkgname#lua-}:_subpackage"
+done
+
+check() {
+	local lver; for lver in $_luaversions jit; do
+		msg "Testing on lua$lver"
+		lua$lver /usr/bin/busted
+	done
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+_subpackage() {
+	local lver="${subpkgname:3:3}"
+	pkgdesc="$pkgdesc (for Lua $lver)"
+	depends="lua$lver ${depends//lua-/lua$lver-}"
+	install_if="$pkgname=$pkgver-r$pkgrel lua$lver"
+	local lmod_dir="$subpkgdir/usr/share/lua/$lver"
+	local rockdir="$subpkgdir/usr/lib/luarocks/rocks-$lver/$pkgname/$pkgver-1"
+
+	if [ "$lver" != "5.3" ]; then
+		depends="$depends lua$lver-compat53"
+	fi
+	if [ "$lver" = "5.1" ]; then
+		depends="$depends lua5.1-bit32"
+	fi
+
+	mkdir -p "$lmod_dir"
+	cp -r "$builddir"/http "$lmod_dir"/
+
+	mkdir -p "$rockdir"
+	echo 'rock_manifest = {}' > "$rockdir"/rock_manifest
+}
+
+sha512sums="
+3933c36e2d439c81ba4506d3ab1dd53a85ba3cd641abbd945210bdc6b6edb3e01516adb473cf59c5c194d9f45e7de9196e31265318d01c5b7684bb5e87dbd26a  lua-http-0.4.tar.gz
+32208d4389d4f1930a2e3b73868ab3070940e4e4819624556050356624718bbcb71b2da4fd9334ed2171eb14c3ed134d2ce201600948fd2372afca09ea2104b5  fix-cookie-spec-test.patch
+"

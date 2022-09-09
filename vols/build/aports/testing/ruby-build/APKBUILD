@@ -1,0 +1,31 @@
+# Contributor: Thomas Kienlen <kommander@laposte.net>
+# Maintainer: Thomas Kienlen <kommander@laposte.net>
+pkgname=ruby-build
+pkgver=20220610
+pkgrel=0
+pkgdesc="Compile and install Ruby"
+url="https://github.com/rbenv/ruby-build"
+arch="noarch"
+license="MIT"
+depends="
+	autoconf
+	bash
+	coreutils
+	libffi-dev
+	linux-headers
+	gdbm-dev
+	openssl-dev
+	readline-dev
+	yaml-dev
+	zlib-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/rbenv/ruby-build/archive/v$pkgver.tar.gz"
+options="!check" # No test suite
+
+package() {
+	PREFIX="$pkgdir/usr" ./install.sh
+}
+
+sha512sums="
+cbb14bfc54daf41406ffe180c5f6c0b5dcaea2e26efae38e175e6e79243351d4205ac8eba8d3179983562f25cf1946066eef09262569189f1143088b81b165ef  ruby-build-20220610.tar.gz
+"

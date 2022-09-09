@@ -1,0 +1,34 @@
+# Contributor: Drew DeVault <sir@cmpwn.com>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=slurp
+pkgver=1.3.2
+pkgrel=1
+pkgdesc="Interaction screen selection on Wayland compositors"
+url="https://wayland.emersion.fr/slurp/"
+arch="all"
+license="MIT"
+makedepends="
+	meson
+	scdoc
+	cairo-dev
+	wayland-dev
+	wayland-protocols
+	libxkbcommon-dev
+"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/emersion/slurp/archive/v$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	./output/slurp -h >/dev/null
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="9e7f9e4b46095fce5dcc05f8d04b5e576771d15080a0ec451a8a5df681d5ab818cb4d5284a74e1650f775e2d05ca32d66551d8e333d6002827c8b60b12d6bb28  slurp-1.3.2.tar.gz"

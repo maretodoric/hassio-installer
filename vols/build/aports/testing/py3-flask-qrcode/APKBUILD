@@ -1,0 +1,30 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-flask-qrcode
+_pkgname=Flask-QRcode
+pkgver=3.0.0
+pkgrel=1
+pkgdesc="Simple flask extension to render QR codes on template"
+url="https://github.com/marcoagner/Flask-QRcode"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="py3-flask py3-qrcode"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-flask-qrcode" # Backwards compatibility
+provides="py-flask-qrcode=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+25bddd05a2a5d11642c4777864215bc968270b4ee7a25d93f6760b22f7689f89316dc1e5c16be6a4545919a0318bc76f0e91b8d37e2c225f8854be6f6b4495e3  Flask-QRcode-3.0.0.tar.gz
+"

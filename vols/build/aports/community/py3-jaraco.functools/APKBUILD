@@ -1,0 +1,41 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-jaraco.functools
+pkgver=3.5.0
+pkgrel=0
+pkgdesc="Functools like those found in stdlib"
+url="https://github.com/jaraco/jaraco.functools"
+arch="noarch"
+license="MIT"
+# py3-setuptools_scm is required to set version of python module
+depends="
+	py3-jaraco.classes
+	python3
+	"
+makedepends="
+	py3-setuptools
+	py3-setuptools_scm
+	"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/j/jaraco.functools/jaraco.functools-$pkgver.tar.gz"
+builddir="$srcdir/jaraco.functools-$pkgver"
+
+# backwards compatibility for old name
+replaces="py3-jaraco-functools"
+provides="py3-jaraco-functools=$pkgver-r$pkgrel"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7257f41506f90ca2fda1bd12fed58fa4d4ff5738547f8cdae8ccad1901e0c818afb701dd8e9050fc77ca1271bc2466d5a542990138bc3db2cf9b04d12850844c  jaraco.functools-3.5.0.tar.gz
+"

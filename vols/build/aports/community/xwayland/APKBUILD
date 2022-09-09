@@ -1,0 +1,83 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=xwayland
+pkgver=22.1.2
+pkgrel=0
+pkgdesc="Compact xserver to run under wayland for compatibility"
+url="https://www.x.org/wiki"
+arch="all"
+license="MIT"
+options="suid"
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-doc"
+depends="xorg-server-common xkbcomp"
+depends_dev="
+	dbus-dev
+	font-util-dev
+	libdrm-dev
+	libepoxy-dev
+	libtirpc-dev
+	libmd-dev
+	libxcvt-dev
+	libxfont2-dev
+	libxkbfile-dev
+	mesa-dev
+	pixman-dev
+	wayland-dev
+	wayland-protocols
+	xorgproto
+	xtrans
+	"
+makedepends="
+	$depends_dev
+	meson
+	"
+source="https://xorg.freedesktop.org/archive/individual/xserver/xwayland-$pkgver.tar.xz
+	use-libtirpc-nokrb.patch
+	"
+
+replaces="xorg-server-xwayland"
+
+# secfixes:
+#   21.1.4-r0:
+#     - CVE-2021-4008
+#     - CVE-2021-4009
+#     - CVE-2021-4010
+#     - CVE-2021-4011
+#   21.1.0-r4:
+#     - CVE-2021-3472
+
+build() {
+	abuild-meson \
+		-Dipv6=true \
+		-Dxvfb=false \
+		-Dxdmcp=false \
+		-Dxcsecurity=true \
+		-Ddri3=true \
+		-Dxwayland_eglstream=false \
+		-Dglamor=true \
+		-Dsha1=libmd \
+		-Dxkb_dir=/usr/share/X11/xkb \
+		-Dxkb_output_dir=/var/lib/xkb \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	# Part of xorg-server-doc
+	rm -f "$pkgdir"/usr/share/man/man1/Xserver.1
+
+	# Part of xorg-server-common
+	rm -f "$pkgdir"/usr/lib/xorg/protocol.txt
+}
+
+sha512sums="
+c8620169f16c2bbd592dbe77bc1f7a2c27a78f49a89bf966d8a449b7faacd69f5ea4aac7adb5b75e06dcc5efca26a2141c9b5d4cf6a592ec7882bad5e235bce4  xwayland-22.1.2.tar.xz
+db6fce62096fc969a503e2660bd511b50bb578a77ac2969ec93b2442c9ee3866ec93fa8bf78f3bd1bbf0ecc8b4e74d3b5e210b3442da3a3841c6c6214372d617  use-libtirpc-nokrb.patch
+"

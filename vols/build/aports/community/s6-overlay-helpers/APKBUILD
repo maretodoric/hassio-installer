@@ -1,0 +1,34 @@
+# Maintainer: Laurent Bercot <ska-devel@skarnet.org>
+pkgname=s6-overlay-helpers
+pkgver=0.1.0.0
+pkgrel=1
+pkgdesc="Binary helpers for s6-overlay"
+url="https://github.com/just-containers/s6-overlay-helpers"
+arch="all"
+license="ISC"
+makedepends="skalibs-dev>=2.12 execline-dev"
+source="${pkgname}-${pkgver}.tar.gz::https://github.com/just-containers/s6-overlay-helpers/archive/refs/tags/v${pkgver}.tar.gz"
+
+# s6-overlay-suexec is suid root.
+# That's okay: it's only runnable as pid 1. (For use in USER containers.)
+options="!check suid"
+
+build() {
+	./configure \
+		--enable-shared \
+		--enable-static \
+		--disable-allstatic \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+		--libexecdir="/usr/lib/$pkgname" \
+		--with-dynlib=/lib
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a10ae9594ccb16d16b947f8ff991786bed423a935da7c73034061c2db23080677d64ee5eeb85a6524df4d02055895bad6419c545417f2a72067e29d0e6b22f61  s6-overlay-helpers-0.1.0.0.tar.gz
+"

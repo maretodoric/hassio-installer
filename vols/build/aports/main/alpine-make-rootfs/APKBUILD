@@ -1,0 +1,22 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=alpine-make-rootfs
+pkgver=0.6.0
+pkgrel=0
+pkgdesc="Make customized Alpine Linux rootfs (base image) for containers"
+url="https://github.com/alpinelinux/alpine-make-rootfs"
+arch="noarch"
+license="MIT"
+depends="tar"
+source="$pkgname-$pkgver.tar.gz::https://github.com/alpinelinux/$pkgname/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver"
+options="!check"  # no suitable tests provided
+
+package() {
+	cd "$builddir"
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+}
+
+sha512sums="
+2ea723071c469318006a0e5d8fcc22f7cd9ebfb6ebc271e20951f5999a1521811f12850dfcd91533cd3f6572eafaa6b001112a32c8f6c00fd626f9aa1e9a372b  alpine-make-rootfs-0.6.0.tar.gz
+"

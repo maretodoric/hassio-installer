@@ -1,0 +1,155 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=baculum
+pkgver=11.0.5
+pkgrel=0
+pkgdesc="API layer to Baculum WebGUI tool for Bacula Community program"
+url="https://bacula.org/"
+arch="noarch"
+license="AGPL-3.0-or-later"
+_php=php8
+_common_depends="
+	$_php-common
+	$_php-ctype
+	$_php-curl
+	$_php-dom
+	$_php-json
+	$_php-session
+	$_php-xml
+	"
+_api_depends="
+	$_php-bcmath
+	$_php-mysqlnd
+	$_php-pdo
+	$_php-pgsql
+	"
+_web_depends="
+	$_php-mbstring
+	"
+_apache_depends="apache2 $_php-apache2"
+_lighttpd_depends="lighttpd lighttpd-mod_auth $_php-cgi"
+makedepends="
+	coreutils
+	$_common_depends
+	$_apache_depends
+	$_api_depends
+	$_lighttpd_depends
+	$_web_depends
+	"
+pkggroups="www-data"
+subpackages="$pkgname-common:_common
+	$pkgname-api:_api
+	$pkgname-web:_web
+	$pkgname-api-apache2:_api_apache2
+	$pkgname-api-lighttpd:_api_lighttpd
+	$pkgname-web-apache2:_web_apache2
+	$pkgname-web-lighttpd:_web_lighttpd
+	"
+source="https://downloads.sourceforge.net/project/bacula/bacula/$pkgver/bacula-gui-$pkgver.tar.gz
+	 fix-locale-symlinks.patch
+	 shared-config-dir.patch
+	 "
+builddir="$srcdir/"bacula-gui-$pkgver/baculum
+
+build() {
+	:
+}
+
+check() {
+	:
+}
+
+package() {
+	mkdir -p "$pkgdir"/etc/baculum
+	make -j1 DESTDIR="$pkgdir" HTTPDNAME=apache2
+	# will be symlinks
+	rmdir "$pkgdir"/usr/share/baculum/htdocs/assets \
+		"$pkgdir"/usr/share/baculum/htdocs/protected/runtime \
+		"$pkgdir"/var/cache/baculum
+
+	chgrp -R www-data "$pkgdir"/etc/baculum/Config-*
+	chmod g+w "$pkgdir"/etc/baculum/Config-*
+	chmod g+rw "$pkgdir"/etc/baculum/Config-*/baculum.users
+}
+
+_common() {
+	pkgdesc="Common libraries for Baculum"
+	depends="$_common_depends"
+	amove usr/share/baculum/htdocs/protected/Common \
+		usr/share/baculum/htdocs/protected/application.xml \
+		usr/share/baculum/htdocs/framework \
+		usr/share/baculum/htdocs/themes \
+		usr/share/baculum/htdocs/LICENSE \
+		usr/share/baculum/htdocs/AUTHORS \
+		usr/share/baculum/htdocs/README \
+		usr/share/baculum/htdocs/INSTALL \
+		usr/share/baculum/htdocs/index.php
+	install -d -m775 -g www-data "$subpkgdir"/var/cache/baculum \
+		"$subpkgdir"/var/log/baculum
+	ln --relative -s "$subpkgdir"/var/cache/baculum \
+		"$subpkgdir"/usr/share/baculum/htdocs/assets
+	ln --relative -s "$subpkgdir"/var/cache/baculum \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/runtime
+	ls -la "$subpkgdir"/var/cache/baculum
+}
+
+_api() {
+	pkgdesc="Baculum API files"
+	depends="$pkgname-common=$pkgver-r$pkgrel $_api_depends"
+	amove etc/baculum/Config-api \
+		usr/share/baculum/htdocs/protected/API \
+		usr/share/locale/*/LC_MESSAGES/baculum-api.mo
+
+	# will be symlinks
+	rm -r "$subpkgdir"/usr/share/baculum/htdocs/protected/API/Config \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/API/Logs
+	ln --relative -s "$subpkgdir"/etc/baculum/Config-api \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/API/Config
+	ln --relative -s "$subpkgdir"/var/cache/baculum \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/API/Logs
+}
+
+_web() {
+	pkgdesc="Baculum Web files"
+	depends="$pkgname-common=$pkgver-r$pkgrel $_web_depends"
+	amove etc/baculum/Config-web \
+		usr/share/baculum/htdocs/protected/Web \
+		usr/share/locale/*/LC_MESSAGES/baculum-web.mo
+
+	# will be symlinks
+	rm -r "$subpkgdir"/usr/share/baculum/htdocs/protected/Web/Config \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/Web/Logs
+	ln --relative -s "$subpkgdir"/var/cache/baculum \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/Web/Logs
+	ln --relative -s "$subpkgdir"/etc/baculum/Config-web \
+		"$subpkgdir"/usr/share/baculum/htdocs/protected/Web/Config
+}
+
+_api_apache2() {
+	pkgdesc="Apache configuration for Baculum API"
+	depends="$pkgname-api=$pkgver-r$pkgrel $_apache_depends"
+	amove etc/apache2/conf.d/baculum-api.conf
+}
+
+_api_lighttpd() {
+	pkgdesc="Lighttpd configuration for Baculum API"
+	depends="$pkgname-api=$pkgver-r$pkgrel $_lighttpd_depends"
+	amove etc/lighttpd/baculum-api.conf
+}
+
+_web_apache2() {
+	pkgdesc="Apache configuration for Baculum WebGUI"
+	depends="$pkgname-web=$pkgver-r$pkgrel $_apache_depends"
+	amove etc/apache2/conf.d/baculum-web.conf
+}
+
+_web_lighttpd() {
+	pkgdesc="Lighttpd configuration for Baculum WebGUI"
+	depends="$pkgname-web=$pkgver-r$pkgrel $_lighttpd_depends"
+	amove etc/lighttpd/baculum-web.conf
+}
+
+sha512sums="
+17a9089699181430a8d6a4cf73d237ece47a7dea8c2e7347a171b9b8503c55d73c0cc4c1b810cf48cd64dab75d27e7f35b061d4c16fdafa376f93582b1964c37  bacula-gui-11.0.5.tar.gz
+88e2d8311a96f55a327b54a267dc1a694107d09f49640f6eb484e6e67ce9985750cfce20fa16755d2db82230d966001304fe033479d484f985af7aaa921a8915  fix-locale-symlinks.patch
+7b3f008e16151657aae57f4573b04f45fb2d791b90efce51ac74318f539240f73a4c8589d98f820b82bd11f5c4b3deeea052a3b33d7769357d63578096a1e0ae  shared-config-dir.patch
+"

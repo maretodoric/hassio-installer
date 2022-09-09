@@ -1,0 +1,36 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=jetty-runner
+pkgver=9.4.44.20210927
+_pkgver="${pkgver%.*}.v${pkgver##*.}"
+pkgrel=0
+pkgdesc="Fast and easy way to run Java web application from the command line."
+url="https://www.eclipse.org/jetty"
+# riscv64 blocked by java-jre-headless
+arch="noarch !riscv64"
+license="Apache-2.0"
+depends="java-jre-headless"
+subpackages="$pkgname-openrc"
+source="https://repo.maven.apache.org/maven2/org/eclipse/jetty/jetty-runner/$_pkgver/jetty-runner-$_pkgver.jar
+	$pkgname
+	$pkgname.initd
+	$pkgname.confd
+	"
+
+package() {
+	cd "$srcdir"
+
+	install -m644 -D "$pkgname-$_pkgver.jar" \
+		"$pkgdir/usr/share/java/$pkgname.jar"
+	install -m755 -D $pkgname "$pkgdir/usr/bin/$pkgname"
+
+	install -m755 -D $pkgname.initd "$pkgdir/etc/init.d/$pkgname"
+	install -m644 -D $pkgname.confd "$pkgdir/etc/conf.d/$pkgname"
+}
+
+sha512sums="
+41a5197eedd16bd5c6d997fb10a13154a74766bf46009011e74dc78586dba6408384c04df4c1a02b8bf47dc16f116e511c56a63bd8176d2e74ff9da5eaa4be87  jetty-runner-9.4.44.v20210927.jar
+a7420e01e9e8446b971f493a61d17eccb50e5c2a416ae77e310bb4ba3bcd37a7b0bd413e733600829d72eb393e5514b4bb8f64f1d710acf8c1312f1d15610704  jetty-runner
+a2f78a637374fb43ad0ddf58593dd31fd66f997171c54e204638cb00f67365e17346af1763273f1ebd35fca175d0df29907ddcd74745c24d766a329a19e7d4ce  jetty-runner.initd
+3e7e52e31f69b54ff81e741ccec8fad5afb5277affb085f6b4f42d643a5609a75e8b6f83fff33c24e41866a42e698de72d687ba5f6cf74825b40ac8c7dda57b3  jetty-runner.confd
+"

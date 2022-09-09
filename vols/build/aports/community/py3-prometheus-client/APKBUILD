@@ -1,0 +1,26 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=py3-prometheus-client
+pkgver=0.14.0
+pkgrel=0
+pkgdesc="Python3 client for the Prometheus monitoring system"
+url="https://github.com/prometheus/client_python"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-twisted"
+makedepends="python3-dev py3-setuptools"
+options="!check" # Pypi tarballs come without tests
+source="https://pypi.io/packages/source/p/prometheus_client/prometheus_client-$pkgver.tar.gz"
+builddir="$srcdir/prometheus_client-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7294765e2c042c81be1bffcedc2eb5e24823f8b2c93508bbe287e8cfa81bfef83d879790f38ac5effcff51eca7569b39663223ba0325f44819992c097af2faff  prometheus_client-0.14.0.tar.gz
+"

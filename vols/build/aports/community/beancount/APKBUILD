@@ -1,0 +1,36 @@
+# Contributor: Keith Maxwell <keith.maxwell@gmail.com>
+# Maintainer: Keith Maxwell <keith.maxwell@gmail.com>
+pkgname=beancount
+pkgver=2.3.5
+pkgrel=3
+pkgdesc="Double-Entry Accounting from Text Files"
+url="https://beancount.github.io/"
+arch="all !ppc64le"  # limited by py3-grpcio
+license="GPL-2.0-only"
+depends="python3 py3-dateutil py3-ply py3-bottle py3-lxml py3-magic
+	py3-beautifulsoup4 py3-requests py3-chardet py3-pytest
+	py3-google-api-python-client"
+makedepends="python3-dev py3-setuptools"
+source="$pkgname-$pkgver-meow.tar.gz::https://github.com/beancount/beancount/archive/$pkgver.tar.gz"
+options="!check"
+
+build() {
+	python3 setup.py build
+	python3 setup.py build_ext -i
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+check() {
+	python3 -m pytest --disable-warnings beancount \
+		--deselect=beancount/utils/file_type_test.py::TestFileType::test_xhtml \
+		--deselect=beancount/loader_test.py::TestLoadIncludesEncrypted::test_include_encrypted \
+		--deselect=beancount/parser/lexer_test.py::TestLexerUnicode::test_bytes_encoded_utf16 \
+		--deselect=beancount/ingest/importers/fileonly_test.py::TestFileOnly::test_match
+}
+
+sha512sums="
+a3f1343ddf54cf13ef60802de210dc89e9ae202bca802b1b4eb532588f71d51fa4b71672b4e6a1e9676135d406fd55c421b80c439fa2f5f4279e61211f558a2a  beancount-2.3.5-meow.tar.gz
+"

@@ -1,0 +1,33 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-blessed
+pkgver=1.19.0
+pkgrel=1
+pkgdesc="Easy, practical library for making terminal apps"
+options="!check" # Some tests fail
+url="https://pypi.org/project/blessed/"
+arch="noarch"
+license="MIT"
+depends="python3 py3-wcwidth py3-six"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-mock ncurses"
+source="https://pypi.io/packages/source/b/blessed/blessed-$pkgver.tar.gz"
+builddir="$srcdir/blessed-$pkgver"
+
+build() {
+	rm -f blessed/win_terminal.py
+	python3 setup.py build
+}
+
+check() {
+	rm -f tox.ini
+	TERM=linux PYTHONPATH="$PWD/build/lib" py.test-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+a64d8d542a1a12b710375592c17d06f28a7c68d76952479738873fb956013f7c65820e797116b6151c2a338cd27cfe91b4ad1a318365357060f38d1ec0adf91e  blessed-1.19.0.tar.gz
+"

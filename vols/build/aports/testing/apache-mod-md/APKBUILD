@@ -1,0 +1,36 @@
+# Contributor: Síle Ekaterin Liszka <sheila@vulpine.house>
+# Maintainer: Síle Ekaterin Liszka <sheila@vulpine.house>
+pkgname=apache-mod-md
+pkgver=2.4.10
+pkgrel=0
+pkgdesc="Integrated Acme protocol support for apache2"
+url="https://github.com/icing/mod_md"
+arch="all"
+license="Apache-2.0"
+makedepends="apache2-dev curl-dev jansson-dev"
+subpackages="$pkgname-doc"
+source="https://github.com/icing/mod_md/releases/download/v$pkgver/mod_md-$pkgver.tar.gz"
+builddir="$srcdir/mod_md-$pkgver"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+e2fa9207997c1ea9309bb942855f10dc823cb243c1a39f6f4d5a8dd5cbb9e093b19fce7a201752aefa240a3d040667717ca748accbafa18d89dacb0bfabd6dce  mod_md-2.4.10.tar.gz
+"

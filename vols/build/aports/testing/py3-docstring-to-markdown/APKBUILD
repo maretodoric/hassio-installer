@@ -1,0 +1,31 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=py3-docstring-to-markdown
+_pyname=docstring-to-markdown
+pkgver=0.10
+pkgrel=1
+pkgdesc="On the fly conversion of Python docstrings to markdown"
+url="https://github.com/krassowski/docstring-to-markdown"
+arch="noarch"
+license="LGPL-2.1-only"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="$_pyname-$pkgver.tar.gz::https://github.com/krassowski/docstring-to-markdown/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="." pytest -c /dev/null tests
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+cb716fbaa8311bd563f9275eb64bb67d2870803a6c6c6ffce7b15b672260b46359008dc9ff80a99fee3033f3105fdfd77d7a248e7d8a22df695af820eba8e319  docstring-to-markdown-0.10.tar.gz
+"

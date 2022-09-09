@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-beetle-ngp
+pkgver=0_git20220409
+pkgrel=0
+_commit="facf8e1f5440c5d289258ee3c483710f3bf916fb"
+pkgdesc="standalone port of Mednafen NGP to the libretro API"
+url="https://github.com/libretro/beetle-ngp-libretro"
+arch="all"
+license="GPL-2.0-only"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/beetle-ngp-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/beetle-ngp-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 mednafen_ngp_libretro.so "$pkgdir"/usr/lib/libretro/mednafen_ngp_libretro.so
+}
+
+sha512sums="
+b98f85740bca81288646eb3e95b70e007fc7e52c834dfd42f8a8d8b866baf55ffe48685e9d97cef1649f5382c3fe889e072e376778f835b45ea72218b69e5d07  libretro-beetle-ngp-facf8e1f5440c5d289258ee3c483710f3bf916fb.tar.gz
+"

@@ -1,0 +1,37 @@
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=colord-gtk
+pkgver=0.3.0
+pkgrel=0
+pkgdesc="GTK support library for colord"
+options="!check" # Requires bus session
+url="https://www.freedesktop.org/software/colord/"
+# s390x and riscv64 blocked by polkit -> colord
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later"
+makedepends="meson intltool glib-dev gtk+3.0-dev gtk4.0-dev colord-dev lcms2-dev"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dev $pkgname-lang"
+source="https://www.freedesktop.org/software/colord/releases/colord-gtk-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dgtk2=false \
+		-Dvapi=true \
+		-Dtests=true \
+		-Dman=false \
+		-Ddocs=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+95ea9e8925d56462b8e5230a6737ca8e75d2273b2803e00f7aa2f933d22f88373194dccc00117fce85579274cc0daf88876fa265510580b1610734bb45220896  colord-gtk-0.3.0.tar.xz
+"

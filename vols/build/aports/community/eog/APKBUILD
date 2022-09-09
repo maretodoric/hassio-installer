@@ -1,0 +1,49 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=eog
+pkgver=42.0
+pkgrel=0
+pkgdesc="An image viewer for GNOME"
+url="https://wiki.gnome.org/Apps/EyeOfGnome"
+arch="all !s390x !riscv64" # limited by librsvg -> rust
+license="GPL-2.0-or-later"
+depends="gsettings-desktop-schemas"
+depends_dev="
+	exempi-dev
+	gnome-desktop-dev
+	gvfs-dev
+	jpeg-dev
+	lcms2-dev
+	libexif-dev
+	libpeas-dev
+	libportal-dev
+	librsvg-dev
+	libxml2-dev
+	"
+makedepends="
+	$depends_dev
+	itstool
+	libhandy1-dev
+	libxml2-utils
+	meson
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/eog/${pkgver%.*}/eog-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		output .
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+3901dbac9a371bac1e1bdc143e3d257a8e25fa2743a97bd9f9ecdb06e43cd5278edf33a46ab24c5e40babef6825181c986c99d9b4fafead71e04f51e65ae2acb  eog-42.0.tar.xz
+"

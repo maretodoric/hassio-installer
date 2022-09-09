@@ -1,0 +1,49 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=libnma
+pkgver=1.8.38
+pkgrel=0
+pkgdesc="NetworkManager GUI client library"
+url="https://wiki.gnome.org/Projects/NetworkManager/"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later"
+depends="mobile-broadband-provider-info"
+makedepends="
+	gcr-dev
+	glib-dev
+	gobject-introspection-dev
+	gtk+3.0-dev
+	gtk4.0-dev
+	gtk-doc
+	iso-codes-dev
+	networkmanager-dev
+	vala
+	"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/libnma/${pkgver%.*}/libnma-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--with-libnma-gtk4 \
+		--enable-lto
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+0421c598ccb6e3659f182b596eec76ffd695e51c11fd11b8325c2d08cb259536d7e74c11bbaac3ccb841016a0bc69a87f1c682b934a9eb569a74116e677eba63  libnma-1.8.38.tar.xz
+"

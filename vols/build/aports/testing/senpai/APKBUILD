@@ -1,0 +1,30 @@
+# Contributor: Francesco Camuffo <dev@fmac.xyz>
+# Maintainer: Francesco Camuffo <dev@fmac.xyz>
+pkgname=senpai
+pkgver=0_git20220415
+_commit=82acaacb15e5da69c9103894d05c5af72e848c5f
+pkgrel=1
+pkgdesc="Your everyday IRC student"
+url="https://git.sr.ht/~taiite/senpai"
+arch="all"
+license="ISC"
+makedepends="go scdoc"
+subpackages="$pkgname-doc"
+source="https://git.sr.ht/~taiite/senpai/archive/$_commit.tar.gz"
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	make GOFLAGS="$GOFLAGS"
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+72a94f317fb7cac25ac4dd31a7cba723dc6bebe13c2e887aec5fde84200ee72475dabad393897f4fc095d8d796499ccc279d05973e79b8d9a65124bf5308499e  82acaacb15e5da69c9103894d05c5af72e848c5f.tar.gz
+"

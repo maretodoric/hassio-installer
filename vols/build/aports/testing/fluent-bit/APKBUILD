@@ -1,0 +1,74 @@
+# Contributor: wener <wenermail@gmail.com>
+# Maintainer: wener <wenermail@gmail.com>
+pkgname=fluent-bit
+pkgver=1.8.13
+pkgrel=0
+pkgdesc="Fast and Lightweight Log processor and forwarder"
+url="https://fluentbit.io/"
+# riscv64: does not support bundled luajit
+arch="all !ppc64le !s390x !riscv64"
+license="Apache-2.0"
+makedepends="
+	bison
+	cmake
+	flex
+	fts-dev
+	gtest-dev
+	zlib-dev
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-openrc
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/fluent/fluent-bit/archive/v$pkgver.tar.gz
+	fluent-bit.confd
+	fluent-bit.initd
+	chunkio-static-lib-fts.patch
+	10-def-core-stack-size.patch
+	stream_suffix.patch
+	"
+# enable check when this solved - https://github.com/fluent/fluent-bit/issues/2464#issuecomment-673280055
+options="!check"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	# default CORE_STACK_SIZE=((3 * PTHREAD_STACK_MIN) / 2)=3072 is invalid
+	# based on https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file
+	# set default to 24576
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=None \
+		-DFLB_CORO_STACK_SIZE=24576 \
+		-DFLB_TESTS_INTERNAL=Yes \
+		-DFLB_TLS=Yes \
+		-DFLB_HTTP_SERVER=Yes \
+		$CMAKE_CROSSOPTS .
+	make -C build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=1 make -C build test
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+
+	install -Dm755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+
+	mv "$pkgdir"/usr/etc/* "$pkgdir"/etc
+}
+
+sha512sums="
+ee62102e31ae218a916d96b0ac1e42cbdc4889437947baaceaad1205b71de149cee72b42b3a91a05eab60ddd2250c007483ba2707306212b33ad8d4eb64b1fd4  fluent-bit-1.8.13.tar.gz
+f6431397c80a036980b5377b51e38aec25dfceeb8dbe4cd54dce1f6e77d669d9f8daf983fcc96d25332385888f1809ced5e8ab0e8ccfcd93d19494036e3dc949  fluent-bit.confd
+8ba6c8e84dee90176f9b4375fb2c6444fa5d32fa601d9bcf3ea7960fec87f1ef664f175caf08bd0b052843e971efdbf08e2a5cd180ad9a8f23ff2c5cb233814f  fluent-bit.initd
+6bd7d8b4da93a17f29b6ea1e0286ea226d0e376024284741110936779b3229bd8d6cd03ffbdc5d3b4842294e7f32a888de0dd16b0851b65d91b062ca58530ea0  chunkio-static-lib-fts.patch
+cecfa26e240491ed059f27e209eec8408514f0a59c2b5287fe837daba01179c15c33e8bc88e3bbe95ff39810f7fef6ef806643efbd84fb6dd86a3a7e188a319d  10-def-core-stack-size.patch
+9dc413422a5c12534d962e47b41387a589023b952eca86270fd58b12ea2d309c00d683f826f089618b4b774bd791e954da6d4f60bed7e42d6626ad44853c1a7d  stream_suffix.patch
+"

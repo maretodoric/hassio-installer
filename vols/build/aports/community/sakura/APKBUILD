@@ -1,0 +1,39 @@
+# Contributor: Niko Dittmann <mail@niko-dittmann.com>
+# Contributor: Patrycja Rosa <alpine@ptrcnull.me>
+# Contributor: Dominika Liberda <ja@sdomi.pl>
+# Maintainer: Patrycja Rosa <alpine@ptrcnull.me>
+pkgname=sakura
+pkgver=3.8.5
+pkgrel=0
+pkgdesc="Sakura Terminal Emulator"
+url="https://launchpad.net/sakura"
+arch="all"
+license="GPL-2.0-only"
+makedepends="
+	cmake
+	gettext-dev
+	glib-dev
+	gtk+3.0-dev
+	pango-dev
+	pcre2-dev
+	samurai
+	vte3-dev
+"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://launchpad.net/sakura/trunk/$pkgver/+download/sakura-$pkgver.tar.bz2"
+options="!check" # no tests provided by upstream
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=MinSizeRel
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+bf2657c9021bd243bd40a8e6706fa329096da9b86139182b7163559e555d28a5f9d13428e611c86b92bddd561f5d5471cf4e7ec3d799f73e7116b57df997c4b0  sakura-3.8.5.tar.bz2
+"

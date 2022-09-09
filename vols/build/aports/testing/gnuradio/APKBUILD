@@ -1,0 +1,97 @@
+# Contributor: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=gnuradio
+pkgver=3.9.7.0
+pkgrel=0
+pkgdesc="General purpose DSP and SDR toolkit"
+url="https://www.gnuradio.org"
+# libvolk only supports armv7, aarch64, x86_64. On armv7 other dependencies
+# are not available, so it also not supported for now.
+arch="aarch64 x86_64"
+license="GPL-3.0-or-later"
+checkdepends="xvfb-run"
+depends_dev="
+	blas-dev
+	boost-dev
+	fftw-dev
+	gmp-dev
+	gsl-dev
+	gsm-dev
+	gtk+3.0-dev
+	libsndfile-dev
+	log4cpp-dev
+	mpir-dev
+	py3-numpy-dev
+	py3-pybind11-dev
+	py3-sphinx
+	python3-dev
+	qt5-qtbase-dev
+	qwt-dev
+	soapy-sdr-dev
+	uhd-dev
+	"
+makedepends="
+	$depends_dev
+	cmake
+	doxygen
+	graphviz
+	libvolk-dev
+	samurai
+	"
+depends="
+	py3-cairo
+	py3-gobject3
+	py3-mako
+	py3-numpy
+	py3-qtgraph
+	py3-qt5
+	py3-scipy
+	py3-six
+	py3-yaml
+	"
+subpackages="$pkgname-doc $pkgname-dev"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/gnuradio/gnuradio/archive/v$pkgver.tar.gz
+	disable-test.patch
+	"
+
+[ "$CARCH" = "aarch64" ] && options="!check"  # tests hang on the builder
+
+build() {
+	# inlining failed in call to 'always_inline' 'vsnprintf':
+	# function body can be overwritten at link time
+	export CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE"
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DENABLE_GRC=ON \
+		-DENABLE_GR_QTGUI=ON \
+		-DENABLE_PYTHON=ON \
+		-Wno-dev
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+check() {
+	# remove failing tests
+	case "$CARCH" in
+	x86_64)
+		sed	-i build/gr-blocks/python/blocks/CTestTestfile.cmake \
+			-e '/add_test(qa_rotator_cc /d'
+		sed	-i build/gr-qtgui/python/qtgui/CTestTestfile.cmake \
+			-e '/add_test(qa_qtgui /d'
+		;;
+	esac
+	export CTEST_PARALLEL_LEVEL=$JOBS
+	xvfb-run ctest --output-on-failure --test-dir build
+}
+
+sha512sums="
+c9837601a8cc0011622ffa25ec52892a87078c581a3a9203f6fe586ad7f1ff55a59737fdcbf53601d0f5b00d18c1f8e28dceb061a934e3d170bcba6e70809f5b  gnuradio-3.9.7.0.tar.gz
+168fdf8737e7a52864f9baf13a5061574cb30c67003feb518b1ba906f639cc4fe77d90a71efe2b6cb1da86ac0e226f2311e8116c19be21d6ec653f197cb524e0  disable-test.patch
+"

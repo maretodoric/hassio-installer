@@ -1,0 +1,40 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-isort
+pkgver=5.10.1
+pkgrel=0
+pkgdesc="Python library to sort Python imports"
+url="https://github.com/timothycrosley/isort"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="
+	py3-setuptools
+	"
+checkdepends="
+	black
+	py3-pytest
+	"
+source="https://pypi.python.org/packages/source/i/isort/isort-$pkgver.tar.gz"
+# several tests are failing. Needs upstream fix.
+options="!check"
+
+builddir="$srcdir/isort-$pkgver"
+
+replaces="py-isort" # Backwards compatibility
+provides="py-isort=$pkgver-r$pkgrel" # Backwards compatibility
+
+check() {
+	# Ignored tests have unmet dependencies
+	pytest \
+		--ignore tests/unit/test_pylama_isort.py \
+		--ignore tests/integration
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+ac02a1ae0138a6d85c06335a286c16def68cfe17915a94b3838a7b9f216f435d16244f3519d04f51ec77f9d68d649d6126c0a6316b7b868ff1f1390bc61ca0d2  isort-5.10.1.tar.gz
+"

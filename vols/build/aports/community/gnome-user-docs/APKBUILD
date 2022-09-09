@@ -1,0 +1,31 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-user-docs
+pkgver=42.0
+pkgrel=0
+pkgdesc="GNOME User Documentation"
+url="https://gitlab.gnome.org/GNOME/gnome-user-docs"
+arch="noarch"
+license="CC-BY-3.0"
+makedepends="itstool libxml2-utils gettext-dev"
+options="!check" # no tests
+source="https://download.gnome.org/sources/gnome-user-docs/${pkgver%.*}/gnome-user-docs-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+524dfeaf0ca77c19906395f81f45ac2a7873fc116a6794bae53130b32c1fcdd063566ee0ec4f3e51cfc18e12db8aed5219fd8817a7de3cae6d6a68f228212905  gnome-user-docs-42.0.tar.xz
+"

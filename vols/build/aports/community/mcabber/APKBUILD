@@ -1,0 +1,38 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=mcabber
+pkgver=1.1.2
+pkgrel=0
+pkgdesc="Small Jabber console client"
+url="https://mcabber.com"
+arch="all"
+license="GPL-2.0-or-later"
+depends="beep"
+options="libtool"
+makedepends="loudmouth-dev glib-dev ncurses-dev gpgme-dev aspell-dev
+	libotr-dev libidn-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://mcabber.com/files/mcabber-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--disable-static \
+		--enable-hgcset \
+		--enable-aspell \
+		--enable-otr \
+		--prefix=/usr \
+		--mandir=/usr/share/man
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname/examples
+	install -m644 mcabberrc.example \
+		"$pkgdir"/usr/share/doc/$pkgname/examples/mcabberrc.example
+}
+
+sha512sums="bf53d593e84a4b4b2cf0230a4d94ea75f55008e3c2a839af5839519151209a61cce1685f9db14b65f5c4fa438bfabfeb25eb8e78e666b092c5c66af249788106  mcabber-1.1.2.tar.bz2"

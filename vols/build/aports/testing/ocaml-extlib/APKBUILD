@@ -1,0 +1,57 @@
+# Contributor: Fernando Casas Schossow <casasfernando@outlook.com>
+# Maintainer: Fernando Casas Schossow <casasfernando@outlook.com>
+pkgname=ocaml-extlib
+_pkgname=extlib
+pkgver=1.7.8
+pkgrel=1
+pkgdesc="OCaml ExtLib additions to the standard library"
+url="https://github.com/ygrek/ocaml-extlib"
+arch="all !riscv64" # limited by ocaml
+license="LGPL-2.1-or-later-WITH-linking-exception"
+makedepends="ocaml ocaml-findlib-dev ocaml-ocamldoc ocaml-cppo gawk"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/ygrek/ocaml-extlib/releases/download/$pkgver/extlib-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	make build
+}
+
+check() {
+	make test
+}
+
+package() {
+	export DESTDIR="$pkgdir"
+	export OCAMLFIND_DESTDIR="$DESTDIR/usr/lib/ocaml"
+	mkdir -p "$OCAMLFIND_DESTDIR"
+	make install
+	install -D -m644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+664a8366fb4eed685bd8f8907dbc9a8103bbf75ebb5d7635f6db890722e673107aa052bd09c276f5ed10dc3695220234c382d90d4f8c4e6b93ff68dd22e876e4  extlib-1.7.8.tar.gz
+"

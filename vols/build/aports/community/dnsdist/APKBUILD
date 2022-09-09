@@ -1,0 +1,112 @@
+# Maintainer: Peter van Dijk <peter.van.dijk@powerdns.com>
+pkgname=dnsdist
+pkgver=1.7.2
+pkgrel=1
+pkgdesc="dnsdist is a highly DNS-, DoS-, and abuse-aware loadbalancer."
+url="https://dnsdist.org/"
+# s390x blocked by h2o
+# riscv64 blocked by luajit
+arch="all !s390x !riscv64"
+license="GPL-2.0-only WITH OpenSSL-Exception"
+_lua_version=5.4
+depends="$pkgname-common !$pkgname-luajit"
+checkdepends="findutils"
+makedepends="boost-dev fstrm-dev libedit-dev libsodium-dev lmdb-dev lua$_lua_version-dev
+	net-snmp-dev nghttp2-dev re2-dev luajit-dev h2o-dev wslay-dev"
+pkgusers="dnsdist"
+pkggroups="dnsdist"
+install="$pkgname-common.pre-install"
+subpackages="$pkgname-common::noarch $pkgname-doc $pkgname-luajit"
+source="https://downloads.powerdns.com/releases/dnsdist-$pkgver.tar.bz2"
+
+[ "$CARCH" = "ppc64le" ] && options="!check" # failing tests
+
+prepare() {
+	default_prepare
+	cp -a "$builddir" "$builddir-jit"
+}
+
+_configure() {
+	local _arg="$1"
+	local _luajit
+
+	[ "$_arg" = '-jit' ] || _arg='' _luajit="lua$_lua_version"
+
+	cd "$builddir$_arg"
+
+	# LIBH2OEVLOOP_LIBS env variable is because of a pkgconfig bug as per
+	# https://bugs.launchpad.net/ubuntu/+source/h2o/+bug/1826152 and can be
+	# removed when fixed upstream.
+	LIBH2OEVLOOP_LIBS="-lh2o-evloop -lwslay" ./configure \
+		--build="$CBUILD" \
+		--host="$CHOST" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--enable-dnscrypt \
+		--enable-dns-over-tls \
+		--enable-dns-over-https \
+		--enable-unit-tests \
+		--with-re2 \
+		--with-boost=/usr/include \
+		--with-net-snmp \
+		--with-lua${_luajit:+=$_luajit}
+}
+
+build() {
+	_configure
+	make
+
+	[ -d "$builddir-jit" ] || return 0
+
+	_configure -jit
+	make
+}
+
+_cat_found_file() {
+	local _rc="$?"
+	find . -name "$1" -type f -ls -printf '%P {{{\n' -exec cat -v -n '{}' ';' -printf '}}} %P\n'
+	return "$_rc"
+}
+
+check() {
+	make check || _cat_found_file 'test-suite.log'
+	./dnsdist --version
+
+	if cd "$builddir-jit"; then
+		make check || _cat_found_file 'test-suite.log'
+		./dnsdist --version
+	fi
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	mv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/bin/$pkgname-lua"
+
+	if cd "$builddir-jit"; then
+		make -j1 DESTDIR="$pkgdir" install-exec
+		mv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/bin/$pkgname-luajit"
+	fi
+
+	mv "$pkgdir/usr/bin/$pkgname-lua" "$pkgdir/usr/bin/$pkgname"
+}
+
+common() {
+	pkgdesc="$pkgname common files"
+	depends=""
+
+	mkdir -p "$subpkgdir"
+}
+
+luajit() {
+	pkgdesc="$pkgname with luajit bindings"
+	depends="$pkgname-common !$pkgname"
+
+	mkdir -p "$subpkgdir/usr/bin"
+	mv "$pkgdir/usr/bin/$pkgname-luajit" "$subpkgdir/usr/bin/$pkgname"
+}
+
+sha512sums="
+2048ac0f861547fb103da1a128fd39a35ed689ccbf3c080232a3bd0550c9e7c7e01c95864d61e065e341a9f4111c974d2db2aba73eb8f7cba9bf8273da39b8a6  dnsdist-1.7.2.tar.bz2
+"

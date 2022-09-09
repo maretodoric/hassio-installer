@@ -1,0 +1,64 @@
+# Contributor: kpcyrd <git@rxv.cc>
+# Maintainer: kpcyrd <git@rxv.cc>
+pkgname=meek
+pkgver=0.37.0
+pkgrel=5
+pkgdesc="A pluggable transport proxy written in Go"
+url="https://trac.torproject.org/projects/tor/wiki/doc/meek"
+arch="all !riscv64" # fails to build on riscv64
+license="CC0-1.0"
+depends="ca-certificates"
+makedepends="go libcap"
+subpackages="$pkgname-doc
+	$pkgname-server
+	"
+# no test suite available
+options="!check chmod-clean"
+builddir="$srcdir/src/$pkgname"
+
+prepare() {
+	mkdir -p "$srcdir/src"
+	cd "$srcdir/src"
+	git clone --depth 1 --branch "v$pkgver" https://git.torproject.org/pluggable-transports/meek.git
+	cd "$builddir"
+	export GOPATH="$srcdir"
+	go mod vendor
+	sed 's|./meek-client|/usr/bin/meek-client|g;
+		s|./meek-server|/usr/bin/meek-server|g' -i meek-*/torrc
+	default_prepare
+}
+
+build() {
+	export GOPATH="$srcdir"
+	for proj in meek-client meek-server; do
+		go build -v \
+			-buildmode=pie \
+			-trimpath \
+			-mod=vendor \
+			-ldflags "-s -w -extldflags '$LDFLAGS'" \
+			-o $proj/$proj ./$proj/...
+	done
+}
+
+package() {
+	install -Dm755 meek-client/meek-client "$pkgdir/usr/bin/meek-client"
+
+	install -Dm644 doc/*.1 -t "$pkgdir/usr/share/man/man1"
+	install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+
+	install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/README"
+	install -Dm644 meek-server/README "$pkgdir/usr/share/doc/$pkgname/README.meek-server"
+
+	install -Dm644 meek-client/torrc \
+		"$pkgdir/usr/share/doc/$pkgname/torrc.meek-client"
+	install -Dm644 meek-server/torrc \
+		"$pkgdir/usr/share/doc/$pkgname/torrc.meek-server"
+}
+
+server() {
+	pkgdesc="meek pluggable transport proxy server"
+	depends=
+	install -Dm 755 "$builddir"/meek-server/meek-server \
+		"$subpkgdir/usr/bin/meek-server"
+	setcap 'cap_net_bind_service=+ep' "$subpkgdir/usr/bin/meek-server"
+}

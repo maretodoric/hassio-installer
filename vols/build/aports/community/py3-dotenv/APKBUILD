@@ -1,0 +1,30 @@
+# Contributor: Simon Frankenberger <simon-alpine@fraho.eu>
+# Maintainer: Simon Frankenberger <simon-alpine@fraho.eu>
+pkgname=py3-dotenv
+_pyname=python-dotenv
+pkgver=0.19.2
+pkgrel=1
+pkgdesc="Reads the key-value pair from .env file and adds them to environment variable."
+url="https://github.com/theskumar/python-dotenv"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/theskumar/$_pyname/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+4bbd43ecfad127386729205204535a6b43633186d5efb99d35c582ce50f31cd3a803ac88b61c921d02a15d9adea5c7e0c837f408e3169c4ea6abd2fd9cddb0c1  py3-dotenv-0.19.2.tar.gz
+"

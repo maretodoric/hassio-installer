@@ -1,0 +1,48 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=gitui
+# NOTE: If update-lockfile.patch is not applicable after bumping, apply only
+# the previous patches, copy Cargo.lock to Cargo.lock.orig, run
+# `cargo build --release`, interrupt it (^C) right after it starts building
+# and generate a new diff (`diff -u Cargo.lock.orig Cargo.lock`).
+pkgver=0.20.1
+pkgrel=0
+pkgdesc="Blazing fast terminal client for git"
+url="https://github.com/extrawurst/gitui"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le"  # limited by rust/cargo
+license="MIT"
+makedepends="cargo libgit2-dev oniguruma-dev openssl1.1-compat-dev zlib-dev"
+source="https://github.com/extrawurst/gitui/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	use-system-openssl.patch
+	use-oniguruma.patch
+	update-lockfile.patch
+	"
+
+export LIBSSH2_SYS_USE_PKG_CONFIG=1  # use system libssh2
+export RUSTONIG_DYNAMIC_LIBONIG=1  # use system libonig
+
+_cargo_opts="--frozen --no-default-features"
+
+prepare() {
+	default_prepare
+	cargo fetch --locked
+}
+
+build() {
+	cargo build $_cargo_opts --release
+}
+
+check() {
+	cargo test $_cargo_opts
+}
+
+package() {
+	install -D -m755 target/release/gitui "$pkgdir"/usr/bin/gitui
+}
+
+sha512sums="
+6bd3a7ae17bfd0ca2f664b159b3645a8adbd548520ca31b5c5c19636b15d232cd304b281c71cf00e77ef287fb81cbe0521cee5b842bde82e7b3c7c25b6620fc1  gitui-0.20.1.tar.gz
+cc586131c7482aca1d1788ed688104bb2462fb70c2a466e5558d645d2d33e9492897e32bbae5fe5cbcc9c990587596d7ed99946f5e7b3f3eb571c799813ac68a  use-system-openssl.patch
+cde5cf4b454506b08b3085a33fedb1fc6204209665050c13066e87d82b65a69cd99c3091f9a4765d51fea0b79577dece6accd8f8cfff10965b4743972800eb2e  use-oniguruma.patch
+03d6c29f09ff1fe754e37ae792b817ffbcf4c60e60dd0f22b4d5b4be76566a4d9b54da18e1e27bdbf7559b3516ad2db926df9eac1f7a5626468a5819b709e764  update-lockfile.patch
+"

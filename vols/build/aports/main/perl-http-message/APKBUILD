@@ -1,0 +1,37 @@
+# Contributor: Síle Ekaterin Liszka <sheila@vulpine.house>
+# Maintainer: Síle Ekaterin Liszka <sheila@vulpine.house>
+pkgname=perl-http-message
+_pkgreal=HTTP-Message
+pkgver=6.37
+pkgrel=0
+pkgdesc="HTTP style message"
+url="https://metacpan.org/release/HTTP-Message"
+arch="noarch"
+license="GPL-1.0-or-later OR Artistic-1.0-Perl"
+depends="perl perl-http-date perl-uri perl-io-html perl-encode-locale perl-lwp-mediatypes"
+checkdepends="perl-try-tiny perl-test-needs"
+subpackages="$pkgname-doc"
+source="https://cpan.metacpan.org/authors/id/O/OA/OALDERS/HTTP-Message-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgreal-$pkgver"
+
+prepare() {
+	default_prepare
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+}
+
+build() {
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+}
+
+sha512sums="
+28fd5d189135e50fa38d7eecd4f12c8ad177a80da0093109243041fc8d207b12e1f24800e0e86a40dffc382b18a493e33cbd41dbd3a26438214dd77e1e90c9cf  HTTP-Message-6.37.tar.gz
+"

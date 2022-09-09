@@ -1,0 +1,66 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Alex Denes <caskd@redxen.eu>
+pkgname=neomutt
+pkgver=20220429
+pkgrel=1
+pkgdesc="Mutt with miscellaneous fixes and feature patches"
+url="https://neomutt.org/"
+arch="all !riscv64" # blocked by notmuch
+options="chmod-clean !check" # mutt_file_read_line hangs on ci, probably requires some device to be present (https://github.com/neomutt/neomutt/blob/bccb959d1c917259e170dd2e51909b27e81bd28f/test/file/mutt_file_read_line.c)
+license="GPL-2.0-or-later"
+# TODO: Replace gnupg with specific gnupg subpackages that neomutt really needs.
+depends="gnupg"
+makedepends="cyrus-sasl-dev gdbm-dev gettext-dev gpgme-dev libidn-dev
+	ncurses-dev openssl-dev notmuch-dev bsd-compat-headers libxslt tcl
+	docbook-xsl perl w3m zlib-dev"
+checkdepends="bash"
+subpackages="$pkgname-doc $pkgname-lang"
+_test_commit=1569b826a56c39fd09f7c6dd5fc1163ff5a356a2
+source="neomutt-$pkgver.tar.gz::https://github.com/neomutt/neomutt/archive/$pkgver.tar.gz
+	neomutt-test-files-$_test_commit.tar.gz::https://github.com/neomutt/neomutt-test-files/archive/$_test_commit.tar.gz
+	"
+
+# secfixes:
+#   20211015-r0:
+#     - CVE-2021-32055
+
+build() {
+	./configure \
+		--notmuch \
+		--gpgme \
+		--gdbm \
+		--ssl \
+		--sasl \
+		--testing \
+		--zlib
+	make
+}
+
+check() {
+	export NEOMUTT_TEST_DIR="$srcdir/neomutt-test-files-$_test_commit"
+	(cd $NEOMUTT_TEST_DIR && ./setup.sh)
+	make test
+	(cd $NEOMUTT_TEST_DIR && ./restore.sh)
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	mkdir -p "$pkgdir"/usr/share/doc/"$pkgname"
+	mv contrib/samples "$pkgdir"/usr/share/doc/$pkgname/examples
+}
+
+cleanup_srcdir() {
+	if ! [ -d "$srcdir" ]; then
+		return 0
+	fi
+
+	# maildir/damson has mode 0000, so fix that
+	find "$srcdir" -type d -exec chmod 0755 {} \;
+
+	default_cleanup_srcdir
+}
+
+sha512sums="
+ce151cabe9fe0c45f379dd7a71790f600faa9283c79a486c1421b5fe3b19b7f12d71dc36ec330e1b28b26ed83bf4c47b656ca823c484105ea3f80ef9166e7f0b  neomutt-20220429.tar.gz
+8c98a34c50e87a0b671b49b256dbd83034104fdfa93cde423adc102aebd9c3741942364addadc7c7c2a8a71cbca1850d6c03ff12c2238efac2d106da65f8c296  neomutt-test-files-1569b826a56c39fd09f7c6dd5fc1163ff5a356a2.tar.gz
+"

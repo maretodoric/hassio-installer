@@ -1,0 +1,26 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=helvum
+pkgver=0.3.4
+pkgrel=0
+pkgdesc="GTK patchbay for pipewire"
+url="https://gitlab.freedesktop.org/pipewire/helvum"
+license="GPL-3.0-only"
+arch="all !s390x !riscv64" # blocked by rust/cargo
+arch="$arch !x86 !armv7 !armhf" # FTBFS on 32-bit systems
+makedepends="bash cargo desktop-file-utils meson clang-dev glib-dev gtk4.0-dev pipewire-dev"
+source="https://gitlab.freedesktop.org/pipewire/helvum/-/archive/$pkgver/helvum-$pkgver.tar.gz"
+options="!check" # no test suite
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+f8c73855a52e39337081ea8cf1e813444862ce8c214df7870b01c0064ed130e98074aaf305e982f1a50cc7e166d662b22246c2577c68043feca89cc325c1050f  helvum-0.3.4.tar.gz
+"

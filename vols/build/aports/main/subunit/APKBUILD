@@ -1,0 +1,45 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=subunit
+pkgver=1.4.0
+pkgrel=3
+pkgdesc="A streaming protocol for test results"
+options="!check" # Dependencies for checking stuff are in testing/
+url="https://launchpad.net/subunit"
+arch="all"
+license="Apache-2.0 AND BSD-3-Clause"
+depends="python3 py3-extras py3-testtools"
+makedepends="check-dev cppunit-dev perl-dev python3-dev automake
+	autoconf libtool"
+subpackages="$pkgname-dev $pkgname-libs"
+source="https://launchpad.net/subunit/trunk/$pkgver/+download/subunit-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+	rm -f "$pkgdir"/usr/lib/*.a
+	sed -i '1s|/usr/bin/env python$|/usr/bin/python3|' "$pkgdir"/usr/bin/*
+}
+
+sha512sums="5d2e3cb96c09067ef4595c86648f13330c810b19e39c0b35bc9546c57bee957ddcf5cad7b8e3f92bda9b54dcdbf175863e2f6ba94020f880230459be7afdbbcf  subunit-1.4.0.tar.gz"

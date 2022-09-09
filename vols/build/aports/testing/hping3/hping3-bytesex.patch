@@ -1,0 +1,24 @@
+diff -upr hping3-20051105.orig/bytesex.h hping3-20051105/bytesex.h
+--- hping3-20051105.orig/bytesex.h	2021-07-11 12:34:59.678008233 +0200
++++ hping3-20051105/bytesex.h	2021-07-11 12:35:37.094708356 +0200
+@@ -9,13 +9,20 @@
+ 
+ #if 	defined(__i386__) \
+ 	|| defined(__alpha__) \
++	|| defined(__x86_64__) \
++	|| defined(__ia64__) \
++	|| defined(__riscv) \
++	|| defined(__sh__) \
++	|| (defined(__arm__) && defined(__ARMEL__)) || defined(__AARCH64EL__) \
+ 	|| (defined(__mips__) && (defined(MIPSEL) || defined (__MIPSEL__)))
+ #define BYTE_ORDER_LITTLE_ENDIAN
+ #elif 	defined(__mc68000__) \
++	|| defined (__s390__) \
+ 	|| defined (__sparc__) \
+ 	|| defined (__sparc) \
+ 	|| defined (__PPC__) \
+ 	|| defined (__BIG_ENDIAN__) \
++	|| (defined(__arm__) && defined(__ARMEB__)) || defined(__AARCH64EB__)  \
+ 	|| (defined(__mips__) && (defined(MIPSEB) || defined (__MIPSEB__)))
+ #define BYTE_ORDER_BIG_ENDIAN
+ #else

@@ -1,0 +1,43 @@
+# Contributor: knuxify <knuxify@gmail.com>
+# Contributor: Maxim Karasev <begs@disroot.org>
+# Maintainer: knuxify <knuxify@gmail.com>
+pkgname=chafa
+pkgver=1.12.1
+pkgrel=1
+pkgdesc="Terminal graphics for the 21st century"
+url="https://hpjansson.org/chafa"
+arch="all"
+license="LGPL-3.0-or-later"
+makedepends="glib-dev freetype-dev libjpeg-turbo-dev tiff-dev libwebp-dev"
+subpackages="$pkgname-libs $pkgname-dev $pkgname-doc"
+source="https://github.com/hpjansson/chafa/releases/download/$pkgver/chafa-$pkgver.tar.xz"
+
+# librsvg depends on rust, which is not available on that arches currently
+case "$CARCH" in
+	riscv64|s390x) ;;
+	*) makedepends="$makedepends librsvg-dev";;
+esac
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--disable-gtk-doc
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+c9f792b3175d64039008728f54e0c4010d1a438fc0dc3050c1f878a3d49310b0262110fb430324f6c13074aa987e07a3d1d3514248bf484527759f12471726ed  chafa-1.12.1.tar.xz
+"

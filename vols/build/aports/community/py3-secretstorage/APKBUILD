@@ -1,0 +1,30 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+# Contributor: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=py3-secretstorage
+_pkgname=SecretStorage
+pkgver=3.3.1
+pkgrel=1
+pkgdesc="Python bindings to Freedesktop.org Secret Service API"
+url="https://github.com/mitya57/secretstorage"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-cryptography"
+makedepends="py3-setuptools"
+source=" https://files.pythonhosted.org/packages/source/S/SecretStorage/SecretStorage-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+5e874d08c9e00626a217db96b131884daf92429a91f690b32f62052747275ad0effbe2b4abe048e67fe7f81df97507f8375408898ff986e6f883b5fdfbf2a76c  SecretStorage-3.3.1.tar.gz
+"

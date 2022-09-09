@@ -1,0 +1,68 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer:
+pkgname=ocaml-cppo
+_pkgname=cppo
+pkgver=1.6.9
+pkgrel=0
+pkgdesc="C-style preprocessor for OCaml"
+url="https://github.com/mjambon/cppo"
+arch="all !riscv64" # restricted by ocaml
+license="BSD-3-Clause"
+depends_dev="$pkgname=$pkgver-r$pkgrel $pkgname-ocamlbuild=$pkgver-r$pkgrel"
+makedepends="dune ocaml ocaml-ocamlbuild-dev ocaml-findlib"
+subpackages="$pkgname-dev $pkgname-ocamlbuild"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mjambon/cppo/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	export OCAMLPATH=/usr/lib/ocaml
+	dune build --root . @install @DEFAULT
+}
+
+check() {
+	dune runtest
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--prefix=/usr \
+		--libdir=/usr/lib/ocaml
+
+	# Nothing interesting here.
+	rm -Rf "$pkgdir"/usr/doc
+}
+
+ocamlbuild() {
+	pkgdesc="$pkgdesc (Ocamlbuild plugin)"
+	depends="ocaml-runtime ocaml-ocamlbuild"
+
+	amove usr/lib/ocaml/${_pkgname}_ocamlbuild
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find usr/lib/ocaml \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+26ff5a7b7f38c460661974b23ca190f0feae3a99f1974e0fd12ccf08745bd7d91b7bc168c70a5385b837bfff9530e0e4e41cf269f23dd8cf16ca658008244b44  ocaml-cppo-1.6.9.tar.gz
+"

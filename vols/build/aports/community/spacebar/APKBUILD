@@ -1,0 +1,46 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=spacebar
+pkgver=22.06
+pkgrel=0
+pkgdesc="Collection of stuff for running IM on Plasma Mobile"
+url="https://invent.kde.org/plasma-mobile/spacebar"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by modemmanager-qt
+arch="all !armhf !s390x !riscv64"
+license="GPL-2.0-or-later AND LicenseRef-KDE-Accepted-GPL"
+depends="kirigami2"
+makedepends="
+	extra-cmake-modules
+	kcontacts-dev
+	ki18n-dev
+	kio-dev
+	kirigami2-dev
+	knotifications-dev
+	kpeople-dev
+	libphonenumber-dev
+	modemmanager-qt-dev
+	qcoro-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/spacebar-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build -j1
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+259efb27da2ac03c0e3c1ba971d6131985368e31a88e91028e51b039f8adbf9d21fcba979573cf86fee742881824b54e85bb8bc478c91da0c90ef0fe4fa8f299  spacebar-22.06.tar.xz
+"

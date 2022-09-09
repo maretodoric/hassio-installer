@@ -1,0 +1,38 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=unicode-character-database
+pkgver=14.0.0
+pkgrel=0
+pkgdesc="Unicode Character Database"
+arch="noarch"
+license="Unicode-DFS-2015"
+url="https://www.unicode.org/"
+makedepends="libarchive-tools"
+source="UCD-$pkgver.zip::http://www.unicode.org/Public/zipped/$pkgver/UCD.zip
+	Unihan-$pkgver.zip::http://www.unicode.org/Public/zipped/$pkgver/Unihan.zip
+	emoji-sequences-${pkgver%.*}.txt::http://www.unicode.org/Public/emoji/${pkgver%.*}/emoji-sequences.txt
+	emoji-zwj-sequences-${pkgver%.*}.txt::http://www.unicode.org/Public/emoji/${pkgver%.*}/emoji-zwj-sequences.txt
+	emoji-test-${pkgver%.*}.txt::http://www.unicode.org/Public/emoji/${pkgver%.*}/emoji-test.txt
+	"
+options="!check" # no tests to speak off
+replaces="unicode-emoji"
+builddir="$srcdir"
+
+package() {
+	for _f in UCD Unihan; do
+		install -Dm644 $_f-$pkgver.zip "$pkgdir/usr/share/unicode/$_f.zip"
+		bsdtar -C "$pkgdir/usr/share/unicode" -x --no-same-owner --no-same-permissions -f $_f-$pkgver.zip
+	done
+
+	for _f in sequences test zwj-sequences; do
+		install -Dm644 emoji-$_f-${pkgver%.*}.txt "$pkgdir"/usr/share/unicode/emoji/emoji-$_f.txt
+	done
+}
+
+sha512sums="
+17fbfb3ebd3a75227526d87e19feb70c1b0ccee656e421e955aadc88847ed2597437eb8cf19619e2a49470d286b285e219aec18d6b29dab47cfa8317a212b458  UCD-14.0.0.zip
+1827e512dd1bd27f3553746275dc90e3c3add38590d56da3901eccb56b94fee9e2dd806514a866ca73dfe4770ec585d200a6b6a7a4293c2ff572a2f5b50ef091  Unihan-14.0.0.zip
+527a763fe43e4679b7a689c2b736a4cba9a76ebdd601a0550992391d98431a5248ebec3ba35b20e8bd34cfb3075bad399825371c8f11ffe78e12e0fe09bbc181  emoji-sequences-14.0.txt
+f1098393fbea76ece6838b509b985f06d92ac3f3ee0a0faf14cc92dc1dce73c3d3b7517fb940d48de27243141568acac88bb5b4438ead445cec9434826932e59  emoji-zwj-sequences-14.0.txt
+693fe5c225e28a694d7aa436d3c6546c3376854878bb92d15f1c88b2d6ce3e9f67ddf66bd08e6aa99930d2965a28f8ed4dd3a895fdf5311abb0a323de27e1a12  emoji-test-14.0.txt
+"

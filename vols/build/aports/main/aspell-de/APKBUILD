@@ -1,0 +1,26 @@
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=aspell-de
+pkgver=20161207
+pkgrel=0
+_lang=${pkgname##*-}
+_name=${pkgname%%-*}6-$_lang-$pkgver-7-0
+pkgdesc="German dictionary for aspell"
+url="http://aspell.net/"
+arch="noarch"
+license="GPL-2.0"
+options="!check" # No test suite
+makedepends="aspell-dev"
+source="https://ftp.gnu.org/gnu/aspell/dict/$_lang/$_name.tar.bz2"
+builddir="$srcdir"/$_name
+
+build() {
+	./configure
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -D -m644 Copyright "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="ec29fa49d4e0303d6ceb78da3884ac54ddf34205895f30a95bce0db66f74472b423980200acf01efb1fa40380d6ea6351a58656400af35772266f8a54b1bbec8  aspell6-de-20161207-7-0.tar.bz2"

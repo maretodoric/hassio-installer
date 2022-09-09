@@ -1,0 +1,66 @@
+# Contributor: Josef Vybíhal <josef.vybihal@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Josef Vybíhal <josef.vybihal@gmail.com>
+pkgname=radsecproxy
+pkgver=1.9.1
+pkgrel=3
+pkgdesc="Generic RADIUS proxy that supports both UDP and TLS (RadSec) RADIUS transports"
+url="https://github.com/radsecproxy/radsecproxy"
+license="BSD-3-Clause"
+arch="all"
+makedepends="
+	autoconf
+	automake
+	nettle-dev
+	openssl-dev
+	"
+install="$pkgname.pre-install $pkgname.post-upgrade"
+pkggroups="radsecproxy"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="https://github.com/radsecproxy/radsecproxy/releases/download/$pkgver/radsecproxy-$pkgver.tar.gz
+	dont-ignore-logdestination-in-foreground.patch
+	radsecproxy.conf
+	$pkgname.initd
+	$pkgname.confd
+	"
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	# NOTE: radsecproxy.conf-example is a garbage, so we rather install our
+	#  minimal config that actually works.
+	install -Dm640 -g "${pkggroups%% *}" "$srcdir"/radsecproxy.conf "$pkgdir"/etc/radsecproxy.conf
+
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 "$srcdir"/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+
+	install -Dm644 radsecproxy.conf-example -t "$pkgdir"/usr/share/doc/$pkgname/
+	install -Dm644 LICENSE -t "$pkgdir"/usr/share/licenses/$pkgname/
+}
+
+sha512sums="
+e72a3b55089cb985503c74a0aa0c62e0a05ac5325217900d39aa87563dd639f154ee372ac5e62ecd5aed92b832b0e58bc43f9588ed7950ec731fa5b297e5c07c  radsecproxy-1.9.1.tar.gz
+b8fb597b7d972d4b1ca2063ded6a23ccecc90e84d303f7b7c52a82750b2eaf54c4a55d74bf190c4301e9b3fccf340974097438aa8b420bc98d2e18be14df9dc2  dont-ignore-logdestination-in-foreground.patch
+d1cf3b812854f952d69d536fbd9381e71debdd083992a8882d68427ffbadc29f6cc73b43d61dcafacad731d3f78cd4828dc7c0ade7172947ddb68b08f28f0dc1  radsecproxy.conf
+d5d62277cb0c7dda3f5fdef7ed4fdda8359d382183ca83fad6a7b550d0f00606a3d0650cc50374d90cd9e6fccc9d565a638cb088d1a210d5db6c0cbd983e43b1  radsecproxy.initd
+c4b2b996309be31476207fa97fbee4b32ce9ad295b94148270eba38588409729b37d07d17ceab85605b290b0ed4f3d3174802dad688555e68d864c0a0a45fb4f  radsecproxy.confd
+"

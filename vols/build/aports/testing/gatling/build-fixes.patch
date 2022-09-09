@@ -1,0 +1,12 @@
+diff --git a/ssl.c b/ssl.c
+index 0d19539..ee5f300 100644
+--- a/ssl.c
++++ b/ssl.c
+@@ -11,6 +11,7 @@
+ #include <ctype.h>
+ #include <sys/time.h>
+ #include <sys/stat.h>
++#include <alloca.h>
+ #include "dirfd.h"
+ 
+ static int library_inited;

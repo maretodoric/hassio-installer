@@ -1,0 +1,42 @@
+# Maintainer: Donoban <donoban@riseup.net>
+pkgname=bubblejail
+pkgver=0.6.2
+pkgrel=0
+pkgdesc="Bubblewrap based sandboxing for desktop applications"
+url="https://github.com/igo95862/bubblejail"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="
+	bubblewrap
+	libseccomp
+	python3
+	py3-tomli
+	py3-tomli-w
+	py3-xdg
+	xdg-dbus-proxy
+	"
+makedepends="meson m4 py3-sphinx"
+subpackages="$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion"
+source="bubblejail-$pkgver.tar.gz::https://github.com/igo95862/bubblejail/archive/refs/tags/$pkgver.tar.gz
+	fish_completions.patch
+	"
+options="!check" # No tests
+
+build() {
+	abuild-meson \
+	   -Duse_python_site_packages_dir=true \
+	   -Dversion_display="Alpine $pkgver" \
+	   . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR=$pkgdir meson install --no-rebuild -C output
+}
+
+sha512sums="
+9c46118469fdd0645b0e9509fa05dbbc622ac8555bce06e56fd056ccaaa139fea243821481983507d7ed3888fd7274639fe60fb75d79e9b8e74e94756231f889  bubblejail-0.6.2.tar.gz
+75cac90d0c4689bb29714aa4cd8ad507f4c8a813927c34d9c1aede3d5316bca219225848f45bca3ce9e5d103df7c9fa6059dd932fdd946297a15ccd9616aef38  fish_completions.patch
+"

@@ -1,0 +1,40 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=uhd
+pkgver=4.2.0.0
+pkgrel=2
+pkgdesc="USRP Hardware Driver"
+url="https://github.com/EttusResearch/uhd"
+options="!check" # no tests
+arch="all !armhf !armv7 !s390x" # build failure
+license="GPL-3.0-or-later"
+makedepends="
+	boost-dev
+	cmake
+	doxygen
+	libusb-dev
+	py3-mako
+	py3-ruamel.yaml
+	python3-dev
+	samurai
+	"
+subpackages="$pkgname-dev $pkgname-libs $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/EttusResearch/uhd/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	cmake -B build-host -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		host
+	cmake --build build-host
+	sed -i "s|Version:.*|Version: $pkgver|" build-host/uhd.pc
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build-host
+}
+
+sha512sums="
+a5f105a8765a06e53bed17dee760dfa985d40a97c61ca243127c8a912378d6f5ae81170a48e8e5f92a238bcfd66742798043b3fb0119e574dbac74291f15ec9c  uhd-4.2.0.0.tar.gz
+"

@@ -1,0 +1,11 @@
+--- a/setup.py
++++ b/setup.py
+@@ -13,7 +13,7 @@
+     license="BSD",
+     packages=find_packages(),
+     include_package_data=True,
+-    install_requires=["jellyfish==0.6.1"],
++    install_requires=["jellyfish>=0.6.1"],
+     entry_points={"console_scripts": ["states = us.cli.states:main"]},
+     platforms=["any"],
+     classifiers=[

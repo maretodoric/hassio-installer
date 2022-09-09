@@ -1,0 +1,55 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=rqlite
+pkgver=7.5.1
+pkgrel=0
+pkgdesc="Lightweight, distributed relational database built on SQLite"
+url="https://github.com/rqlite/rqlite"
+arch="all !riscv64" # ftbfs
+license="MIT"
+makedepends="go"
+checkdepends="python3 py3-requests"
+options="!check" # a bunch of them fail due to runtime requirements
+subpackages="
+	$pkgname-doc
+	$pkgname-bench
+	$pkgname-client
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/rqlite/rqlite/archive/refs/tags/v$pkgver.tar.gz"
+
+export GOFLAGS="$GOFLAGS -modcacherw -trimpath"
+
+build() {
+	go build ./cmd/rqbench
+	go build ./cmd/rqlite
+	go build ./cmd/rqlited
+}
+
+check() {
+	RQLITED_PATH="$builddir"/rqlited python3 system_test/full_system_test.py
+}
+
+package() {
+	install -Dm755 rqbench rqlite rqlited \
+		-t "$pkgdir"/usr/bin
+
+	install -D -m644 "$builddir"/DOC/*.md -t \
+		"$pkgdir"/usr/share/doc/$pkgname
+}
+
+bench() {
+	pkgdesc="$pkgdesc (benchmark utility)"
+
+	amove usr/bin/rqbench
+}
+
+
+client() {
+	pkgdesc="$pkgdesc (client)"
+
+	amove usr/bin/rqlite
+}
+
+sha512sums="
+355ef56be32847d02520ff57d43861cc3c4023ccd55c2600efc51af82f83fa3dfd09dfba53b4ca2e159a68f1d065c4f77d03b4f6da7e107d25f8edad733f39c8  rqlite-7.5.1.tar.gz
+"

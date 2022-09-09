@@ -1,0 +1,43 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=pev
+pkgver=0.81
+pkgrel=2
+pkgdesc="PE file analysis toolkit"
+url="http://pev.sourceforge.net/"
+arch="all"
+license="GPL-2.0-or-later AND MIT AND BSD-2-Clause"
+makedepends="bsd-compat-headers linux-headers openssl1.1-compat-dev"
+checkdepends="bash perf"
+subpackages="$pkgname-doc"
+source="https://sourceforge.net/projects/pev/files/pev-$pkgver/pev-$pkgver.tar.gz"
+
+case "$CARCH" in
+	s390x)
+		# Testing pepack /usr/lib/python3.8/distutils/command/wininst-10.0-amd64.exe... ERROR [-18]: not a PE file ((null))
+		options="!check" ;;
+esac
+
+build() {
+	make prefix=/usr
+}
+
+# Check() code from
+# https://github.com/void-linux/void-packages/blob/master/srcpkgs/pev/template#L37
+_real_check() {
+	tests/run.sh pe32 /usr/libexec/perf-core/tests/pe-file.exe
+}
+
+check() {
+	export LD_LIBRARY_PATH="$PWD"/src/build
+	ln -sf ../../lib/libpe/libpe.so src/build/libpe.so.1
+	! _real_check | tee /dev/stderr | grep -q 'NOK$'
+}
+
+package() {
+	make prefix=/usr DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+abf0087b7b3943edf41c47d8572c5b239368aa2b9afcefb3117beeb6ffd34ad3fdfb8c5779ab93ecc5f54b8745daf9030ed6636e9eb32d6d315d383cc3b0bd24  pev-0.81.tar.gz
+"

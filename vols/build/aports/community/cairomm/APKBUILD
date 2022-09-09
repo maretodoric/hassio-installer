@@ -1,0 +1,26 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=cairomm
+pkgver=1.14.3
+pkgrel=0
+pkgdesc="C++ bindings to Cairo vector graphics library"
+url="https://www.cairographics.org"
+arch="all"
+license="LGPL-2.0-or-later AND MPL-1.1"
+makedepends="meson libsigc++-dev cairo-dev perl"
+subpackages="$pkgname-dev"
+source="https://www.cairographics.org/releases/cairomm-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dboost-shared=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+8dc8a0de733904742c54d4935b596d4103f2e498c6735894bc6a5a81eb4962c6ea944bad94102b18b25850f78e948d38f117c566b197bc76da23a4e88b62ee4e  cairomm-1.14.3.tar.xz
+"

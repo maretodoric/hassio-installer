@@ -1,0 +1,31 @@
+# Contributor: Matt Dainty <matt+alpine@bodgit-n-scarper.com>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=py3-cheetah
+_pkgname=Cheetah3
+pkgver=3.2.6
+pkgrel=2
+pkgdesc="Cheetah is a template engine and code generation tool"
+url="http://www.cheetahtemplate.org/"
+arch="all"
+license="MIT"
+depends="python3"
+makedepends="python3-dev py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-cheetah" # Backwards compatibility
+provides="py-cheetah=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="e3422147b3d476676ecfd4ed0bba77c80b008869055748ea50fe83a79b462bb15a20239e6803403e90ea6a0a090697a7fe6ecaae8bfd8e4832f3f0c8da69200d  Cheetah3-3.2.6.tar.gz"

@@ -1,0 +1,43 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=waylandpp
+pkgver=0.2.9
+pkgrel=0
+arch="all"
+url="https://github.com/NilsBrause/waylandpp"
+options="!check" # No tests are run
+pkgdesc="Wayland C++ bindings"
+license="MIT AND GPL-3.0-or-later"
+depends_dev="
+	mesa-dev
+	pugixml-dev
+	wayland-dev
+	"
+makedepends="$depends_dev
+	cmake
+	doxygen
+	graphviz
+	samurai
+	"
+source="https://github.com/nilsbrause/waylandpp/archive/$pkgver/waylandpp-$pkgver.tar.gz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+abe683c236f3b082fb1bd64ce9cc93e4362040f41b31a42971a280fadc8a7ef06a47c6a02cb5201a3f4f864ccdc8a113a8d9a855ca99b42bf1fc322e2593648f  waylandpp-0.2.9.tar.gz
+"

@@ -1,0 +1,35 @@
+# Maintainer: prspkt <prspkt@protonmail.com>
+# Contributor: prspkt <prspkt@protonmail.com>
+pkgname=py3-ddt
+pkgver=1.4.4
+pkgrel=1
+pkgdesc="Python library to multiply test cases"
+url="https://github.com/txels/ddt"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-mock
+	py3-nose
+	py3-pytest
+	py3-yaml
+	"
+source="https://files.pythonhosted.org/packages/source/d/ddt/ddt-$pkgver.tar.gz"
+builddir="$srcdir/ddt-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+506f5d9f1c11a57dc1a93a16f026fb0735654400259e297a96b4163348c3ef1ce66b6f82a46effe507cc66e07819415ffee028e3c96baf5fbbd9d26b14b96abc  ddt-1.4.4.tar.gz
+"

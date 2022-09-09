@@ -1,0 +1,62 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=njs
+pkgver=0.7.5
+pkgrel=0
+pkgdesc="njs scripting language CLI utility"
+url="https://nginx.org/en/docs/njs/"
+arch="all"
+license="BSD-2-Clause"
+# Note: njs is compatible with pcre2, but better to use the same PCRE library
+# as for njs module in nginx.
+makedepends="libedit-dev openssl-dev pcre-dev"
+checkdepends="expect"
+subpackages="$pkgname-debug $pkgname-libs-static"
+source="$pkgname-$pkgver.tar.gz::https://hg.nginx.org/njs/archive/$pkgver.tar.gz
+	mktemp-busybox-compat.patch
+	"
+
+case "$CARCH" in
+	x86) options="!check";;  # one test fails
+esac
+
+# secfixes:
+#   0.7.3-r0:
+#     - CVE-2021-46462
+#     - CVE-2021-46463
+#     - CVE-2022-25139
+#   0.7.1-r0:
+#     - CVE-2021-46461
+
+build() {
+	./configure \
+		--build-dir='build-debug' \
+		--debug=YES
+	make njs
+
+	./configure --cc-opt='-Os' --ld-opt='-Os'
+	make njs
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -m 755 -D build/njs "$pkgdir"/usr/bin/njs
+
+	install -m 644 -D build/libnjs.a "$pkgdir"/usr/lib/libnjs.a
+	install -m 644 -D build-debug/libnjs.a "$pkgdir"/usr/lib/libnjs-debug.a
+}
+
+debug() {
+	pkgdesc="njs built with additional runtime checks and debug symbols"
+	options="!strip"
+
+	install -m 755 -D "$builddir"/build-debug/njs "$subpkgdir"/usr/bin/njs-debug
+}
+
+sha512sums="
+9f0dc6bda06a0db5a92c45b6d8048c2fbb4e2b43a10d050dd3b2de820da425367808d4262bfc8d8e60ed1350bdabb42d1611f373c3da8c88818e266c46f79c78  njs-0.7.5.tar.gz
+4db527d663dbe9e8b503c3cbaa4eae34b45990a5359b3bb98ce970c705faefcac98de49439f2557756a2be8e2e06acc67f98942de01674c498832d80c3cb90c3  mktemp-busybox-compat.patch
+"

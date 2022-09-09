@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=picard
+pkgver=2.7.3
+pkgrel=0
+# armhf blocked by qt5-qtdeclarative
+arch="all !armhf"
+url="https://picard.musicbrainz.org/"
+pkgdesc="Official MusicBrainz tagger"
+license="GPL-2.0-or-later"
+depends="
+	chromaprint
+	py3-dateutil
+	py3-fasteners
+	py3-mutagen
+	py3-qt5
+	py3-yaml
+	"
+makedepends="
+	gettext
+	py3-setuptools
+	python3-dev
+	"
+checkdepends="
+	py3-pytest
+	"
+subpackages="$pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/metabrainz/picard/archive/release-$pkgver.tar.gz"
+builddir="$srcdir/picard-release-$pkgver"
+
+build() {
+	python3 setup.py config
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install \
+		--root="$pkgdir" \
+		--disable-autoupdate
+}
+
+sha512sums="
+33cd37ce19e261d14882b4400054c289bf921d3c74313db634f3876bc7f51ecca184aa29a9cb1d673fe799c53eda81de45d23c83caaf2f71b74fe341c258d2f7  picard-2.7.3.tar.gz
+"

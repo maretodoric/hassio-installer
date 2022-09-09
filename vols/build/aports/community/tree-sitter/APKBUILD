@@ -1,0 +1,110 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=tree-sitter
+pkgver=0.20.6
+pkgrel=0
+pkgdesc="Incremental parsing system for programming tools"
+url="https://tree-sitter.github.io/"
+license="MIT"
+arch="all"
+depends_dev="jq"  # needed for abuild-tree-sitter
+makedepends="bash"
+checkdepends="cargo nodejs"
+subpackages="
+	$pkgname-static
+	$pkgname-dev
+	$pkgname-grammars::noarch
+	"
+source="https://github.com/tree-sitter/tree-sitter/archive/v$pkgver/tree-sitter-$pkgver.tar.gz
+	abuild-tree-sitter
+	"
+
+case "$CARCH" in
+	s390x | riscv64)
+		_with_cli=false  # blocked by rust/cargo
+		options="!check"
+	;;
+	*)
+		_with_cli=true
+		makedepends="$makedepends cargo"
+		subpackages="$subpackages $pkgname-cli"
+	;;
+esac
+
+case "$CARCH" in
+	# FIXME: Tests fail: expected `u8`, found `i8`.
+	aarch64 | arm* | ppc64le) options="!check";;
+esac
+
+prepare() {
+	default_prepare
+
+	# Optimize CLI binary for size.
+	cat >> Cargo.toml <<-EOF
+
+		[profile.release]
+		codegen-units = 1
+		lto = true
+		opt-level = "z"
+		panic = "abort"
+	EOF
+
+	if $_with_cli; then
+		cargo fetch --locked
+	fi
+
+	msg "fetching test fixtures"
+	./script/fetch-fixtures
+}
+
+# TODO - build wasm bindings
+build() {
+	# static & shared lib
+	make
+
+	# wasm bindings
+	#script/build-wasm
+
+	if $_with_cli; then
+		cargo build -p tree-sitter-cli --frozen --release
+	fi
+}
+
+check() {
+	cargo test -p tree-sitter-cli --frozen corpus -- --nocapture
+
+	#script/test-wasm
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+
+	# Prepare directory for grammars provided by other aports.
+	mkdir -p "$pkgdir"/usr/lib/tree-sitter
+}
+
+dev() {
+	default_dev
+	install -D -m755 "$srcdir"/abuild-tree-sitter -t "$subpkgdir"/usr/bin/
+}
+
+cli() {
+	pkgdesc="$pkgdesc (Rust based CLI)"
+	depends=""
+
+	cd "$builddir"
+	install -D -m755 target/release/tree-sitter -t "$subpkgdir"/usr/bin/
+}
+
+grammars() {
+	pkgdesc="Meta package for pulling in all tree-sitter grammars"
+	depends=""
+
+	mkdir -p "$subpkgdir"
+}
+
+sha512sums="
+f0fb1e0073867c2a6e69b230e07e5eec32a2b30d3c711ec188526e287d6a1ef06de266d476482f900ec7c9ff6c11909899fd35a802e96f0befc6e99815502377  tree-sitter-0.20.6.tar.gz
+388cd5a1c07031081c3a894744f75c2c28548ebadb59ac243b006da3b0b634605f58a0f2a741f68cbba0f1caaf9fd3451c0ffa19050a19756460bcc8d670f1e3  abuild-tree-sitter
+"

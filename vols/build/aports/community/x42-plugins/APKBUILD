@@ -1,0 +1,39 @@
+# Contributor: Magnus Sandin <magnus.sandin@gmail.com>
+# Maintainer: Magnus Sandin <magnus.sandin@gmail.com>
+pkgname=x42-plugins
+pkgver=20220605
+pkgrel=0
+pkgdesc="Collection of LV2 plugins"
+url="https://github.com/x42/x42-plugins"
+arch="x86 x86_64" # -msse, only x86* supported
+license="GPL-2.0-only AND GPL-3.0-only"
+subpackages="$pkgname-doc"
+makedepends="
+	cairo-dev
+	coreutils
+	fftw-dev
+	ftgl-dev
+	glu-dev
+	jack-dev
+	libltc-dev
+	libsamplerate-dev
+	libsndfile-dev
+	lv2-dev
+	pango-dev
+	ttf-dejavu
+	zita-convolver-dev
+	"
+source="http://gareus.org/misc/x42-plugins/x42-plugins-$pkgver.tar.xz"
+options="!check" # No tests available
+
+build() {
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+}
+
+sha512sums="
+69b0d351b9137b4cf9374a36c7a8d0a1ae22eb39bd2b15640db96bc9036bafa59823e61ea6bfda09351dbc575fe4c189bb70c6676614ceddd9356c30811bc903  x42-plugins-20220605.tar.xz
+"

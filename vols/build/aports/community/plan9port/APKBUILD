@@ -1,0 +1,80 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=plan9port
+_commit=d0d440860f2000a1560abb3f593cdc325fcead4c
+pkgver=0_git20211019
+pkgrel=1
+pkgdesc="Port of many Plan 9 libraries and programs to Unix"
+url="https://9fans.github.io/plan9port/"
+arch="all"
+license="LPL-1.02"
+makedepends="linux-headers libucontext-dev libxt-dev libx11-dev
+	fontconfig-dev libxext-dev perl"
+options="!check" # upstream doesn't have a test suite
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver-$_commit.tar.gz::https://github.com/9fans/plan9port/archive/$_commit.tar.gz
+	no-html-man-pages.patch
+	libucontext.patch
+	plan9.sh"
+builddir="$srcdir/$pkgname-$_commit"
+
+# TODO: Consider moving sources files to a subpackage or remove them.
+
+export CC9="${CC:-gcc}"
+export CC9FLAGS="$CFLAGS"
+
+prepare() {
+	default_prepare
+
+	# The code hardcodes the path /usr/local/plan9 in a bunch of
+	# places, however, most of these are replaced with $PLAN9_TARGET
+	# by the lib/moveplan9.sh script. Unfortunately, this script is
+	# invoked after compilation and does thus not handle hardcoded
+	# paths in a few C files. Fix these manually.
+	#
+	# See:
+	#
+	#   * https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/26969
+	#   * https://github.com/9fans/plan9port/pull/532
+	#
+	find . -name '*.c' -exec grep "/usr/local/plan9" -l {} + | \
+		xargs sed -i "s|/usr/local/plan9|/usr/lib/plan9|g"
+}
+
+build() {
+	./INSTALL -b
+}
+
+package() {
+	# Can only pass a single flag to ./INSTALL.
+	# For this reason, we set PLAN9_TARGET (-r flag) directly.
+	PLAN9_TARGET=/usr/lib/plan9 ./INSTALL -c
+
+	mkdir -p "$pkgdir"/usr/lib/plan9
+	cp -a ./* "$pkgdir"/usr/lib/plan9
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname/
+	install -m644 CHANGES CONTRIBUTORS README.md \
+		"$pkgdir"/usr/share/doc/$pkgname/
+
+	# Remove unneeded / duplicated files
+	cd "$pkgdir"/usr/lib/plan9
+	rm -f CHANGES CONTRIBUTING.md CONTRIBUTORS INSTALL \
+		LICENSE Makefile README.md install.sum install.log
+
+	install -Dm755 "$srcdir"/plan9.sh \
+		"$pkgdir"/etc/profile.d/plan9.sh
+}
+
+doc() {
+	default_doc
+	amove usr/lib/plan9/man/man? usr/lib/plan9/man/index.html \
+		usr/lib/plan9/man/lookman.index
+}
+
+sha512sums="
+d236c53b73b41a6a86213a3ed1df4bdfb820d588f05cb4b69e5265f3ac47cd5c18b595ad3b7a01097649c268d8b8e9b45076574bc70f51be974e6c21402f64b2  plan9port-0_git20211019-d0d440860f2000a1560abb3f593cdc325fcead4c.tar.gz
+7b87ff69bfa26f9e478bc6816835705f873f259a29779c2c77ba15a65f97bb75677355837e63d4723dc8059a4b86d2ef06446b6b619f009ef81be20e3c6ef50f  no-html-man-pages.patch
+15c3427d36cf9dfaa58c301756d3a8c94ea3acc7edbe3d1b484032acad5c401691e159949844ce277d4bf90b3fc8a38ff8e7c92567b2084c697895f609f11008  libucontext.patch
+1862807e8c45280fbd3e7827c253de093deb773d846713e3c46256e77c409b2d69cce44a2fe086d2776ebf5204707f84a3577324800173daa2f3d4fb3eae09f0  plan9.sh
+"

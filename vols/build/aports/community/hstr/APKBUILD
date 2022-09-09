@@ -1,0 +1,44 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=hstr
+pkgver=2.5
+pkgrel=0
+pkgdesc="Bash and ZSH shell history suggest box"
+url="https://github.com/dvorka/hstr"
+arch="all"
+license="Apache-2.0"
+makedepends="autoconf automake bash libtool ncurses-dev readline-dev"
+options="!check"  # no *automated* tests to run
+subpackages="
+	$pkgname-doc
+	$pkgname-bash-completion
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/dvorka/hstr/archive/$pkgver/hstr-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	sed -i "s|<ncursesw/curses.h>|<curses.h>|" \
+		src/include/hstr_curses.h src/include/hstr.h
+
+	cd build/tarball
+	./tarball-automake.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+}
+
+sha512sums="
+de90aa918a6c2b211f4ce9567b419a5e1d9a50f1d52a0e2a681963c982c68274a675cc8d6c714dc3c7c09a234aab37e9b3c51cc258c00d872312973a78ff5492  hstr-2.5.tar.gz
+"

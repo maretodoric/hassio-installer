@@ -1,0 +1,95 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=appstream
+pkgver=0.15.4
+pkgrel=0
+pkgdesc="Provides a standard for creating app stores across distributions"
+url="https://distributions.freedesktop.org/wiki/AppStream"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="
+	curl-dev
+	glib-dev
+	gobject-introspection-dev
+	gperf
+	itstool
+	libsoup-dev
+	libxml2-dev
+	libxmlb-dev
+	meson
+	qt5-qtbase-dev
+	yaml-dev
+	"
+triggers="$pkgname.trigger=/usr/share/app-info/*"
+install="$pkgname.post-install $pkgname.post-upgrade"
+subpackages="
+	$pkgname-dbg
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-qt
+	$pkgname-lang
+	"
+source="https://www.freedesktop.org/software/appstream/releases/AppStream-$pkgver.tar.xz
+	"
+builddir="$srcdir/AppStream-$pkgver"
+
+# librsvg doesn't exist on these arches
+case "$CARCH" in
+	s390x|riscv64) ;;
+	*)
+		makedepends="$makedepends cairo-dev fontconfig-dev
+			gdk-pixbuf-dev librsvg-dev pango-dev"
+		subpackages="$subpackages $pkgname-compose"
+		_conf="-Dcompose=true"
+		;;
+esac
+
+build() {
+	abuild-meson \
+		-Dqt=true \
+		-Ddocs=false \
+		-Dapidocs=false \
+		-Dinstall-docs=false \
+		-Dstemming=false \
+		-Dvapi=false \
+		-Dapt-support=false \
+		-Dgir=true \
+		$_conf \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	# Remove installed-tests, there is no switch to disable installing them
+	rm -rf "$pkgdir"/usr/share/installed-tests
+}
+
+compose() {
+	pkgdesc="Building blocks to compose AppStream metadata"
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libappstream-compose* \
+		"$pkgdir"/usr/lib/girepository-1.0/AppStreamCompose* \
+		"$subpkgdir"/usr/lib
+
+	# Needs so:libappstream-compose.so and thus needs
+	# to be moved to prevent a recursive dependency.
+	amove usr/libexec/appstreamcli-compose
+}
+
+qt() {
+	pkgdesc="Qt5 interface for AppStream"
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libAppStreamQt.so.* "$subpkgdir"/usr/lib
+}
+
+sha512sums="
+815295fb37d34ae4dff0a8d0a465b5a37286cfa02ac9ae940f77daeab3ca0e2b3519e72cd7e4c61d67298bcc0c94f64ebb50bcde8e2d5fe2f6aa4b188346a27e  AppStream-0.15.4.tar.xz
+"

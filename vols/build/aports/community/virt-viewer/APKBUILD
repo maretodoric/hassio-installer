@@ -1,0 +1,36 @@
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Maintainer: Stuart Cardall <developer@it-offshore.co.uk>
+pkgname=virt-viewer
+pkgver=9.0
+pkgrel=2
+pkgdesc="A lightweight interface for interacting with the graphical display of virtualized guest OS"
+url="https://virt-manager.org"
+arch="all !s390x !riscv64" # spice-gtk
+license="GPL-2.0-or-later"
+options="!check"
+makedepends="$depends_dev intltool spice-protocol glib-dev gtk+3.0-dev
+	gtk-vnc-dev spice-gtk-dev
+	"
+subpackages="$pkgname-lang $pkgname-doc"
+source="https://virt-manager.org/download/sources/virt-viewer/virt-viewer-$pkgver.tar.gz"
+
+case "$CARCH" in
+	ppc64le|s390x|riscv64) ;;
+	*) makedepends="$makedepends libvirt-dev libvirt-glib-dev"
+	   ;;
+esac
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--disable-update-mimedb \
+		--with-gtk-vnc \
+		--with-spice-gtk
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="a5901d76c3e144fa3d6e640de93ed7f1e7cbeb075c04cdbe4a8c9c09bce96104ea552484df5e84c7a69af8dddd1177123ddb81b2dac775a98ac312f3102daae2  virt-viewer-9.0.tar.gz"

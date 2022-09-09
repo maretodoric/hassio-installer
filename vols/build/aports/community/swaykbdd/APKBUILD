@@ -1,0 +1,26 @@
+# Contributor: Dmitry Zakharchenko <dmitz@disroot.org>
+# Maintainer: Dmitry Zakharchenko <dmitz@disroot.org>
+pkgname=swaykbdd
+pkgver=1.1
+pkgrel=0
+pkgdesc="Keyboard layout switcher for Sway"
+url="https://github.com/artemsen/swaykbdd"
+arch="all"
+license="MIT"
+makedepends="json-c-dev meson"
+options="!check"  # no test suite
+subpackages="$pkgname-doc"
+source="https://github.com/artemsen/swaykbdd/archive/v$pkgver/swaykbdd-$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+7883cc3ae5adaf340f4d7cfebb798e7935e632ce5c528cb8bbdbe3aa6089176344b873ea2eac2d2adb68fb797a6356c578882ea38bdc0d21159fe878c444e8a5  swaykbdd-1.1.tar.gz
+"

@@ -1,0 +1,39 @@
+# Contributor: Newbyte <newbie13xd@gmail.com>
+# Maintainer: Newbyte <newbie13xd@gmail.com>
+pkgname=py3-html-sanitizer
+pkgver=1.9.3
+pkgrel=0
+pkgdesc="Allowlist-based and opinionated HTML sanitizer"
+url="https://github.com/matthiask/html-sanitizer"
+arch="noarch"
+license="BSD-3-Clause"
+depends="
+	py3-lxml
+	python3
+	"
+makedepends="
+	py3-beautifulsoup4
+	py3-setuptools
+	"
+checkdepends="
+	py3-tox
+	"
+source="html-sanitizer-$pkgver.tar.gz::https://github.com/matthiask/html-sanitizer/archive/$pkgver.tar.gz"
+builddir="$srcdir/html-sanitizer-$pkgver"
+options="!check" # fail with new beautifulsoup in diff
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	tox -e tests --sitepackages
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7bee04af227cca00d6feed3063621b9acfc159347abc7db3b58f6f75ccce229dd540ac37502fcf1ff5244caa424a9c4f73c2564f2acac87de294cf4975d76a43  html-sanitizer-1.9.3.tar.gz
+"

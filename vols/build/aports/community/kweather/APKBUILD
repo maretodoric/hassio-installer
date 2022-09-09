@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kweather
+pkgver=22.06
+pkgrel=0
+pkgdesc="Weather application for Plasma Mobile"
+url="https://invent.kde.org/plasma-mobile/kweather"
+# armhf blocked by qt5-qtdeclarative
+# s390x blocked by plasma-framework
+# riscv64 disabled due to missing rust in recursive dependency
+arch="all !armhf !s390x !riscv64"
+license="GPL-2.0-or-later AND CC-BY-4.0"
+depends="
+	kirigami2
+	kquickcharts
+	"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kirigami2-dev
+	knotifications-dev
+	kquickcharts-dev
+	kweathercore-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	qt5-qtcharts-dev
+	qt5-qtdeclarative-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/kweather-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+68384fd9e279b06f0e723f9f0d8d89e19e910ea13acc80a26de73b703769db572b6438e9eae4c56f445df6022c3a6b12f5c4541f3000373fb4a11aa91fd6c819  kweather-22.06.tar.xz
+"

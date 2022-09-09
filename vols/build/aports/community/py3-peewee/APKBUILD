@@ -1,0 +1,33 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Antoine Fontaine <antoine.fontaine@epfl.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-peewee
+_pkgname=peewee
+pkgver=3.14.10
+pkgrel=0
+pkgdesc="Small, expressive ORM"
+url="https://github.com/coleifer/peewee"
+arch="all"
+license="MIT"
+depends="python3"
+makedepends="cython py3-setuptools python3-dev sqlite-dev"
+checkdepends="py3-psycopg2"
+source="py3-peewee-$pkgver.tar.gz::https://github.com/coleifer/peewee/archive/$pkgver.tar.gz"
+
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 runtests.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1f423097c67c6a3976ed77586e3ea9db6db42e3c18e6f4c6046176a0e8942a9ce228cefd2a09e39fde359479e70a04e4c06030682442d96657d24984666b13d1  py3-peewee-3.14.10.tar.gz
+"

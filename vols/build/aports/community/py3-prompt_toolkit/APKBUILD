@@ -1,0 +1,33 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Maintainer: Thomas Boerger <thomas@webhippie.de>
+pkgname=py3-prompt_toolkit
+_pkgname=prompt_toolkit
+pkgver=3.0.26
+pkgrel=0
+pkgdesc="Library for building powerful interactive command lines in Python"
+url="https://pypi.python.org/pypi/prompt_toolkit"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-six py3-wcwidth"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/p/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces=py-prompt_toolkit # Backwards compatibility
+provides=py-prompt_toolkit=$pkgver-r$pkgrel # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7151d6678409bf3b04bee76cbcf4e0ffb5ca1963c359d30c8edf9e81bde424ea69b7009cd44e6d72088936290e2fd9dd8cac59efc8b5e59bfb87dacf53967b05  prompt_toolkit-3.0.26.tar.gz
+"

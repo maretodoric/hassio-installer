@@ -1,0 +1,63 @@
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=libaec
+pkgver=1.0.6
+pkgrel=1
+pkgdesc="Adaptive Entropy Coding library"
+url="https://gitlab.dkrz.de/k202009/libaec"
+arch="all"
+license="BSD-2-Clause"
+makedepends="
+	cmake
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-tools
+	libsz
+	"
+source="
+	libaec-$pkgver.tar.gz::https://gitlab.dkrz.de/k202009/libaec/-/archive/v$pkgver/libaec-v$pkgver.tar.gz
+	"
+builddir=$srcdir/$pkgname-v$pkgver
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	mv $pkgdir/usr/cmake $pkgdir/usr/lib/cmake
+	rm $pkgdir/usr/lib/*.a
+}
+
+tools() {
+	pkgdesc="$pkgdesc (command line utilities)"
+
+	amove usr/bin/*
+}
+
+libsz() {
+	pkgdesc="Free drop-in replacement for the SZIP compression library"
+
+	amove usr/lib/libsz*
+}
+
+sha512sums="
+f5d118c48225f97b229ac11425b94adff4d3698733bf18767b427e49047f8e08768464bc9cd9f5e6a66ceb44c8ebd9904c4f6f46566e2e66fcaa1049b2ebfcc1  libaec-1.0.6.tar.gz
+"

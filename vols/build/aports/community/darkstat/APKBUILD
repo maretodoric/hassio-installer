@@ -1,0 +1,33 @@
+# Contributor: ScrumpyJack <scrumpyjack@st.ilet.to>
+# Maintainer: ScrumpyJack <scrumpyjack@st.ilet.to>
+pkgname=darkstat
+pkgver=3.0.721
+pkgrel=0
+pkgdesc="Captures network traffic, calculates statistics about usage, and serves reports over HTTP"
+url="https://unix4lyfe.org/darkstat/"
+arch="all"
+license="GPL-2.0-only"
+makedepends="autoconf automake libpcap-dev zlib-dev"
+subpackages="$pkgname-doc"
+source="darkstat-$pkgver.tar.gz::https://github.com/emikulic/darkstat/archive/refs/tags/$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	autoreconf -vfi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+package() {
+	make DESTDIR=$pkgdir install
+}
+
+sha512sums="
+077eec3cc69b021966d4545f408a7444136cedb8be1dbae96fb1ce94d9bcd3a1db3bf4ea1bed8999088b24f7e2ed333d1166fe39bf974f32772b8c8f6fde707c  darkstat-3.0.721.tar.gz
+"

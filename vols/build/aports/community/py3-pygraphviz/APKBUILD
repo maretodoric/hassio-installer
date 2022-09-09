@@ -1,0 +1,33 @@
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Maintainer: Stuart Cardall <developer@it-offshore.co.uk>
+pkgname=py3-pygraphviz
+pkgver=1.6
+pkgrel=2
+pkgdesc="Python interface to Graphviz"
+options="!check" # FAILED (failures=11, errors=47)
+url="https://pygraphviz.github.io/"
+arch="all"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="python3-dev graphviz-dev py3-setuptools"
+checkdepends="py3-nose"
+subpackages="$pkgname-doc"
+source="https://github.com/pygraphviz/pygraphviz/archive/pygraphviz-$pkgver.tar.gz"
+builddir="$srcdir/pygraphviz-pygraphviz-$pkgver"
+
+replaces="py-pygraphviz" # Backwards compatibility
+provides="py-pygraphviz=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="97e91bc9044df571b8ffae89fbac4355e02da3cbc6eecf18488a2f32b770766209404657ef90104bbf16f217e20d44e6169cd56fc6560710d5344f6382e79c2c  pygraphviz-1.6.tar.gz"

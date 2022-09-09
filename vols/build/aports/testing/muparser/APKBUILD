@@ -1,0 +1,50 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=muparser
+pkgver=2.3.3
+pkgrel=0
+pkgdesc="Fast math parser library"
+url="https://beltoforion.de/en/muparser/"
+arch="all !s390x" # s390x blocked by openmp
+license="BSD-2-Clause"
+makedepends="cmake openmp-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+options="!check" # No testsuite
+source="$pkgname-$pkgver.tar.gz::https://github.com/beltoforion/muparser/archive/v$pkgver-1.tar.gz"
+builddir="$srcdir/muparser-$pkgver-1"
+
+# FIXME: For some reason CMake is unable to find the OpenMP dependency
+# on riscv64. Might be qemu-user related:
+#
+#  CMake Error at /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+#    Could NOT find OpenMP_C (missing: OpenMP_gomp_LIBRARY
+#    OpenMP_pthread_LIBRARY) (found version "4.5")
+#
+_cmake_opts="-DENABLE_OPENMP=ON"
+case "${CARCH}" in
+riscv64) _cmake_opts="-DENABLE_OPENMP=OFF" ;;
+esac
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		$CMAKE_CROSSOPTS \
+		$_cmake_opts .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+
+	install -Dm644 "$builddir"/LICENSE -t \
+		"$pkgdir"/usr/share/licenses/muparser/
+}
+
+sha512sums="
+f7e01c83f6ffe71e240653c47fdb8f3152d7fdf61b5997a3c717dec50d0175065c4fc4241ec95fb35b60b968c5c965a820009163ebe84f0fa57d64b3a23226b4  muparser-2.3.3.tar.gz
+"

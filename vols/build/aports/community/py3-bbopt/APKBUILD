@@ -1,0 +1,37 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-bbopt
+pkgver=1.3.7
+pkgrel=1
+pkgdesc="Black box hyperparameter optimization made easy"
+url="https://github.com/evhub/bbopt"
+arch="noarch !s390x" # blocked by py3-scikit-optimize
+license="Apache-2.0"
+depends="
+	py3-matplotlib
+	py3-numpy
+	py3-portalocker
+	py3-scikit-optimize
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/b/bbopt/bbopt-$pkgver.tar.gz"
+options="!check" # Requires unpackaged coconut
+builddir="$srcdir/bbopt-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+41f5863eb3197cf4849e40d71bc41710640d09515eee2f37b3810b761e1bb791f3a315a8ed5ae30fcc3c6b0d1ab078220c5cb8634fb9f8d56bf10efcc2488b88  bbopt-1.3.7.tar.gz
+"

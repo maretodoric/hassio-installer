@@ -1,0 +1,35 @@
+# Contributor: Dermot Bradley <dermot_bradley@yahoo.com>
+# Maintainer: Dermot Bradley <dermot_bradley@yahoo.com>
+pkgname=jitterentropy-library
+#
+# NOTE: Please check with the maintainer *before* deciding to submit any
+# MR to update the package - this package is (currently) only used by
+# rng-tools and care needs to be taken that both are aligned (i.e. some
+# necessary changes in *both* packages may not be released at the same
+# time and potentially upgrading jitterentropy-library alone could break
+# rng-tools' jitter functionality).
+#
+pkgver=3.3.1
+pkgrel=0
+pkgdesc="Jitterentropy library"
+url="http://www.chronox.de/jent.html"
+arch="all"
+license="BSD-3-Clause OR GPL-2.0-Only"
+subpackages="$pkgname-dev $pkgname-doc"
+options="!check" # There are no testcases
+source="$pkgname-$pkgver.tar.gz::https://github.com/smuellerDD/jitterentropy-library/archive/v$pkgver.tar.gz
+	01-disable-gcc-optimisation.patch
+	"
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+7dc17c377cf90d38057bbc135e00730a3f84bc66aeed83eca1ad1b0e1c2fb89c5346ec20bdf25d3ce27f1d21893d44e52c08e96175554c18dfa1934a8d4fd9f7  jitterentropy-library-3.3.1.tar.gz
+0a71265b503a1ce9758cb4e2bf8c806e1c427be80567fb530168e50e3aa324569edeba42dcb7dc3c7a147f1a0e360479b4af52cea2dd548b1096939f4f5b8aa6  01-disable-gcc-optimisation.patch
+"

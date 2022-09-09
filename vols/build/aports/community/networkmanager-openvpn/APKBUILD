@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=networkmanager-openvpn
+pkgver=1.8.18
+pkgrel=0
+pkgdesc="NetworkManager VPN plugin for OpenVPN"
+url="https://wiki.gnome.org/Projects/NetworkManager/VPN"
+# s390x blocked by network-manager-applet-dev -> networkmanager-dev
+# riscv64 blocked by polkit -> libnma
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="
+	dbus:org.freedesktop.Secrets
+	openvpn
+	"
+makedepends="
+	glib-dev
+	gtk+3.0-dev
+	intltool
+	libnma-dev
+	libsecret-dev
+	"
+source="https://download.gnome.org/sources/NetworkManager-openvpn/${pkgver%.*}/NetworkManager-openvpn-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+install="
+	$pkgname.pre-install
+	$pkgname.pre-upgrade
+	"
+builddir="$srcdir/NetworkManager-openvpn-$pkgver"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--libexecdir=/usr/lib \
+		--disable-static \
+		--without-libnm-glib
+}
+
+check() {
+	make check
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+}
+
+sha512sums="
+4cdbd6e6fc6ae1849b45e18bbad29748ee7a538c753901f871de350f08d861acb24770ec74dfb288136b0307b36e6ca784f51f982ade26babaa60e4a1e2f31fd  NetworkManager-openvpn-1.8.18.tar.xz
+"

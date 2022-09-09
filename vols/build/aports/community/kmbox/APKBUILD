@@ -1,0 +1,36 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kmbox
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Library for accessing mail storages in MBox format"
+# armhf blocked by extra-cmake-modules
+# s390x blocked by kmime
+arch="all !armhf !s390x"
+url="https://kontact.kde.org/"
+license="LGPL-2.0-or-later"
+depends_dev="kmime-dev"
+makedepends="$depends_dev extra-cmake-modules samurai"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kmbox-$pkgver.tar.xz"
+subpackages="$pkgname-dev"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+8b218278d848e47260df8e8e04603533f6f2b796f66a4609306088aeff2a06a01bec7f81f09fd68d81e5053e4b205c8c032685741e83f62c95026832e47fbf6e  kmbox-22.04.2.tar.xz
+"

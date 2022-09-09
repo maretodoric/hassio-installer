@@ -1,0 +1,60 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=ccache
+pkgver=4.6.1
+pkgrel=0
+pkgdesc="fast C/C++ compiler cache"
+url="https://ccache.dev/"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="
+	asciidoctor
+	cmake
+	hiredis-dev
+	linux-headers
+	perl
+	samurai
+	zstd-dev
+	"
+checkdepends="bash util-linux-misc python3 redis"
+subpackages="$pkgname-doc"
+source="https://github.com/ccache/ccache/releases/download/v$pkgver/ccache-$pkgver.tar.xz
+	ioctl.patch"
+
+# XXX: https://github.com/ccache/ccache/issues/1014
+case "$CARCH" in
+s390x) options="!check" ;;
+esac
+
+build() {
+	cmake -B build -G Ninja \
+		-DCCACHE_DEV_MODE=OFF \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+check() {
+	case $CARCH in
+		armhf) echo "SKIP make -C build test on $CARCH" ;;
+		*) 	ninja -C build test ;;
+	esac
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	local link=
+	mkdir -p "$pkgdir"/usr/lib/ccache/bin
+
+	for link in cc gcc g++ cpp c++ $CHOST-cc $CHOST-gcc \
+			$CHOST-g++ $CHOST-cpp $CHOST-c++ \
+			clang clang++; do
+		ln -sf /usr/bin/ccache "$pkgdir"/usr/lib/ccache/bin/$link
+	done
+}
+
+sha512sums="
+361427ccecd74e8c25ca6a98ef3d3c125d81862196767eb383f6f8159fed8e1695cd5bc8731cb591c23c55352f0114a088b32a673717711efbfbb178a6c08c82  ccache-4.6.1.tar.xz
+785ce34305a3bb6c24117341157356c2bd2272eca9d58fa20acd14a023abe6f784c88d9c55656d2f37320392bb73a61c52cd8b6bd9ac7c5316c8ed187dd6f5fb  ioctl.patch
+"

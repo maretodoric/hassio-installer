@@ -1,0 +1,24 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=btop
+pkgver=1.2.7
+pkgrel=0
+pkgdesc="Resource monitor"
+url="https://github.com/aristocratos/btop"
+license="Apache-2.0"
+arch="all"
+makedepends="cmd:fmt"
+source="https://github.com/aristocratos/btop/archive/v$pkgver/btop-$pkgver.tar.gz"
+options="!check" # no test suite
+
+build() {
+	ADDFLAGS="-fno-ipa-cp" make
+}
+
+package() {
+	make install DESTDIR="$pkgdir" PREFIX=/usr
+}
+
+sha512sums="
+c29e1e3d098ef29c710bf76c1ef20e54feceb490aa59d20475a7083a276d422a32f4b4ff423a121aa4aa7f83389980e553e1f78c165f111fe00ccac693d96447  btop-1.2.7.tar.gz
+"

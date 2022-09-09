@@ -1,0 +1,9 @@
+#!/sbin/openrc-run
+
+command="/usr/libexec/rtkit-daemon"
+command_background="yes"
+pidfile="/run/$RC_SVCNAME.pid"
+
+depend() {
+	need dbus
+}

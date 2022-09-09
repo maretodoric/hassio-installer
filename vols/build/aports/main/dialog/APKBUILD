@@ -1,0 +1,43 @@
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=dialog
+pkgver=1.3.20220526
+_pkgver=${pkgver%.*}-${pkgver##*.}
+pkgrel=0
+pkgdesc="Script interpreter providing curses widgets"
+url="https://invisible-island.net/dialog/dialog.html"
+arch="all"
+options="!check"  # No test suite.
+license="LGPL-2.1-only"
+makedepends="ncurses-dev"
+subpackages="$pkgname-doc $pkgname-static"
+source="https://invisible-mirror.net/archives/dialog/dialog-$_pkgver.tgz"
+builddir="$srcdir/$pkgname-$_pkgver"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--with-ncursesw
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+static() {
+	pkgdesc="$pkgdesc (static library)"
+	depends=""
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/*.a "$subpkgdir"/usr/lib
+}
+
+sha512sums="
+619d52b8123264bf586f5325443c3b85863166119c6fbaa91571a57454d761f01a53ebeb2203ea725c83dc88f2abf886c64c6eac5b56c126e4f3939eb1d24d62  dialog-1.3-20220526.tgz
+"

@@ -1,0 +1,34 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-autopep8
+pkgver=1.6.0
+pkgrel=1
+pkgdesc="automatically format your Python code to conform to the PEP 8 style guide"
+url="https://pypi.python.org/pypi/autopep8/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-pycodestyle
+	py3-toml
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://github.com/hhatto/autopep8/archive/v$pkgver/autopep8-$pkgver.tar.gz"
+builddir="$srcdir/autopep8-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+4e95c46ed8542de7dfdfb1d5e73e8551df2fce8f5371e34580359285441288abdaefde1edc4f2c9701c2883fd189a8448f761b3db0a23ea425db71f8af0ded53  autopep8-1.6.0.tar.gz
+"

@@ -1,0 +1,33 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Breno Leitao <breno.leitao@gmail.com>
+# Maintainer:
+pkgname=ndctl
+pkgver=73
+pkgrel=0
+pkgdesc="Utility library for managing the libnvdimm (non-volatile memory device) sub-system in the Linux kernel"
+url="https://github.com/pmem/ndctl"
+arch="all"
+license="GPL-2.0-only AND LGPL-2.1-only"
+depends="kmod"
+makedepends="meson asciidoc asciidoctor autoconf automake bash-completion
+	eudev-dev iniparser-dev json-c-dev keyutils-dev kmod-dev libtool
+	linux-headers util-linux-dev xmlto"
+subpackages="$pkgname-doc $pkgname-dev $pkgname-libs
+	$pkgname-bash-completion"
+source="ndctl-$pkgver.tar.gz::https://github.com/pmem/ndctl/archive/v$pkgver.tar.gz"
+options="!check" # tests require building & loading the nfit_test.ko kernel module
+
+build() {
+	abuild-meson \
+		-Dsystemd=disabled \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+a52a1fb655f044e5cd48b95b3abd89b4f6a991d6439c02e66da6b55947b8a08c279fec873def0b5a18a4e0b670d40e246c333b619fb62f0c6808357d15d847a5  ndctl-73.tar.gz
+"

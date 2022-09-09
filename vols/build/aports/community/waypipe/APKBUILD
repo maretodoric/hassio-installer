@@ -1,0 +1,34 @@
+# Contributor: Simon Zeni <simon@bl4ckb0ne.ca>
+# Maintainer: Simon Zeni <simon@bl4ckb0ne.ca>
+pkgname=waypipe
+pkgver=0.8.2
+pkgrel=1
+pkgdesc="proxy for Wayland clients"
+url="https://gitlab.freedesktop.org/mstoeckl/waypipe"
+arch="all"
+license="MIT"
+makedepends="meson wayland-protocols wayland-dev scdoc lz4-dev zstd-dev mesa-dev
+	libdrm-dev ffmpeg-dev libva-dev"
+source="https://gitlab.freedesktop.org/mstoeckl/waypipe/-/archive/v$pkgver/waypipe-v$pkgver.tar.gz"
+subpackages="$pkgname-doc"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	abuild-meson \
+		-Dwerror=false \
+		-Db_ndebug=true \
+		build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+check() {
+	meson test --no-rebuild -v -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+sha512sums="
+c942b04a1f8cea60b226533b3c300120257d1264e3c0ed929cc79e35a3d8ba7ca215e52b46fc004a042016f5d492fa0291cec3a547b696fad4c99ae7bf5544bf  waypipe-v0.8.2.tar.gz
+"

@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kitemmodels
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Models for Qt Model/View system"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-only AND LGPL-2.0-or-later"
+depends_dev="qt5-qtbase-dev"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	graphviz
+	qt5-qtdeclarative-dev
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kitemmodels-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# kdescendantsproxymodel_smoketest and kdescendantsproxymodeltest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "kdescendantsproxymodel(_smoketest|test)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+36e43dc0dc2edbffc936f75232423ec6319d0fda9bdb8652aa555d4f0599f796219be777241fe2654a1737fe8f29bafbb9fbb80bd47e77c060ddc5b805b88085  kitemmodels-5.95.0.tar.xz
+"

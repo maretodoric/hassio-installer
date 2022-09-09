@@ -1,0 +1,30 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=libgusb
+pkgver=0.3.10
+pkgrel=0
+pkgdesc="GLib wrapper around libusb"
+url="https://github.com/hughsie/libgusb"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="glib-dev libusb-dev gtk-doc vala eudev-dev gobject-introspection-dev
+	meson py3-setuptools python3-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="libgusb-$pkgver.tar.gz::https://github.com/hughsie/libgusb/archive/$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson check
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+d9a73297563d1998de49651128b7bdbdda665608b194d6a357cee78f9202f2650fd6b6cb7466263cc2a40c94d921ef93a88d2c09c61d729add15e645cad60d68  libgusb-0.3.10.tar.gz
+"

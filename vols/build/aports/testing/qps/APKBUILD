@@ -1,0 +1,36 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=qps
+pkgver=2.5.0
+pkgrel=0
+pkgdesc="LXQt process manager"
+url="https://github.com/lxqt/qps"
+arch="all !armhf !riscv64" # limited by lxqt-config
+license="LGPL-2.0-or-later"
+makedepends="
+	cmake lxqt-build-tools qt5-qtbase-dev qt5-qttools-dev
+	libqtxdg-dev liblxqt-dev kwindowsystem-dev
+	"
+subpackages="$pkgname-doc"
+options="!check" # No testsuite
+source="https://github.com/lxqt/qps/releases/download/$pkgver/qps-$pkgver.tar.xz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+58e8473eb9266a102e5df68025a2beb496a32e6c5cac54232242253abaede5adbf693a8b9f089693990687b53e20c1e23cc800b7928fe68e18f05e3b3d344dca  qps-2.5.0.tar.xz
+"

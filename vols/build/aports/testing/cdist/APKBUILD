@@ -1,0 +1,26 @@
+# Contributor: Lucas Ramage <ramage.lucas@protonmail.com>
+# Maintainer: Lucas Ramage <ramage.lucas@protonmail.com>
+pkgname=cdist
+pkgver=6.9.8
+pkgrel=1
+pkgdesc="A Usable Configuration Management System"
+url="https://www.cdi.st/"
+license="GPL-3.0-or-later"
+arch="noarch"
+depends="python3"
+source="$pkgname-$pkgver.tar.gz::https://code.ungleich.ch/ungleich-public/cdist/archive/$pkgver.tar.gz
+	python3.10-support.patch
+	"
+builddir="$srcdir/cdist"
+options="!check"
+
+package() {
+	echo "VERSION = \"$pkgver\"" > cdist/version.py
+	./bin/cdist 2> /dev/null
+	python3 setup.py build install --root="$pkgdir"
+}
+
+sha512sums="
+3c78dd5332a5957750948c52c4b27269ada21b07a2fce0d84019b4fcd3b7ddc6221f0179690d1b3af7e685ffafd739e604f50195fbc36a5494a102b2fa1b732b  cdist-6.9.8.tar.gz
+7e31022bf62dfe398cc76696fbba0ca05c4330c5ba1eea9381804086bbaa88d3e9a490de112099dc6da232b2ab4bae96a36dcf5d1b798798dba9fe8cf19465eb  python3.10-support.patch
+"

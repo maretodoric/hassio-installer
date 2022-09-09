@@ -1,0 +1,47 @@
+# Contributor: Eric Kidd <git@randomhacks.net>
+# Maintainer: Holger Jaekel <holger.jaekel@gmx.de>
+pkgname=geos
+pkgver=3.10.2
+pkgrel=0
+pkgdesc="GEOS is a library providing OpenGIS and JTS spatial operations in C++."
+url="https://libgeos.org/"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="cmake"
+subpackages="$pkgname-dev"
+source="https://download.osgeo.org/geos/geos-$pkgver.tar.bz2"
+
+build() {
+	case "$CARCH" in
+		aarch64*|ppc64le) CXXFLAGS="$CXXFLAGS -ffp-contract=off" ;;
+	esac
+
+	# fix build on armhf and armv7 with info from
+	# https://trac.osgeo.org/geos/ticket/993
+	local inline="--enable-inline"
+	case "$CARCH" in
+		armhf|armv7) inline="--disable-inline" ;;
+	esac
+
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		$inline
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	find $pkgdir -name "*.a" -type f -delete
+}
+sha512sums="
+390381711ccf56b862c2736cf6329200822f121de1c49df52b8b85cabea8c7787b199df2196acacc2e5c677ff3ebe042d93d70e89deadbc19d754499edb65126  geos-3.10.2.tar.bz2
+"

@@ -1,0 +1,31 @@
+# Contributor: rahmanshaber <rahmanshaber@yahoo.com>
+# Maintainer: rahmanshaber <rahmanshaber@yahoo.com>
+pkgname=corekeyboard
+pkgver=4.3.0
+pkgrel=0
+pkgdesc="A x11 based virtual keyboard from C-Suite"
+arch="all"
+url="https://gitlab.com/cubocore"
+license="GPL-3.0-or-later"
+depends="qt5-qtsvg"
+makedepends="qt5-qtbase-dev qt5-qtx11extras-dev libcprime-dev libxtst-dev cmake ninja"
+source="$pkgname-$pkgver.tar.gz::https://gitlab.com/cubocore/corekeyboard/-/archive/v$pkgver/corekeyboard-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+options="!check"
+
+build() {
+	cmake -B build \
+		-GNinja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=None
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+a64604c087f1b2a44ca308aec7b8371133bd2ad050833dcb6109c6bd28a765d6d84281af78bfacffb5723f5bf80a967f7211ddf209b9ff83a7d4a78ddaaed089  corekeyboard-4.3.0.tar.gz
+"

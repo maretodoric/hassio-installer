@@ -1,0 +1,31 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=nerdctl
+pkgver=0.21.0
+pkgrel=0
+pkgdesc="Docker-compatible CLI for containerd"
+url="https://github.com/containerd/nerdctl/"
+arch="all"
+license="Apache-2.0"
+depends="ca-certificates containerd cni-plugins iptables ip6tables"
+makedepends="go"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/containerd/nerdctl/archive/refs/tags/v$pkgver.tar.gz"
+options="!check" # a lot fail
+
+export GOFLAGS="$GOFLAGS -modcacherw -trimpath"
+export GOPATH="$srcdir"
+
+build() {
+	go build -ldflags "-X github.com/containerd/nerdctl/pkg/version.Version=$pkgver" \
+		-o nerdctl ./cmd/nerdctl
+}
+
+package() {
+	install -Dm755 nerdctl -t "$pkgdir"/usr/bin
+	install -Dm644 docs/*.md -t "$pkgdir"/usr/share/doc/$pkgname
+}
+
+sha512sums="
+16d4c8d5e9a8dfced89a902ec01254242b0a7ca691aa0f17f4c8b0ab7f9eb09a19d5c953bf5a3be5aaa5f334735b68c2243dc671a8f62a298491f66b032d88b0  nerdctl-0.21.0.tar.gz
+"

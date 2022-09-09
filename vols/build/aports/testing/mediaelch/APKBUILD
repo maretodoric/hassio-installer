@@ -1,0 +1,54 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=mediaelch
+pkgver=2.8.16
+pkgrel=1
+pkgdesc="Media Manager for Kodi"
+url="https://github.com/Komet/MediaElch"
+# armhf: limited by qt5-qtdeclarative
+arch="all !armhf"
+license="LGPL-3.0-only"
+depends="qt5-qtquickcontrols"
+makedepends="
+	cmake
+	qt5-qtbase-dev
+	qt5-qtmultimedia-dev
+	qt5-qtdeclarative-dev
+	qt5-qtsvg-dev
+	qt5-qttools-dev
+	libmediainfo-dev
+	curl-dev
+	fortify-headers
+	quazip-dev
+	samurai
+	xvfb-run
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Komet/MediaElch/archive/v$pkgver.tar.gz"
+builddir="$srcdir/MediaElch-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DUSE_EXTERN_QUAZIP=true \
+		-DENABLE_TESTS=ON \
+		$CMAKE_CROSSOPTS .
+	xvfb-run -a cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run -a ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+60bdad6db21ffca61deccc8690e70a433853cbe0d5ac16d9852a7099440117caa947f6155095650aa8c0cbe524f6c0afde7fbc3148c5314c9eae34521890c83f  mediaelch-2.8.16.tar.gz
+"

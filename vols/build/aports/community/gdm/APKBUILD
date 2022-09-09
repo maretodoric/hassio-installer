@@ -1,0 +1,75 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gdm
+pkgver=42.0
+pkgrel=0
+pkgdesc="GNOME display manager"
+url="https://wiki.gnome.org/Projects/GDM"
+# s390x and riscv64 blocked by polkit -> upower
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="dbus
+	dconf
+	gnome-session
+	gnome-settings-daemon
+	gnome-shell
+	gsettings-desktop-schemas
+	linux-pam>=1.4
+	xorg-server
+	xrdb
+	xwayland
+"
+makedepends="accountsservice-dev
+	elogind-dev
+	eudev-dev
+	gettext
+	glib-dev
+	gtk+3.0-dev
+	itstool
+	libcanberra-dev
+	libgudev-dev
+	libsm-dev
+	libx11-dev
+	libxau-dev
+	libxcb-dev
+	libxdmcp-dev
+	linux-pam-dev
+	meson
+"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-openrc"
+options="!check" # Causes circular dep with gnome-shell
+source="https://download.gnome.org/sources/gdm/${pkgver%.*}/gdm-$pkgver.tar.xz
+	remove-systemd-dep.patch
+	gdm.initd
+	Xsession"
+install="gdm.pre-install"
+
+build() {
+	abuild-meson \
+		-Ddefault-pam-config=arch \
+		-Dpam-mod-dir=/lib/security \
+		-Dselinux=disabled \
+		-Dlibaudit=disabled \
+		-Ddbus-sys=/usr/share/dbus-1/system.d \
+		-Dsystemdsystemunitdir=/DELETEME \
+		-Dsystemduserunitdir=/DELETEME \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	rm -rf "$pkgdir"/DELETEME
+
+	sed -i "s/pam_systemd\.so/pam_elogind.so/" "$pkgdir"/etc/pam.d/*
+
+	install -m755 -D "$srcdir/Xsession" "$pkgdir"/etc/gdm
+	install -m755 -D "$srcdir/$pkgname.initd" "$pkgdir"/etc/init.d/gdm
+}
+sha512sums="
+e07a4e9233573069dd5628e7b7e6dbe462e90bd8f30267d3faf1cbe3dcb8b990afe3ad6af1edf5f0ec689c6eb245aaacd4e8565a7e4feea34cc754d43904daaa  gdm-42.0.tar.xz
+695d3c0c56d10baabb24b9e43bc14ab44542cb44a5aed15d471d06eecdfe1313678c854a640a151de239b4a30071dc781cc616296a2785ca43512a31403cdb3c  remove-systemd-dep.patch
+cd4c8f80e37dc362727bd535cbe1d3917f2bc47d52af717595e19709051ab5f27c0f650195152ccd1a7e5e2f886e4e8bc60287f05dcd81e84237c7f78c89223f  gdm.initd
+f836cf0acdf148f2ae09ac28251b5126ce597f08254c43b1ec77596f75e1a3229926116c13f98554625be763e8d28415b27bd679b0a5de9f86bdca7857054c82  Xsession
+"

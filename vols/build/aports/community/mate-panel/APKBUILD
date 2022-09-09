@@ -1,0 +1,38 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=mate-panel
+pkgver=1.26.0
+pkgrel=1
+pkgdesc="The MATE panel is the area on your desktop from which you can run applications"
+url="https://github.com/mate-desktop/mate-panel"
+# s390x and riscv64 blocked by mate-desktop
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later"
+depends="mate-common"
+makedepends="librsvg-dev libmateweather-dev libtool intltool itstool
+	mate-menus-dev dconf-dev libice-dev libsm-dev libcanberra-dev dbus-glib-dev
+	libwnck3-dev libsoup-dev mate-desktop-dev libxml2-utils"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/mate-panel-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--enable-static=no \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+394cf6a4a081980d286a03488370a5335dca681964271329b28d7254fc877457bc42883c95ad9f197a319f1bef71e237052d64b98606df616f5e11b9f9ae5f31  mate-panel-1.26.0.tar.xz
+"

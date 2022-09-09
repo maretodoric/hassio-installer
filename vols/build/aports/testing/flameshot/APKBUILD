@@ -1,0 +1,57 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=flameshot
+pkgver=12.0.0
+pkgrel=0
+pkgdesc="Featureful screenshot app"
+options="!check" # No test suite
+url="https://github.com/lupoDharkael/flameshot"
+arch="all !armhf" # kguiaddons
+license="GPL-3.0-or-later"
+depends="qt5-qtsvg"
+makedepends="
+	cmake
+	kguiaddons-dev
+	qt5-qtsvg-dev
+	qt5-qttools-dev
+	samurai
+	"
+subpackages="
+	$pkgname-lang
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	$pkgname-doc
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/lupoDharkael/flameshot/archive/v$pkgver.tar.gz"
+langdir="/usr/share/flameshot/translations"
+
+# XXX: Temporarily allow textrels on riscv64.
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DUSE_WAYLAND_CLIPBOARD=ON \
+		-DENABLE_CACHE=OFF \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	mkdir -p "$pkgdir"/usr/share/fish/completions
+	mv "$pkgdir"/usr/share/fish/vendor_completions.d/flameshot.fish \
+		"$pkgdir"/usr/share/fish/completions
+
+	rmdir "$pkgdir"/usr/share/fish/vendor_completions.d
+}
+
+sha512sums="
+8a7d0878ff57f9c3fcb12791c33f2c11de08b057a68bb50684dd9195fbba8557e71236bc4f8a5f50062af021ed970d5b4362fc2bfdc90415143d7597c3df50f0  flameshot-12.0.0.tar.gz
+"

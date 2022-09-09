@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kclock
+pkgver=22.06
+pkgrel=0
+pkgdesc="Clock app for Plasma Mobile"
+url="https://invent.kde.org/plasma-mobile/kclock"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> plasma-framework
+# x86 broken
+arch="all !armhf !s390x !x86 !riscv64"
+license="LicenseRef-KDE-Accepted-GPL"
+depends="
+	kirigami-addons
+	kirigami2
+	"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kirigami2-dev
+	knotifications-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtmultimedia-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/kclock-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+960c87e7cafbd8bbe8032b3f8446487ebdf048e1aa9fd4322a195d6540152fcba6e82fa94928d6050233f3222298a310dc638cc23197a6323d696d8f691c2703  kclock-22.06.tar.xz
+"

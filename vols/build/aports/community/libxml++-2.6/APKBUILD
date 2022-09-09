@@ -1,0 +1,32 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=libxml++-2.6
+_pkgname=libxml++
+pkgver=2.42.0
+pkgrel=0
+pkgdesc="libxml++ is a C++ wrapper for the libxml XML parser library."
+url="https://libxmlplusplus.github.io/libxmlplusplus/"
+arch="all !s390x" # broken on big-endian
+license="LGPL-2.1-only"
+makedepends="meson libxml2-dev glibmm-dev"
+subpackages="$pkgname-dev"
+source="https://github.com/libxmlplusplus/libxmlplusplus/releases/download/$pkgver/libxml++-$pkgver.tar.xz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	abuild-meson \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	LANG=C LC_ALL=C meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+2fca5dbea3a71caf3c1264dcbbc808ee92463aa93c64ff1252826275de927b6d5837c58c29e3c837c09b7b8776c818c7c7f568d4a2061df55546fe31def7db51  libxml++-2.42.0.tar.xz
+"

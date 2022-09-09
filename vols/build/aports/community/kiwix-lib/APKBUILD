@@ -1,0 +1,43 @@
+# Contributor: Thomas Kienlen <kommander@laposte.net>
+# Maintainer: Thomas Kienlen <kommander@laposte.net>
+pkgname=kiwix-lib
+_pkgname=libkiwix
+pkgver=10.1.1
+pkgrel=1
+pkgdesc="Common code base for all Kiwix ports"
+url="https://github.com/kiwix/libkiwix"
+license="GPL-3.0-or-later"
+arch="all"
+depends="aria2"
+makedepends="
+	curl-dev
+	gtest-dev
+	libmicrohttpd-dev
+	libzim-dev
+	meson
+	mustache
+	pugixml-dev
+	python3
+	samurai
+	xapian-core-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/kiwix/libkiwix/archive/$pkgver.tar.gz"
+subpackages="$pkgname-dev $pkgname-doc"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	meson . build --prefix /usr
+	ninja -C build
+}
+
+check() {
+	ninja -C build meson-test
+}
+
+package() {
+	DESTDIR="$pkgdir" ninja -C build install
+}
+
+sha512sums="
+279d6936756024164223e0c7320918e98928d04a352111c43886ac83699670e450a96345c96a2ed93d9628efab54786d07443887179787cc7bf83cb5d6c74b4b  kiwix-lib-10.1.1.tar.gz
+"

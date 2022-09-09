@@ -1,0 +1,49 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=mingw-w64-winpthreads
+pkgver=10.0.0
+pkgrel=0
+pkgdesc="MinGW-w64 winpthreads library"
+url="http://mingw-w64.sourceforge.net"
+arch="x86_64 x86"
+license="custom"
+makedepends="
+	mingw-w64-gcc-base
+	mingw-w64-binutils
+	mingw-w64-crt
+	"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.bz2::https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v$pkgver.tar.bz2"
+builddir="$srcdir/mingw-w64-v$pkgver/mingw-w64-libraries/winpthreads"
+
+case "$CARCH" in
+	x86_64) _target="x86_64-w64-mingw32" ;;
+	x86) _target="i686-w64-mingw32" ;;
+esac
+
+build() {
+	./configure \
+		--prefix=/usr/$_target \
+		--host=$_target \
+		--enable-static \
+		--enable-shared \
+		CC=$_target-gcc
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	$_target-strip --strip-unneeded "$pkgdir"/usr/$_target/bin/*.dll
+
+	# Licenses
+	install -Dm644 "$srcdir"/mingw-w64-v$pkgver/COPYING.MinGW-w64/COPYING.MinGW-w64.txt \
+		"$pkgdir"/usr/share/licenses/$pkgname/COPYING.MinGW-w64.txt
+	install -Dm644 "$srcdir"/mingw-w64-v$pkgver/COPYING.MinGW-w64-runtime/COPYING.MinGW-w64-runtime.txt \
+		"$pkgdir"/usr/share/licenses/$pkgname/COPYING.MinGW-w64-runtime.txt
+	install -Dm644 "$srcdir"/mingw-w64-v$pkgver/mingw-w64-headers/ddk/readme.txt \
+		"$pkgdir"/usr/share/licenses/$pkgname/ddk-readme.txt
+}
+
+sha512sums="
+3c0827af7c40809a867758f6cd9ef3ff0c988b43082345bf725e03949af95968d634ace99a7ffae323189549221dcb5d861de9e801f1fbc7904e446641b60516  mingw-w64-winpthreads-10.0.0.tar.bz2
+"

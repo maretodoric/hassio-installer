@@ -1,0 +1,35 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=mapplauncherd-qt
+pkgver=1.1.21
+pkgrel=0
+pkgdesc="Application launch boosters for Qt5"
+url="https://github.com/sailfishos/mapplauncherd-qt"
+arch="all !armhf" # blocked by mapplauncherd
+license="LGPL-2.1-only"
+depends_dev="
+	libxml2-dev
+	mapplauncherd-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev"
+source="https://github.com/sailfishos/mapplauncherd-qt/archive/$pkgver/mapplauncherd-qt-$pkgver.tar.gz"
+options="!check" # No tests
+
+build() {
+	qmake-qt5 \
+		PREFIX=/usr
+	make
+}
+
+package() {
+	INSTALL_ROOT="$pkgdir" make install
+
+	# We don't ship systemd
+	rm -r "$pkgdir"/usr/lib/systemd
+}
+sha512sums="
+a5e0a14df60acd0069376fc7cb21bd24b1f58d5c16555f3fea6d598fd8bc0c3ad269390908c740953aefebc77f7b69de423a029492e22858bd95db93139f37f0  mapplauncherd-qt-1.1.21.tar.gz
+"

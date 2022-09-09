@@ -1,0 +1,31 @@
+# Maintainer: Luca Weiss <luca@z3ntu.xyz>
+pkgname=py3-sparqlwrapper
+_pkgname=sparqlwrapper
+pkgver=2.0.0
+pkgrel=0
+pkgdesc="SPARQL Endpoint interface to Python"
+url="https://rdflib.github.io/sparqlwrapper/"
+arch="noarch"
+license="W3C"
+depends="python3"
+checkdepends="bash py3-nose"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/RDFLib/sparqlwrapper/archive/$pkgver.tar.gz"
+options="!check" # depends on py3-rdflib which would cause a circular dependency
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	nosetests -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6d1b684822ec587771342c2a21df01e306b5bd9b248ca075c6d060f51a831976d54449c8305c9f67fe2b9922ff77c38565555956ae9ed324bda11553932d86a0  py3-sparqlwrapper-2.0.0.tar.gz
+"

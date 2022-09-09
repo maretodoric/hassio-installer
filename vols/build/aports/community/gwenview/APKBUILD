@@ -1,0 +1,76 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=gwenview
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+# ppc64le blocked by qt5-qtwebengine -> purpose
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://kde.org/applications/graphics/org.kde.gwenview"
+pkgdesc="Fast and easy to use image viewer by KDE"
+license="GPL-2.0-only"
+depends="kimageformats"
+makedepends="
+	baloo-dev
+	extra-cmake-modules
+	kactivities-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kitemmodels-dev
+	knotifications-dev
+	kparts-dev
+	kwindowsystem-dev
+	lcms2-dev
+	libjpeg-turbo-dev
+	libkdcraw-dev
+	libkipi-dev
+	libpng-dev
+	purpose-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	qt5-qtx11extras-dev
+	samurai
+	"
+checkdepends="xvfb-run kinit dbus"
+source="https://download.kde.org/stable/release-service/$pkgver/src/gwenview-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# urlutilstest and placetreemodeltest are broken
+	# recursivedirmodeltest and contextmanagertest requires running DBus
+	local skipped_tests="("
+	local tests="
+		contextmanager
+		documenttest
+		jpegcontenttest
+		placetreemodel
+		recursivedirmodel
+		urlutils
+		"
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)test"
+	CTEST_OUTPUT_ON_FAILURE=TRUE dbus-run-session xvfb-run ctest -E "$skipped_tests"
+
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+d2937930921b4d2e86906e9174bd2e4733295f86e9c1aa3f3b978efadc38d73a83ac6d19a8a7f575b006542b038fd8767b673e06c1fd5c7642a52f1903339f0c  gwenview-22.04.2.tar.xz
+"

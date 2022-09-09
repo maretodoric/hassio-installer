@@ -1,0 +1,33 @@
+# Contributor: Will Sinatra <wpsinatra@gmail.com>
+# Maintainer: Will Sinatra <wpsinatra@gmail.com>
+pkgname=love
+pkgver=11.3
+pkgrel=1
+pkgdesc="A Lua 2D Graphics Library"
+url="https://love2d.org"
+# s390x: build failures on big endian
+# riscv64 missing luajit
+arch="all !s390x !riscv64"
+license="Zlib"
+makedepends="libtool autoconf automake sdl2-dev zlib-dev openal-soft-dev
+	freetype-dev libmodplug-dev mpg123-dev libvorbis-dev libtheora-dev luajit-dev
+	lua-dev libx11-dev bash"
+subpackages="$pkgname-doc"
+source="love-$pkgver.tar.gz::https://github.com/love2d/love/archive/$pkgver.tar.gz"
+options="!check" #No checks
+
+prepare() {
+	default_prepare
+	platform/unix/automagic
+	./configure --prefix=/usr LDFLAGS="$LDFLAGS" lua_CFLAGS="-I/usr/bin/luajit" lua_LIBS="-L/usr/lib -lluajit-5.1"
+}
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="29add0ac858fc8fb2759151844f35be389c56dfd2dbf571a3e72b017ec80559060ea6ddcba25cf0234483414f1ba84fee0434879ce58f79d779b0365915c37ae  love-11.3.tar.gz"

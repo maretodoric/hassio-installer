@@ -1,0 +1,111 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Andy Postnikov <apostnikov@gmail.com>
+pkgname=drupal7
+pkgver=7.90
+pkgrel=0
+pkgdesc="An open source content management platform"
+url="https://www.drupal.org/"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="php8-fpm
+	php8-bcmath
+	php8-ctype
+	php8-curl
+	php8-dom
+	php8-gd
+	php8-gmp
+	php8-iconv
+	php8-mbstring
+	php8-opcache
+	php8-openssl
+	php8-pcntl
+	php8-pdo_mysql
+	php8-pdo_sqlite
+	php8-session
+	php8-simplexml
+	php8-tokenizer
+	php8-xml
+	"
+makedepends="$depends_dev"
+subpackages="$pkgname-doc"
+pkggroups="www-data"
+source="https://ftp.drupal.org/files/projects/drupal-$pkgver.tar.gz"
+
+builddir="$srcdir/drupal-$pkgver"
+options="!check" # This package not have testsuite
+
+# secfixes:
+#   7.89-r0:
+#     - CVE-2022-25271
+#   7.86-r0:
+#     - CVE-2021-41182
+#     - CVE-2021-41183
+#     - CVE-2016-7103
+#     - CVE-2010-5312
+#   7.82-r0:
+#     - CVE-2021-32610
+#   7.81-r0:
+#     - CVE-2020-13672
+#   7.78-r0:
+#     - CVE-2020-36193
+#   7.75-r0:
+#     - CVE-2020-28948
+#     - CVE-2020-28949
+#   7.74-r0:
+#     - CVE-2020-13671
+#   7.73-r0:
+#     - CVE-2020-13666
+#   7.72-r0:
+#     - CVE-2020-13663
+#   7.70-r0:
+#     - CVE-2020-11022
+#     - CVE-2020-11023
+#     - CVE-2020-13662
+#   7.66-r0:
+#     - CVE-2018-11358
+#   7.65-r0:
+#     - CVE-2019-6341
+#   7.62-r0:
+#     - CVE-2018-1000888
+#   7.59-r0:
+#     - CVE-2018-7602
+#   7.58-r0:
+#     - CVE-2018-7600
+
+package() {
+	mkdir -p "$pkgdir"/var/lib/$pkgname \
+		"$pkgdir"/usr/share/webapps/$pkgname/ \
+		"$pkgdir"/etc/$pkgname/default \
+		"$pkgdir"/usr/share/doc/"$pkgname"
+	# move drupals sites directory where all module/themes/libaries reside
+	mv sites "$pkgdir"/var/lib/$pkgname/
+	mkdir -p "$pkgdir"/var/lib/$pkgname/sites/default/files
+	# move drupals default config to sysconfig dir.
+	# multisite setups are advanced and needs user configuration
+	mv $pkgdir/var/lib/$pkgname/sites/default/default.settings.php \
+		"$pkgdir"/etc/$pkgname/default/
+	ln -s /etc/"$pkgname"/default/settings.php \
+		$pkgdir/var/lib/$pkgname/sites/default/settings.php
+	mv $pkgdir/var/lib/$pkgname/sites/example.sites.php \
+		"$pkgdir"/etc/$pkgname/
+	ln -sf /etc/"$pkgname"/sites.php \
+		$pkgdir/var/lib/$pkgname/sites/sites.php
+	# move uneeded txt files to doc package
+	for file in *.txt; do
+		[ "$file" != "robots.txt" ] && mv $file \
+			"$pkgdir"/usr/share/doc/"$pkgname"/
+	done
+	# make drupal a webapp
+	mv ./* "$pkgdir"/usr/share/webapps/$pkgname/
+	ln -sf /var/lib/$pkgname/sites \
+		"$pkgdir"/usr/share/webapps/$pkgname/sites
+	# make sure the webserver can access/write to needed files/directories
+	chgrp -R www-data "$pkgdir"/var/lib/$pkgname \
+		"$pkgdir"/etc/$pkgname
+	chmod g+w "$pkgdir"/var/lib/$pkgname/sites/all/* \
+		"$pkgdir"/var/lib/$pkgname/sites/default/files
+}
+
+sha512sums="
+b6831ff65d015fe10f90295d2b042f72934f4d3eb6e048f5587900e367130b564f73f2831291a5ba4721d29ceaadcd398557a737e8115a1cd2746423974af8a2  drupal-7.90.tar.gz
+"

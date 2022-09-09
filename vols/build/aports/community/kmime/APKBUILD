@@ -1,0 +1,44 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kmime
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Library for handling mail messages and newsgroup articles"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later"
+depends_dev="
+	kcodecs-dev
+	ki18n-dev
+	qt5-qtbase-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kmime-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# kmime-headertest and kmime-messagetest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "kmime-(header|message)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+8f7f9f253566b511f4d8c4fe9f6148b5b4d82326ece70d9ee247b600e4226042ea92a6dbcd1636aea876f2794c5d335f899de723bf429e8a0732d8e1f06cbadc  kmime-22.04.2.tar.xz
+"

@@ -1,0 +1,28 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=py3-curl
+_pkgname=pycurl
+pkgver=7.43.0.6
+pkgrel=3
+pkgdesc="Python3 interface to libcurl"
+url="http://pycurl.io/"
+arch="all"
+license="LGPL-2.0-or-later MIT"
+makedepends="curl-dev openssl1.1-compat-dev python3-dev py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-curl" # Backwards compatibility
+provides="py-curl=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	export PYCURL_SSL_LIBRARY=openssl
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm -Rf "$pkgdir"/usr/share  # remove docs
+}
+
+sha512sums="5625d9e38159fb785afaf539372a8ac658d9118fb25f581f11629859fde400b6fccf65e03a19e182534a78169531304639b1e6f1bfdd2cb09bce95d581b52850  pycurl-7.43.0.6.tar.gz"

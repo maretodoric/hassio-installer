@@ -1,0 +1,100 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=openrct2
+pkgver=0.4.0
+_pkgver_objects=1.2.7
+_pkgver_title_sequences=0.4.0
+_pkgver_replays=0.0.67
+pkgrel=0
+pkgdesc="Open-source re-implementation of Roller Coaster Tycoon 2"
+arch="all !s390x" # Build fails on s390x
+url="https://openrct2.io"
+license="GPL-3.0-only"
+depends="$pkgname-data"
+makedepends="
+	cmake
+	ninja
+	jansson-dev
+	libzip-dev
+	libpng-dev
+	speexdsp-dev
+	fontconfig-dev
+	curl-dev
+	icu-dev
+	sdl2-dev
+	mesa-dev
+	fts-dev
+	gtest-dev
+	unzip
+	nlohmann-json
+	"
+install="$pkgname.post-install"
+source="$pkgname-$pkgver.tar.gz::https://github.com/openrct2/openrct2/archive/v$pkgver.tar.gz
+	$pkgname-$_pkgver_title_sequences-title_sequences.zip::https://github.com/OpenRCT2/title-sequences/releases/download/v$_pkgver_title_sequences/title-sequences.zip
+	$pkgname-$_pkgver_objects-objects.zip::https://github.com/OpenRCT2/objects/releases/download/v$_pkgver_objects/objects.zip
+	$pkgname-$_pkgver_replays-replays.zip::https://github.com/OpenRCT2/replays/releases/download/v$_pkgver_replays/replays.zip
+	"
+subpackages="$pkgname-doc $pkgname-cli $pkgname-data::noarch"
+case "$CARCH" in
+	arm*) options="!check" ;; # https://github.com/OpenRCT2/OpenRCT2/issues/12727
+	riscv64) options="textrels" ;;
+esac
+builddir="$srcdir/OpenRCT2-$pkgver"
+
+prepare() {
+	default_prepare
+
+	mkdir -p data/title data/object testdata/replays
+	unzip "$srcdir"/$pkgname-$_pkgver_title_sequences-title_sequences.zip -d data/title
+	unzip "$srcdir"/$pkgname-$_pkgver_objects-objects.zip -d data/object
+	unzip "$srcdir"/$pkgname-$_pkgver_replays-replays.zip -d testdata/replays
+}
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=ON \
+		-DWITH_TESTS=ON \
+		-DSYSTEM_GTEST=ON \
+		-DDOWNLOAD_TITLE_SEQUENCES=OFF \
+		-DDOWNLOAD_OBJECTS=OFF \
+		-DDOWNLOAD_REPLAYS=OFF \
+		-DDISABLE_GOOGLE_BENCHMARK=ON # Not packaged in Alpine
+	cmake --build build
+}
+
+check() {
+	ln -s "$builddir"/data build/data
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "replay_tests"
+}
+
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	install -d "$pkgdir"/usr/share/openrct2
+}
+
+data() {
+	amove usr/share/openrct2
+
+	# https://github.com/OpenRCT2/OpenRCT2/issues/12716
+	mv "$subpkgdir"/usr/share/openrct2/title \
+		"$subpkgdir"/usr/share/openrct2/sequence
+}
+
+cli() {
+	depends="openrct2-data"
+	install="$subpkgname.post-install"
+
+	amove usr/bin/openrct2-cli
+}
+sha512sums="
+b1edf0b8c2987ad2c7fb7f69bb7402ac2a7b783f0a49831a20e8ff8cfc28e84d3e4bc265c986079d58ee430fb1fe6593cde04859cbba8e7aaf1d890091a478d0  openrct2-0.4.0.tar.gz
+fcfabb02fb7cb9dda7f73f8a24fb426e23b1ea4c417deacd7147e4d2e8942223e0cf9d9cc6ae371f7508e8d3b1f3161e05677a301a330ae265b6610e1c5da487  openrct2-0.4.0-title_sequences.zip
+b94027944e8e82dc0ecd9f330c5cb707f07547a3d787e5a8251bba7c7528a5a15fc034e251dfe70ade397b1aa990c148aa7ccdf2f7e8964db36f143b38f1a4f5  openrct2-1.2.7-objects.zip
+41745238b61128777ae4fee1ecb7e9284d84d9b420d653b5371d1349bd00473a98beeaa41688903081390ad38b693cd5e54d230bfc2c255beabbef93ec326f69  openrct2-0.0.67-replays.zip
+"

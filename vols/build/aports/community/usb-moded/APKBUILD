@@ -1,0 +1,80 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=usb-moded
+pkgver=0.86.0.56
+_pkgver=${pkgver%.*}+mer${pkgver##*.}
+pkgrel=0
+_commit_dbus_glib="d42176ae4763e5288ef37ea314fe58387faf2005"
+pkgdesc="A daemon activating a certain USB profile based on the usb cable connection status"
+url="https://github.com/sailfishos/usb-moded"
+arch="all"
+license="GPL-2.0-only"
+depends_dev="
+	dbus-glib-dev
+	eudev-dev
+	elogind-dev
+	glib-dev
+	gobject-introspection-dev
+	kmod-dev
+	libdsme-dev
+	sailfish-access-control
+	ssu-sysinfo-dev
+	"
+makedepends="$depends_dev
+	autoconf
+	automake
+	dbus-dev
+	libtool
+	"
+subpackages="$pkgname-dev $pkgname-openrc"
+source="https://github.com/sailfishos/usb-moded/archive/$_pkgver/usb-moded-${_pkgver/\//-}.tar.gz
+	https://github.com/sailfishos-mirror/dbus-glib/archive/$_commit_dbus_glib/dbus-glib-$_commit_dbus_glib.tar.gz
+	usb-moded.confd
+	usb-moded.initd
+	"
+options="!check" # No test suite available
+builddir="$srcdir/$pkgname-${_pkgver/+/-}"
+
+prepare() {
+	default_prepare
+
+	# Fix invalid pkgconf version
+	sed -i 's/+mer/./' configure.ac
+
+	rmdir dbus-gmain
+	mv "$srcdir/dbus-glib-$_commit_dbus_glib" dbus-gmain
+}
+
+build() {
+	./autogen.sh
+
+	# --enable-systemd is required to build, otherwise it can't find sd-login.h
+	./configure \
+		--prefix=/usr \
+		--enable-connman \
+		--enable-ofono \
+		--enable-app-sync \
+		--enable-systemd
+	make
+}
+
+package() {
+	DESTDIR="$pkgdir" make install
+
+	install -Dm755 "$srcdir"/usb-moded.initd "$pkgdir"/etc/init.d/usb-moded
+	install -Dm644 "$srcdir"/usb-moded.confd "$pkgdir"/etc/conf.d/usb-moded
+
+	# The pkg-config file isn't installed automatically for some reason
+	install -dm 755 "$pkgdir"/usr/lib/pkgconfig
+	install -m 644 usb_moded.pc "$pkgdir"/usr/lib/pkgconfig/
+
+	install -dm 755 "$pkgdir"/usr/include/$pkgname
+	cp src/*.h src/*.xml "$pkgdir"/usr/include/$pkgname
+}
+
+sha512sums="
+58a770312cc6560e1f7918e6a95c723a4b48da50219c1006c35f53ab64ab169c44d3a5bb41a0b56569fae52cd7f4d75626dacf3ce493df9986883eba4cdbc24b  usb-moded-0.86.0+mer56.tar.gz
+665cd6395ee0ea14086ba30188c62a72697b3f63484681e18fc7f54109c9aca162f2e33aa2fa4d45287c6c0b590e81ca310c143dac0232cd5887692cdaf51256  dbus-glib-d42176ae4763e5288ef37ea314fe58387faf2005.tar.gz
+b841282b96110ec59a7aa539db0737327b09549d55c78dc4b2c3b28b4a6ad1facf015b3175cb6d3a38f13e47aa6314ef3dc1514a4e60dd653a97409ec54ba706  usb-moded.confd
+59bfed621dcea78898053664c41f79fcdebbf95812aa5bc74444456823afda68af85a55ba699b973eeac8d042ae6da9f6ed98cc57ee9566e8ab99a84d3a659f0  usb-moded.initd
+"

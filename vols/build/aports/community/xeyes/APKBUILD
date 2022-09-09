@@ -1,0 +1,29 @@
+# Contributor: ScrumpyJack <scrumpyjack@me.com>
+# Maintainer: ScrumpyJack <scrumpyjack@me.com>
+pkgname=xeyes
+pkgver=1.2.0
+pkgrel=0
+pkgdesc="A pair of eyes that follow your mouse in X11"
+url="https://www.x.org"
+options="!check" # no test suite
+arch="all"
+license="MIT"
+makedepends="libx11-dev libxt-dev libxext-dev libxmu-dev libxrender-dev
+	libxi-dev"
+subpackages="$pkgname-doc"
+source="https://www.x.org/releases/individual/app/xeyes-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--datarootdir=/usr/share
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+2d1614614b3ba3d1ebaa0e9801a2e159389b94aaacafb962d326b7e6dc712c1eb2c12a50ceb10b3135cf0eee6ae86bbf84e73098deb08e73792f14a60616b4d8  xeyes-1.2.0.tar.bz2
+"

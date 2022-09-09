@@ -1,0 +1,29 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=py3-asgiref
+pkgver=3.4.1
+pkgrel=1
+pkgdesc="ASGI specs, helper code, and adapters"
+url="https://github.com/django/asgiref/"
+arch="noarch"
+license="BSD-3-Clause"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-pytest-asyncio"
+source="https://files.pythonhosted.org/packages/source/a/asgiref/asgiref-$pkgver.tar.gz"
+builddir="$srcdir/asgiref-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" py.test-3
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="
+af266fc3eac58c21f2ab3f66e522067388f9cf232b17344fb5afbc408c034e61a1cce02362ec5dc494985beef099800f75cf7de28dc057c45e4bcb973b0a6dbe  asgiref-3.4.1.tar.gz
+"

@@ -1,0 +1,54 @@
+# Contributor: Leon Marz <main@lmarz.org>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=rizin-cutter
+pkgver=2.0.5
+pkgrel=0
+pkgdesc="Reverse Engineering Platform powered by rizin"
+url="https://cutter.re"
+arch="all !armhf" # syntax-highlighting not available
+license="GPL-3.0-only"
+depends="rizin"
+makedepends="cmake
+	graphviz-dev
+	python3-dev
+	rizin-dev
+	syntax-highlighting-dev
+	qt5-qttools-dev
+	qt5-qtsvg-dev
+	"
+subpackages="$pkgname-dev"
+_translations_commit=974298653ba71b958e1b6c83f6011f5fefff6236
+source="$pkgname-$pkgver.tar.gz::https://github.com/rizinorg/cutter/archive/v$pkgver.tar.gz
+	translations.tar.gz::https://github.com/rizinorg/cutter-translations/archive/$_translations_commit.tar.gz
+	"
+builddir="$srcdir/cutter-$pkgver"
+options="!check" # upstream does not provide a testsuite
+
+prepare() {
+	default_prepare
+
+	rmdir "$builddir/src/translations"
+	mv "$srcdir/cutter-translations-$_translations_commit" "$builddir/src/translations"
+}
+
+build() {
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCUTTER_USE_BUNDLED_RIZIN=OFF \
+		-DCUTTER_ENABLE_GRAPHVIZ=ON \
+		-DCUTTER_ENABLE_PYTHON=ON
+
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+96badcd2ea00c2b50417b7019933443831fec3a4769cf7ab66505e898d3f2c693f24bbe994ad70f66a456908e621f053a96b21a2999290dc47c4219b6c639bfd  rizin-cutter-2.0.5.tar.gz
+11450631602e7bd81132650b3edd028d56b2f6343a9561fe8bf3281427d8d22b0296651414756236b8544f719c8d4fc11be44a843532c8c32fe21dd7a82066d2  translations.tar.gz
+"

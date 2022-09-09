@@ -1,0 +1,37 @@
+# Contributor: Danilo Falcão <danilo@falcao.org>
+# Contributor: Bartłomiej Piotrowski <nospam@bpiotrowski.pl>
+# Maintainer: Anjandev Momi <anjan@momi.ca>
+pkgname=ufw
+pkgver=0.36.1
+pkgrel=2
+pkgdesc="Uncomplicated CLI tool managing a netfilter firewall"
+url="https://launchpad.net/ufw"
+arch="noarch"
+license="GPL-3.0-or-later"
+options="!check" # 3 tests fails
+depends="iptables ip6tables python3"
+subpackages="$pkgname-doc $pkgname-openrc $pkgname-bash-completion:bashcomp:noarch"
+source="https://launchpad.net/ufw/${pkgver%.*}/$pkgver/+download/ufw-$pkgver.tar.gz
+	$pkgname.initd
+	fix-lib_path.patch
+	"
+
+check() {
+	sh run_tests.sh
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	chmod 644 "$pkgdir"/etc/ufw/*.rules
+
+	install -Dm0644 "$builddir"/shell-completion/bash \
+		"$pkgdir"/usr/share/bash-completion/completions/ufw
+}
+
+sha512sums="
+77d01fef661083eac041be6d6eabffb1d8aedb215f73e44e18a9a63a48da96414b3c0166e3ffd9402c22c72a6de5d774ba14b15368b02997aae8e08d1c5dd4c0  ufw-0.36.1.tar.gz
+c2f1a4e4f2de3f71ef4626645acb1805df6194ee99bcbcd024092d791ccf1391e65276718f0578b1647fbc8439aa6d962f7485273c4875f5109905d9bca2fe09  ufw.initd
+1f3f884f219dad9f2a8eaa1c02d90e82ac1646910c5a30b37cd70fc228f885aa147ef00b6e45d30bc0bdd7f2f19bc8f4db1fe0b63917ee013c07ab953744006a  fix-lib_path.patch
+"

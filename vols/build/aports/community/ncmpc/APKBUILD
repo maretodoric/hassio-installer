@@ -1,0 +1,42 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Peter Bui <pnutzh4x0r@gmail.com>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=ncmpc
+pkgver=0.46
+pkgrel=1
+pkgdesc="Ncurses client for the Music Player Daemon (MPD)"
+url="https://www.musicpd.org/clients/ncmpc"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="glib-dev libmpdclient-dev meson ncurses-dev py3-sphinx
+	lirc-dev pcre2-dev"
+subpackages="$pkgname-doc $pkgname-lang $pkgname-dbg"
+source="https://www.musicpd.org/download/ncmpc/0/ncmpc-$pkgver.tar.xz"
+
+build() {
+	LDFLAGS="$LDFLAGS -lintl" \
+	abuild-meson \
+		-Dlirc=enabled \
+		-Dcurses=ncurses \
+		-Dlyrics_screen=true \
+		-Dlyrics_plugin_dir=share/$pkgname/lyrics \
+		-Dhtml_manual=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	mkdir -p "$pkgdir"/usr/share/$pkgname/lyrics
+	install -m755 lyrics/* \
+		"$pkgdir"/usr/share/$pkgname/lyrics
+}
+
+sha512sums="
+34cbb9ff527bfa4d849069694b6d1a1e54c932b64538e799c9ef9b9ccc42ed24932b6bcbf3552af6ce846af6b7399916e1aabc6c79ac564f1c9fe56a33b6332f  ncmpc-0.46.tar.xz
+"

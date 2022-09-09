@@ -1,0 +1,31 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=fq
+pkgver=0.0.7
+pkgrel=1
+pkgdesc="Tool, language and decoders for inspecting binary data"
+url="https://github.com/wader/fq"
+license="MIT"
+arch="all"
+makedepends="go"
+checkdepends="expect"
+source="https://github.com/wader/fq/archive/v$pkgver/fq-$pkgver.tar.gz"
+
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+export GOPATH="$srcdir"
+
+build() {
+	make fq
+}
+
+check() {
+	GO_TEST_RACE_FLAGS= make test
+}
+
+package() {
+	install -Dm755 fq "$pkgdir"/usr/bin/fq
+}
+
+sha512sums="
+3efd03852fe37f2c4ac5da9f44a038b92a0782d7a1296dd2a3d1b2b94352416ebef57f966712e365197c74ee8e0cece656346e3db31512667a499fedc23c804d  fq-0.0.7.tar.gz
+"

@@ -1,0 +1,28 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-flask-peewee
+_pkgname=flask-peewee
+pkgver=3.0.4
+pkgrel=1
+pkgdesc="Flask integration for peewee"
+url="http://pypi.python.org/pypi/flask-peewee"
+arch="noarch"
+license="MIT"
+depends="py3-flask py3-jinja2 py3-peewee py3-werkzeug py3-wtf-peewee
+	py3-wtforms"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+84d6158d3e7e1868eaea951bb0a18ab98238295b0d00558a5ed0d47af5d5df88420cfa843422bd88abc2ffa2de0177e3d4048806ffd162286a4403c3e7645100  flask-peewee-3.0.4.tar.gz
+"

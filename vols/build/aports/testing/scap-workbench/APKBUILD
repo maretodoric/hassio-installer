@@ -1,0 +1,41 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=scap-workbench
+pkgver=1.2.1
+pkgrel=0
+pkgdesc="SCAP Scanner And Tailoring Graphical User Interface"
+url="https://www.open-scap.org/tools/scap-workbench/"
+arch="all !armhf !s390x !riscv64" # blocked by polkit
+license="GPL-3.0"
+depends="openssh-askpass util-linux openssh-client polkit"
+makedepends="qt5-qtbase-dev qt5-qtxmlpatterns-dev openscap-dev cmake asciidoc libxslt"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OpenSCAP/$pkgname/archive/$pkgver.tar.gz
+remove-werror-cxx-flags.patch"
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	default_prepare
+	cd "$builddir"
+	mkdir -p build
+}
+build() {
+	cd "$builddir"/build
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+	..
+	make
+}
+
+check() {
+	cd "$builddir"/build
+	return 0
+}
+
+package() {
+	cd "$builddir"/build
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="37dad3d3310a9ba200756480eee2c93913617a77e9983c18dafdc3320fc62774d23b327200fa21f63cec160ef8d6527ac43c11e7d0cdce49b3a364590311fbad  scap-workbench-1.2.1.tar.gz
+7434322c26be306f2c73ccf864846f8d8f8857a4def784b7c67c9613010f0ffdefad3a360d86b1945d3e77d1a197e657d1b3a71c9f73d3bee98d1bccb7021c9e  remove-werror-cxx-flags.patch"

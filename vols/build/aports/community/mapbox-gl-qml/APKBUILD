@@ -1,0 +1,37 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=mapbox-gl-qml
+pkgver=2.0.1
+pkgrel=0
+pkgdesc="QML bindings for Mapbox"
+url="https://github.com/rinigus/mapbox-gl-qml"
+# armhf blocked by qt5-qtdeclarative
+arch="all !armhf"
+license="LGPL-3.0-only"
+makedepends="
+	cmake
+	maplibre-gl-native-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtlocation-dev
+	qt5-qtsvg-dev
+	"
+source="https://github.com/rinigus/mapbox-gl-qml/archive/$pkgver/mapbox-gl-qml-$pkgver.tar.gz"
+options="!check" # No tests
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DUSE_CURL_SSL=OFF
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+dccfda7f089d8f2bb237bc102665952229769ba3ebfb332ad0bc7eccffe2ec411893f246b4263a3f5e63f69063e3e152ca7d4a220a47720a45676df1bcfc0bfa  mapbox-gl-qml-2.0.1.tar.gz
+"

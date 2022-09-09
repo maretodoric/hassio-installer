@@ -1,0 +1,28 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=py3-semantic-version
+pkgver=2.9.0
+pkgrel=0
+pkgdesc="A library implementing the 'SemVer' scheme"
+url="https://github.com/rbarrois/python-semanticversion"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/rbarrois/python-semanticversion/archive/$pkgver.tar.gz"
+builddir="$srcdir/python-semanticversion-$pkgver"
+
+replaces=py-semanticversion # Backwards compatibility
+provides=py-semanticversion=$pkgver-r$pkgrel # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6db53e9993b635a7bb2e2b168329d359136d914fb146aa5102a5cd0e8395978942fa84e7bed0fdb00b1768b1acd38e1a1b0cedfdc2efc073dddf4973178043db  py3-semantic-version-2.9.0.tar.gz
+"

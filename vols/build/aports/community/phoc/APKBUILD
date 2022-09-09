@@ -1,0 +1,91 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Contributor: Danct12 <danct12@disroot.org>
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Newbyte <newbie13xd@gmail.com>
+pkgname=phoc
+pkgver=0.13.1
+pkgrel=0
+_wlrootsver="0.14.1-5pureos3"
+pkgdesc="wlroots based Phone compositor for the Phosh shell"
+arch="all !s390x !riscv64" # blocked by gnome-desktop
+url="https://gitlab.gnome.org/World/Phosh/phoc"
+license="GPL-3.0-only"
+depends="
+	dbus
+	mutter-schemas
+	gsettings-desktop-schemas
+	"
+_wlrootsmakedepends="
+	eudev-dev
+	libcap-dev
+	libseat-dev
+	libxcb-dev
+	xcb-util-image-dev
+	xcb-util-renderutil-dev
+	xcb-util-wm-dev
+	xkeyboard-config-dev
+	xwayland-dev
+	"
+makedepends="
+	glib-dev
+	gnome-desktop-dev
+	gsettings-desktop-schemas
+	libdrm-dev
+	libinput-dev
+	libxkbcommon-dev
+	mesa-dev
+	meson
+	pixman-dev
+	wayland-dev
+	wayland-protocols
+	$_wlrootsmakedepends
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dbg"
+options="!check" # Needs fullblown EGL
+source="
+	https://gitlab.gnome.org/World/Phosh/phoc/-/archive/v$pkgver/phoc-v$pkgver.tar.gz
+	https://source.puri.sm/Librem5/wlroots/-/archive/pureos/$_wlrootsver/wlroots-pureos-$_wlrootsver.tar.gz
+	"
+replaces="wlroots-phosh"
+
+builddir="$srcdir/$pkgname-v$pkgver"
+
+prepare() {
+	default_prepare
+
+	rm -rf "$builddir/subprojects/wlroots"
+	ln -s "$srcdir/wlroots-pureos-$_wlrootsver" "$builddir/subprojects/wlroots"
+
+	# apply wlroots patches
+	cd "$builddir/subprojects/wlroots"
+	grep "\.patch$" debian/patches/series | \
+		xargs -I {} -t -r -n1 patch -p1 -i debian/patches/{}
+}
+
+build() {
+	abuild-meson \
+		-Dembed-wlroots=enabled \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir/" meson install --no-rebuild -C output
+	install -Dm755 helpers/scale-to-fit \
+		-t "$pkgdir"/usr/bin
+
+	# remove unneeded wlroots dev. files
+	rm -r "$pkgdir"/usr/include
+	rm -r "$pkgdir"/usr/lib/libwlroots.so
+	rm -r "$pkgdir"/usr/lib/pkgconfig
+}
+sha512sums="
+0da68ac4d0601e91ed5f59eeb0beea64180b546f58b300631495084d366fe515c26fe9d58d0ca20687032f6824ae98dcc82edd8a6c80caa95178d24d27ee2650  phoc-v0.13.1.tar.gz
+337af0efb88f0e372af90fc5644b064d5563d68d18efc73ecd398a1d5675b37c2b3499051dd247794cf2b6ac020c8c92949cbd74743760eedab59004f447f9db  wlroots-pureos-0.14.1-5pureos3.tar.gz
+"

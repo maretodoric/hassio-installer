@@ -1,0 +1,118 @@
+# Contributor: Sergei Lukin <sergej.lukin@gmail.com>
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Michael Mason <ms13sp@gmail.com>
+pkgname=tiff
+pkgver=4.4.0
+pkgrel=0
+pkgdesc="Provides support for the Tag Image File Format or TIFF"
+url="https://gitlab.com/libtiff/libtiff"
+arch="all"
+license="libtiff"
+depends_dev="zlib-dev libjpeg-turbo-dev libwebp-dev xz-dev zstd-dev"
+makedepends="libtool autoconf automake $depends_dev"
+checkdepends="diffutils"
+subpackages="$pkgname-doc $pkgname-dev $pkgname-tools libtiffxx:_libtiffxx"
+source="https://gitlab.com/libtiff/libtiff/-/archive/v$pkgver/libtiff-v$pkgver.tar.gz"
+builddir="$srcdir/libtiff-v$pkgver"
+
+# secfixes:
+#   4.3.0-r1:
+#     - CVE-2022-0561
+#     - CVE-2022-0562
+#     - CVE-2022-0865
+#     - CVE-2022-0891
+#     - CVE-2022-0907
+#     - CVE-2022-0908
+#     - CVE-2022-0909
+#     - CVE-2022-0924
+#     - CVE-2022-22844
+#   4.2.0-r0:
+#     - CVE-2020-35521
+#     - CVE-2020-35522
+#     - CVE-2020-35523
+#     - CVE-2020-35524
+#   4.1.0-r0:
+#     - CVE-2019-6128
+#   4.0.10-r2:
+#     - CVE-2019-10927
+#   4.0.10-r1:
+#     - CVE-2019-14973
+#   4.0.10-r0:
+#     - CVE-2018-12900
+#     - CVE-2018-18557
+#     - CVE-2018-18661
+#   4.0.9-r8:
+#     - CVE-2018-10779
+#     - CVE-2018-17100
+#     - CVE-2018-17101
+#   4.0.9-r6:
+#     - CVE-2017-9935
+#     - CVE-2017-11613
+#     - CVE-2017-17095
+#     - CVE-2018-10963
+#   4.0.9-r5:
+#     - CVE-2018-8905
+#   4.0.9-r4:
+#     - CVE-2018-7456
+#   4.0.9-r2:
+#     - CVE-2018-5784
+#   4.0.9-r1:
+#     - CVE-2017-18013
+#   4.0.9-r0:
+#     - CVE-2017-16231
+#     - CVE-2017-16232
+#   4.0.8-r1:
+#     - CVE-2017-9936
+#     - CVE-2017-10688
+#   4.0.7-r2:
+#     - CVE-2017-7592
+#     - CVE-2017-7593
+#     - CVE-2017-7594
+#     - CVE-2017-7595
+#     - CVE-2017-7596
+#     - CVE-2017-7598
+#     - CVE-2017-7601
+#     - CVE-2017-7602
+#   4.0.7-r1:
+#     - CVE-2017-5225
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--enable-cxx
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+_libtiffxx() {
+	pkgdesc="C++ binding to libtiff"
+
+	amove usr/lib/libtiffxx.so.*
+}
+
+tools() {
+	pkgdesc="Command-line utility programs for manipulating TIFF files"
+
+	amove usr/bin
+}
+
+sha512sums="
+93955a2b802cf243e41d49048499da73862b5d3ffc005e3eddf0bf948a8bd1537f7c9e7f112e72d082549b4c49e256b9da9a3b6d8039ad8fc5c09a941b7e75d7  libtiff-v4.4.0.tar.gz
+"

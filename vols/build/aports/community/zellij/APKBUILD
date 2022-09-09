@@ -1,0 +1,31 @@
+# Contributor: guddaff <guddaff@protonmail.com>
+# Maintainer: guddaff <guddaff@protonmail.com>
+pkgname=zellij
+pkgver=0.30.0
+pkgrel=0
+pkgdesc="Terminal multiplexer"
+url="https://zellij.dev/"
+license="MIT"
+# s390x, riscv64: limited by rust/cargo
+# armv7, ppc64le, armhf: termbg unsupported
+# x86: termbg problems building with libc
+arch="all !armhf !armv7 !ppc64le !s390x !x86 !riscv64"
+makedepends="cargo libc-dev openssl-dev"
+source="https://github.com/zellij-org/zellij/archive/v$pkgver/zellij-$pkgver.tar.gz"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+0c55808b457acac103834be0b60f0c6d8818ba6682af18a4b329bf931623240cf27ea0879d99790077832c61dfd4674c743dab34392fab54cd20a9c9c2dd63e8  zellij-0.30.0.tar.gz
+"

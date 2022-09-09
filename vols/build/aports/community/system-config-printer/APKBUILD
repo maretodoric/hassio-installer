@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=system-config-printer
+pkgver=1.5.15
+pkgrel=5
+pkgdesc="Graphical user interface for CUPS administration"
+url="https://github.com/OpenPrinting/system-config-printer"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="
+	libnotify
+	python3
+	py3-cairo
+	py3-dbus
+	py3-pycups
+	py3-requests
+	"
+makedepends="
+	autoconf
+	automake
+	intltool
+	gettext-dev
+	xmlto
+	desktop-file-utils
+	"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://github.com/OpenPrinting/system-config-printer/archive/v$pkgver/system-config-printer-v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	sed -e 's|$(sysconfdir)/dbus-1|$(datadir)/dbus-1|' \
+		-i Makefile.am
+
+	update_config_guess
+	update_config_sub
+
+	./bootstrap
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="46340fa7624f7396b2fd683647bb3aca21d8b951b9744b7c03f9d5629af93d0567e861e0c3a976d113bb3516fc3364a4b0f3d13875a8f56286caf934dc5724dd  system-config-printer-v1.5.15.tar.gz"

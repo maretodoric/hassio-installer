@@ -1,0 +1,28 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdeedu-data
+pkgver=22.04.2
+pkgrel=0
+arch="noarch !armhf" # armhf blocked by extra-cmake-modules
+url="https://kde.org/applications/education"
+pkgdesc="Common data for KDE Edu applications"
+license="GPL-2.0-only"
+makedepends="extra-cmake-modules samurai"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdeedu-data-$pkgver.tar.xz"
+options="!check" # No code to test"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+1cf6d2a63d3fe20f347795cd77bedce534eab413e983def50df16d0c51df3cac30ff02566d890209a2d2077bafb3552688c25e2c9223ea155491ee35d65e9568  kdeedu-data-22.04.2.tar.xz
+"

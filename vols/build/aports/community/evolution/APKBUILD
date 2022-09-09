@@ -1,0 +1,51 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=evolution
+pkgver=3.44.2
+pkgrel=0
+pkgdesc="evolution mail client"
+url="https://projects.gnome.org/evolution"
+# s390x blocked by gnome-desktop
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="highlight gsettings-desktop-schemas"
+depends_dev="evolution=$pkgver-r$pkgrel itstool libxml2-dev gcr-dev
+	enchant2-dev libcanberra-dev libgweather4-dev openldap-dev libnotify-dev"
+makedepends="$depends_dev gperf flex bison libxml2-utils glib-dev
+	webkit2gtk-dev gtkspell3-dev evolution-data-server-dev gnome-autoar-dev
+	gtk+3.0-dev nss-dev cmake gsettings-desktop-schemas-dev
+	gspell-dev gnome-desktop-dev glade-dev samurai cmark-dev"
+options="!check" # need to be installed
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/evolution/${pkgver%.*}/evolution-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DSYSCONF_INSTALL_DIR=/etc \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DENABLE_GNOME_DESKTOP=ON \
+		-DENABLE_AUTOAR=ON \
+		-DENABLE_YTNEF=OFF \
+		-DENABLE_PST_IMPORT=OFF \
+		-DENABLE_SMIME=ON \
+		-DENABLE_SCHEMAS_COMPILE=OFF \
+		-DWITH_GLADE_CATALOG=ON \
+		-DWITH_GWEATHER4=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+e7dffc5cb4a9a84cccf881c75ba347f9bae3c87fd76613c9cc363bab9aeda864288ca93b48347c08c82734f20f237d489d3670789e2b38b7ed5efbaa9b8ca4a3  evolution-3.44.2.tar.xz
+"

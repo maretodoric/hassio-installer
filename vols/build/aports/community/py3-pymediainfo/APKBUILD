@@ -1,0 +1,33 @@
+# Contributor: Philipp Glaum <p@pglaum.de>
+# Maintainer: Philipp Glaum <p@pglaum.de>
+pkgname=py3-pymediainfo
+_pkgname=pymediainfo
+pkgver=5.1.0
+pkgrel=1
+pkgdesc="Python wrapper for the MediaInfo library"
+url="https://pypi.org/project/pymediainfo/"
+arch="noarch"
+license="MIT"
+depends="python3 libmediainfo"
+checkdepends="py3-pytest py3-pytest-runner"
+makedepends="py3-setuptools py3-setuptools_scm"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# skip failing tests
+	PYTHONPATH="$PWD"/build/lib pytest \
+		-k 'not test_thread_safety[sample.mp4] and not test_thread_safety[sample.mkv]'
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+d3c48e37f6d59b0f5bc1d66d4fad9fea26724863dc2ae75a30c80d972f68f3be650298d25105d330c20b83083f94d2ff5e2690c29573897e09afa44931f3228e  pymediainfo-5.1.0.tar.gz
+"

@@ -1,0 +1,144 @@
+# Contributor: Jesse Young <jlyo@jlyo.org>
+# Contributor: Nicolas Lorin <androw95220@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=strongswan
+pkgver=5.9.6
+_pkgver=${pkgver//_rc/rc}
+pkgrel=0
+pkgdesc="IPsec-based VPN solution focused on security and ease of use, supporting IKEv1/IKEv2 and MOBIKE"
+url="https://www.strongswan.org/"
+arch="all"
+pkgusers="ipsec"
+pkggroups="ipsec"
+license="GPL-2.0-or-later WITH OpenSSL-Exception"
+options="!check" # failing tests
+depends="iproute2"
+makedepends="linux-headers python3 sqlite-dev openssl1.1-compat-dev curl-dev
+	gmp-dev libcap-dev gettext-dev automake autoconf libtool"
+install="$pkgname.pre-install"
+subpackages="$pkgname-doc $pkgname-dbg $pkgname-logfile $pkgname-openrc"
+source="https://download.strongswan.org/strongswan-$_pkgver.tar.bz2
+
+	1002-vici-send-certificates-for-ike-sa-events.patch
+	1003-vici-add-support-for-individual-sa-state-changes.patch
+
+	strongswan.initd
+	charon.initd
+	charon.logrotate
+	charon-logfile.conf
+	"
+
+# secfixes:
+#   5.9.1-r4:
+#     - CVE-2021-45079
+#   5.9.1-r3:
+#     - CVE-2021-41990
+#     - CVE-2021-41991
+#   5.7.1-r0:
+#     - CVE-2018-17540
+#   5.7.0-r0:
+#     - CVE-2018-16151
+#     - CVE-2018-16152
+#   5.6.3-r0:
+#     - CVE-2018-5388
+#     - CVE-2018-10811
+#   5.5.3-r0:
+#     - CVE-2017-9022
+#     - CVE-2017-9023
+
+prepare() {
+	default_prepare
+	autoreconf -fiv
+}
+
+build() {
+	# notes about configuration:
+	# - try to keep options in ./configure --help order
+	# - apk depends on openssl, so we use that
+	# - openssl provides ciphers, randomness, etc
+	#   -> disable all redundant in-tree copies
+	local _aesni=
+	case "$CARCH" in
+	x86_64) _aesni="--enable-aesni";;
+	esac
+
+	./configure --prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib \
+		--with-ipsecdir=/usr/lib/strongswan \
+		--with-capabilities=libcap \
+		--with-user=ipsec \
+		--with-group=ipsec \
+		--enable-curl \
+		--disable-ldap \
+		--disable-aes \
+		--disable-des \
+		--disable-rc2 \
+		--disable-md5 \
+		--disable-sha1 \
+		--disable-sha2 \
+		--enable-gmp \
+		--disable-hmac \
+		--disable-mysql \
+		--enable-sqlite \
+		--enable-eap-sim \
+		--enable-eap-sim-file \
+		--enable-eap-aka \
+		--enable-eap-aka-3gpp2 \
+		--enable-eap-simaka-pseudonym \
+		--enable-eap-simaka-reauth \
+		--enable-eap-identity \
+		--enable-eap-md5 \
+		--enable-eap-tls \
+		--disable-eap-gtc \
+		--enable-eap-mschapv2 \
+		--enable-eap-radius \
+		--enable-xauth-eap \
+		--enable-farp \
+		--enable-vici \
+		--enable-attr-sql \
+		--enable-dhcp \
+		--enable-openssl \
+		--enable-unity \
+		--enable-ha \
+		--enable-cmd \
+		--enable-swanctl \
+		--enable-shared \
+		--disable-static \
+		--enable-bypass-lan \
+		$_aesni
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -m755 -D "$srcdir/$pkgname.initd" "$pkgdir/etc/init.d/$pkgname"
+	install -m755 -D "$srcdir/charon.initd" "$pkgdir/etc/init.d/charon"
+
+	# for CRL caching
+	chown ipsec:ipsec "$pkgdir"/etc/ipsec.d/crls "$pkgdir"/etc/swanctl/x509crl
+}
+
+logfile() {
+	pkgdesc="Dedicated log file configuration for charon"
+	depends=$pkgname
+
+	install -m 644 -D charon.logrotate "$subpkgdir/etc/logrotate.d/charon"
+	install -m 644 -D charon-logfile.conf \
+		"$subpkgdir/etc/strongswan.d/charon-logfile.conf"
+	install -m 2750 -o ipsec -g wheel -d "$subpkgdir/var/log/ipsec"
+}
+
+sha512sums="
+8efb7a55b074485b874e941e42462e97a404b4f84e2f90ed18ef66274731b22d167a571f6fd028dccc1f199f2e591c82616d0a832a5084e1981c6b867fe5bb6a  strongswan-5.9.6.tar.bz2
+ff0196306f156d7f54de9f846227a7f04bb05e6df86dca2f09c01515df8a6bea6aedf826f1d95685b948477a228cec84fb3d8b8ceef6335074ad1d05ebb327ca  1002-vici-send-certificates-for-ike-sa-events.patch
+22cd56626936acd11fe98fe7956261bb10f9a7ea67b16d32b229d78c4008b1941d19b7fb6c24e87c167cfc9890aefdc5b61d539e2dc6a69bd2ac77e5278c9e89  1003-vici-add-support-for-individual-sa-state-changes.patch
+8b61e3ffbb39b837733e602ec329e626dc519bf7308d3d4192b497d18f38176789d23ef5afec51f8463ee1ddaf4d74546b965c03184132e217cbc27017e886c9  strongswan.initd
+4ac8dc83f08998fe672d5446dc6071f95a6a437b9df7c19d5f1a41707fb44451ec37aa237d0b86b0a9edf36a9ce7c29ba8959a38b04536c994dd4300daf737e5  charon.initd
+0417de0c0aa779602b216f29b1ad58cc842f0b0fbb8f5238d39199125dac30eaae89d869b337f8f504f8427f074ee7a363f55e3b3875516fe1ed5f0ed7f34c6f  charon.logrotate
+5896a9c5ecbef1a6c36b7bd31c83e18603f49105aedd4af80c42b0036c75950eac6e92abccfca09c9cb5bb3f3c4010f0daba068208e7dff05e7b1849d5a6e363  charon-logfile.conf
+"

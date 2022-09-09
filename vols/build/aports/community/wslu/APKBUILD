@@ -1,0 +1,33 @@
+# Maintainer: Jinming Wu, Patrick <me@patrickwu.space>
+# Contributor: Jinming Wu, Patrick <me@patrickwu.space>
+pkgname=wslu
+pkgver=3.2.4
+pkgrel=0
+pkgdesc="collection of utilities for Linux Subsystems for Windows"
+url="https://wslutiliti.es/wslu"
+arch="noarch"
+license="GPL-3.0-or-later"
+install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall"
+depends="bc bash-completion grep psmisc"
+makedepends="gzip"
+checkdepends="bats"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wslutilities/wslu/archive/v$pkgver.tar.gz"
+# Testsuite needs to be run from inside WSL
+options="!check"
+
+build() {
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+68743de7f7ac25462496056303dd4b8d7b66da4fa403272ba940499b149504c95f6191b2ed11ec3dc7424bcdde10bab16a27026a713f81dd6f4608adef478640  wslu-3.2.4.tar.gz
+"

@@ -1,0 +1,31 @@
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+
+_php=php8
+pkgname=mongo-php-library
+pkgver=1.11.0
+pkgrel=0
+pkgdesc="High-level abstraction around the lower-level drivers for PHP"
+url="https://github.com/mongodb/mongo-php-library"
+arch="noarch"
+license="Apache-2.0"
+depends="$_php-openssl $_php-pecl-mongodb"
+makedepends="composer $_php-dom $_php-simplexml $_php-tokenizer $_php-xml $_php-xmlwriter"
+subpackages="$pkgname-doc"
+options="!check" # require mongodb server
+source="$pkgname-$pkgver.tar.gz::https://github.com/mongodb/$pkgname/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$pkgname-$pkgver
+replaces="mongo-php7-library" # for backward compatibility
+provides="mongo-php7-library=$pkgver-r$pkgrel" # for backward compatibility
+
+package() {
+	mkdir -p "$pkgdir"/usr/share/doc/mongo-$_php-library/docs
+	mkdir -p "$pkgdir"/usr/lib/$_php/vendor/mongodb/mongodb
+	mv src/* "$pkgdir"/usr/lib/$_php/vendor/mongodb/mongodb
+	mv tests "$pkgdir"/usr/lib/$_php/vendor/mongodb/mongodb/
+	mv docs/* "$pkgdir"/usr/share/doc/mongo-$_php-library/docs
+	mv LICENSE README.md "$pkgdir"/usr/share/doc/mongo-$_php-library
+}
+
+sha512sums="
+16c0456f0b89d753588b91764aa4ec9128a5b0b9c6dec56f9cea241f92f69968ca6a1f8621a9553f404464e32d2be9b9c59c9cf05725815688d7220007e7ef30  mongo-php-library-1.11.0.tar.gz
+"

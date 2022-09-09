@@ -1,0 +1,32 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=wys
+pkgver=0.1.11
+pkgrel=1
+pkgdesc="A daemon to bring up and take down PulseAudio loopbacks for phone call audio."
+# s390x and riscv64 blocked by modemmanager
+arch="all !s390x !riscv64"
+url="https://source.puri.sm/Librem5/wys"
+license="GPL-3.0-or-later"
+makedepends="meson pulseaudio-dev glib-dev modemmanager-dev"
+source="
+	$pkgname-$pkgver.tar.gz::https://source.puri.sm/Librem5/wys/-/archive/v$pkgver/wys-v$pkgver.tar.gz
+	wys.desktop"
+builddir=$srcdir/$pkgname-v$pkgver
+
+build() {
+	abuild-meson build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+check() {
+	meson test --no-rebuild -v -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+	install -D -m644 $srcdir/wys.desktop $pkgdir/etc/xdg/autostart/wys.desktop
+}
+
+sha512sums="c171ce77238c6a8e825aafeab91abc4c4c69cc461c9edc80c217ad57e90a36502e95563971344f2640d5d24e4e686f708cdf7ef6811edf33a718f8db8e4982b4  wys-0.1.11.tar.gz
+0f67c24d9af727e803d5cdb2dc01c7d99a2bfe33414fdc29cf5ec34c5a308b3a5f65970832087310e25e4ba7dc706b5a1d1ae99ab595d7264e972047a08f71e4  wys.desktop"

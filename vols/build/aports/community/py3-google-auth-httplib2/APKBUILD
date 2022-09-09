@@ -1,0 +1,30 @@
+# Contributor: Keith Maxwell <keith.maxwell@gmail.com>
+# Maintainer: Keith Maxwell <keith.maxwell@gmail.com>
+pkgname=py3-google-auth-httplib2
+_pyname=google-auth-httplib2
+pkgver=0.0.4
+pkgrel=2
+pkgdesc="Google Authentication Library: httplib2 transport"
+url="https://github.com/GoogleCloudPlatform/google-auth-library-python-httplib2"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-google-auth py3-httplib2 py3-six"
+checkdepends="py3-flask py3-mock py3-pytest py3-pytest-localserver"
+source="https://files.pythonhosted.org/packages/source/g/google-auth-httplib2/google-auth-httplib2-$pkgver.tar.gz"
+
+builddir="$srcdir/$_pyname-$pkgver"
+
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="7206e7ee78988af7101417d073fdac78851d8534575b0c895e8017d02e6083cfed722b4792592b02c7e523aaf652f173fb7dee2967983e55cd1022bcbbc938da  google-auth-httplib2-0.0.4.tar.gz"

@@ -1,0 +1,58 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+# Contributor: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=kicad-library
+pkgver=6.0.6
+pkgrel=0
+pkgdesc="Kicad component and footprint libraries"
+url="https://kicad.github.io/"
+# limited by kicad
+arch="noarch !riscv64 !s390x"
+license="GPL-3.0-or-later"
+makedepends="cmake"
+depends="kicad"
+subpackages="$pkgname-3d:three_d"
+source="
+	https://gitlab.com/kicad/libraries/kicad-symbols/-/archive/$pkgver/kicad-symbols-$pkgver.tar.bz2
+	https://gitlab.com/kicad/libraries/kicad-footprints/-/archive/$pkgver/kicad-footprints-$pkgver.tar.bz2
+	https://gitlab.com/kicad/libraries/kicad-packages3D/-/archive/$pkgver/kicad-packages3D-$pkgver.tar.bz2
+	"
+options="!check" # package only provides data files, so not tests possible
+
+build() {
+	cd "$srcdir"/kicad-symbols-$pkgver
+	cmake . \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	make
+
+	cd "$srcdir"/kicad-footprints-$pkgver
+	cmake . \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	make
+
+	cd "$srcdir"/kicad-packages3D-$pkgver
+	cmake . \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	make
+}
+
+package() {
+	cd "$srcdir"/kicad-symbols-$pkgver
+	make DESTDIR="$pkgdir" install
+
+	cd "$srcdir"/kicad-footprints-$pkgver
+	make DESTDIR="$pkgdir" install
+}
+
+three_d() {
+	cd "$srcdir"/kicad-packages3D-$pkgver
+	make DESTDIR="$subpkgdir" install
+
+	# Remove .step version of 3D models; only .wrl versions are needed
+	find "$subpkgdir" -name '*.step' -exec rm {} \;
+}
+
+sha512sums="
+d09771ad0709bf5b7379c1d7cc322a799da194dc3f8a3ea9b834024ee0a93798ffa59603880bcb3ef6772ab803311b9f76b2d15c6b8a7a3b1d429b76c3994aa2  kicad-symbols-6.0.6.tar.bz2
+17b63e43eb036fdb13392fccf71ed1637c65949bb93b53696ead20858f592c3f2a812287b4895ca6ceb4e06ed9d3b4b5b8d78bb243255b1ba918a63e6eca0099  kicad-footprints-6.0.6.tar.bz2
+31a84043d5222f8344e280aa5d75ff355f5a222631096cd280bc92dc8c4c65bed02fc028a719b21a449cc21dc6090cdc4e0f38b15754c614f1dc160eaa55e764  kicad-packages3D-6.0.6.tar.bz2
+"

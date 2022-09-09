@@ -1,0 +1,25 @@
+# Maintainer: prspkt <prspkt@protonmail.com>
+pkgname=py3-tzlocal
+pkgver=2.1
+pkgrel=3
+pkgdesc="Python tzinfo object for the local timezone"
+url="https://github.com/regebro/tzlocal"
+arch="noarch"
+license="MIT"
+replaces="py-tzlocal" # for backwards compatibility
+provides="py-tzlocal=$pkgver-r$pkgrel" # for backwards compatibility
+depends="python3 py3-tz"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/t/tzlocal/tzlocal-$pkgver.tar.gz"
+builddir="$srcdir/tzlocal-$pkgver"
+options="!check" # the package requires a configured timezone
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="5419f3316dfcbf0355cc6f0790454fe6cecfa8b1ae17bfa7bf8aff89b0af3e63c94ffe9c22b11f612e53826a33e7179ff71bc2a86f6a358cdff36c7ae34e2453  tzlocal-2.1.tar.gz"

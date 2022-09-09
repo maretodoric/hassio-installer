@@ -1,0 +1,73 @@
+# Maintainer: Chloe Kudryavtsev <toast@toast.cafe>
+pkgname=rclone
+pkgver=1.58.1
+pkgrel=1
+pkgdesc="Rsync for cloud storage"
+url="https://rclone.org/"
+# riscv64 blocked by binutils-gold
+arch="all !riscv64"
+license="MIT"
+makedepends="binutils-gold go"
+checkdepends="fuse"
+options="!check net" # tests fail in CI due filesystem access
+source="rclone-$pkgver.tar.gz::https://github.com/rclone/rclone/archive/refs/tags/v$pkgver.tar.gz"
+subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-fish-completion $pkgname-zsh-completion"
+
+export GO111MODULE=on
+export GOPATH="$srcdir"
+export CGO_ENABLED=0
+
+build() {
+	go build
+
+	"$builddir"/rclone genautocomplete bash rclone.bash
+	"$builddir"/rclone genautocomplete fish rclone.fish
+	"$builddir"/rclone genautocomplete zsh rclone.zsh
+}
+
+check() {
+	# backend/{ftp,sftp,swift,webdav,seafile}: uses docker(1) for tests
+	# backend/{local,memory}: fails in docker envs, but not on real machines
+	# fs/rc: fails on ppc64le
+	# shellcheck disable=SC2046
+	go test $(go list ./... | grep -v \
+		-e 'backend/ftp$' \
+		-e 'backend/local$' \
+		-e 'backend/memory$' \
+		-e 'backend/sftp$' \
+		-e 'backend/swift$' \
+		-e 'backend/webdav$' \
+		-e 'backend/seafile$' \
+		-e 'fs/rc$'
+		)
+}
+
+package() {
+	install -Dm755 "$builddir"/rclone \
+		"$pkgdir"/usr/bin/rclone
+
+	mkdir -p "$pkgdir"/sbin
+	ln -s /usr/bin/rclone "$pkgdir"/sbin/mount.rclone
+	ln -s /usr/bin/rclone "$pkgdir"/usr/bin/rclonefs
+
+	install -Dm644 "$builddir"/rclone.1 \
+		"$pkgdir"/usr/share/man/man1/rclone.1
+
+	install -Dm644 "$builddir"/rclone.bash \
+		"$pkgdir"/usr/share/bash-completion/completions/rclone
+
+	install -Dm644 "$builddir"/rclone.fish \
+		"$pkgdir"/usr/share/fish/completions/rclone.fish
+
+	install -Dm644 "$builddir"/rclone.zsh \
+		"$pkgdir"/usr/share/zsh/site-functions/_rclone
+}
+
+cleanup_srcdir() {
+	go clean -modcache
+	default_cleanup_srcdir
+}
+
+sha512sums="
+104ff2e743374ad3d0f3c517e34ac068d6439445732bc3ce4ffe8fbc13e7d2b4285518e8037c5600589425e001c26e334c7e31d12f9a476af958cb47097c4e00  rclone-1.58.1.tar.gz
+"

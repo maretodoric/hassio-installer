@@ -1,0 +1,123 @@
+# Contributor: Vince Mele <vmele@inoc.com>
+# Contributor: Henrik Riomar <henrik.riomar@gmail.com>
+# Maintainer: Vince Mele <vmele@inoc.com>
+pkgname=sssd
+pkgver=2.6.3
+pkgrel=0
+pkgdesc="System Security Services Daemon"
+url="https://github.com/SSSD/sssd"
+arch="x86_64"
+license="GPL-3.0-or-later"
+
+# TODO: the full test suite depends on these
+#	but does not pass.
+#checkdepends="
+#	check-dev
+#	cmocka-dev
+#	"
+
+depends="
+	bind
+	curl
+	cyrus-sasl-gssapiv2
+	"
+makedepends="
+	autoconf
+	automake
+	bind-tools
+	c-ares-dev
+	curl-dev
+	dbus-dev
+	ding-libs-dev
+	docbook-xsl
+	gettext-dev
+	glib-dev
+	http-parser-dev
+	jansson-dev
+	keyutils-dev
+	krb5-dev
+	ldb-dev
+	libtool
+	libunistring-dev
+	libxml2-utils
+	libxslt
+	linux-pam-dev
+	nss-dev
+	openldap-dev
+	p11-kit-dev
+	pcre2-dev
+	popt-dev
+	python3-dev
+	talloc-dev
+	tdb-dev
+	tevent-dev
+	"
+subpackages="$pkgname-dev $pkgname-openrc"
+source="sssd-$pkgver.tar.gz::https://codeload.github.com/SSSD/sssd/tar.gz/$pkgver
+	0001-makefile.patch
+	0002-src.patch
+	0003-alpine.patch
+	musl_fixup.patch
+	nss.h
+	cifsidmap.h
+	"
+prepare() {
+	default_prepare
+	cp "$srcdir"/nss.h "$srcdir"/cifsidmap.h "$builddir"/src/
+	autoreconf -i
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sbindir=/usr/sbin \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--libexecdir=/usr/lib/sssd \
+		--datadir=/usr/share \
+		--enable-pammoddir=/usr/lib/security \
+		--with-pid-path=/run \
+		--with-initscript=sysv \
+		--with-init-dir=/etc/init.d \
+		--with-os=alpine \
+		--disable-cifs-idmap-plugin \
+		--disable-rpath \
+		--disable-static \
+		--without-autofs \
+		--without-manpages \
+		--without-nfsv4-idmapd-plugin \
+		--without-python2-bindings \
+		--without-samba \
+		--without-selinux \
+		--without-semanage \
+		--without-ssh
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make -j1 DESTDIR="$pkgdir" install
+
+	# Remove files we don't want to package
+	find "$pkgdir" -name '*.la' -delete
+	find "$pkgdir" -name '*.pyc' -delete
+	find "$pkgdir" -name '*.egg-info' -delete
+
+	# pkgdir will allways be set, so silence shellsheck warning:
+	#    SC2115: Use "${var:?}" to ensure this never expands to /usr/share .
+	# shellcheck disable=SC2115
+	rm -r "$pkgdir"/usr/share
+	rm -r "$pkgdir"/run
+}
+sha512sums="
+5a8cacac5ead44d31167852b418167a740b31fc9adf2a0fe88e57c3a8ed9e9cfda1ceb57084c5e86f43deb0e96e78dc88f23dae962df3b0a5ae60255cdeff8fc  sssd-2.6.3.tar.gz
+c845d4962ed3f02db59621d62b741391708aa4b6d6f88d0b56683112b5ab6f9ac9419d97e1564b134db3577cb377c358070f0eee244a15dca81e1e9bb563a771  0001-makefile.patch
+03c06e38e17e66e679c1093a44d43fa10ed9a3bede1545f79745886b9649350af5a7a5fd47c0e315e82a274eedcf6f9d833e08de143f7c80cf7303c27ed416ad  0002-src.patch
+8645e3d4b119654bf1a3d770c27e77e2599243c302fe500325604bd1f04bbe82489ced071d7abb7bc2bdd5b0799268d2af1c49b9dee080715e35a6cdd0203620  0003-alpine.patch
+70695c7097325ba844e6b2aedf6f22674d1c3099408fbd1a4c7f735d35fc069a737465fc3ee9732aa79630c7aa8fb3b58291b93cde9772049dd6c3b2272d031e  musl_fixup.patch
+5abb1ffd1302eaa25736404ae148c0ffdeb7ce42fa2745be3436e887a2aa96b9620287f19b2790cb59cbccc2c04a9dee1adec4fa8e813d322cde82793500e33b  nss.h
+b88d4f1ba847477783b43542f1248881d4fb8e8a0d4165c65c358fcb442891d2cc7c96b05e2a8e7c05fdc17ecd76f16295c1ffac3f1c9bfd0375c5e65e56201d  cifsidmap.h
+"

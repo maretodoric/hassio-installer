@@ -1,0 +1,59 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-dialer
+pkgver=22.06
+pkgrel=0
+pkgdesc="A dialer for Plasma Mobile"
+# armhf blocked by extra-cmake-modules
+# s390x blocked by oxygen-sounds
+# riscv64 disabled due to missing rust in recursive dependency
+arch="all !armhf !s390x !riscv64"
+url="https://invent.kde.org/plasma-mobile/plasma-dialer"
+license="GPL-2.0-or-later"
+depends="
+	kirigami2
+	oxygen
+	"
+makedepends="
+	extra-cmake-modules
+	callaudiod-dev
+	kcontacts-dev
+	kcoreaddons-dev
+	kdbusaddons-dev
+	ki18n-dev
+	knotifications-dev
+	kpeople-dev
+	libphonenumber-dev
+	modemmanager-qt-dev
+	pulseaudio-qt-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtfeedback-dev
+	qt5-qtquickcontrols2-dev
+	qtmpris-dev
+	samurai
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/plasma-dialer-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+17cda165ec2e96584239a187325e018e5c3294cd1db57dd756796831188b46945c354cff6de84b33f8e6b19e4e0ee8f7637afc3fedb6df8d590ee760437582b9  plasma-dialer-22.06.tar.xz
+"

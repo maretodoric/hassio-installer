@@ -1,0 +1,28 @@
+Author: Milan P. Stanić <mps@arvanta.net>
+Date:  2022-02-13 18:27:16.000000000 +0000
+
+mupdf 1.19.0 doesn't build libmupdf-third
+
+--- a/meson.build	2022-02-13 18:27:16.000000000 +0000
++++ b/meson.build	2022-04-12 12:48:13.812538643 +0000
+@@ -20,7 +20,6 @@
+ glib = dependency('glib-2.0')
+ cairo = dependency('cairo')
+ mupdf = dependency('mupdf', required: false)
+-mupdfthird = cc.find_library('mupdf-third')
+ 
+ build_dependencies = [
+   zathura,
+@@ -32,10 +31,10 @@
+ if not mupdf.found()
+   # normal build of mupdf
+   mupdf = cc.find_library('mupdf')
+-  build_dependencies += [mupdf, mupdfthird]
++  build_dependencies += [mupdf]
+ else
+   # build from Debian's libmupdf-dev
+-  build_dependencies += [mupdf, mupdfthird]
++  build_dependencies += [mupdf]
+ 
+   libjpeg = dependency('libjpeg')
+   libjbig2dec = cc.find_library('jbig2dec')

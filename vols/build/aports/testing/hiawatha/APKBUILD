@@ -1,0 +1,67 @@
+# Maintainer: Kurt Marasco <celilo@lavabit.com>
+# Contributor: Pascal Ernster <aur at hardfalcon dot net>
+# Contributor: Stuart Cardall <developer at it-offshore dot co.uk>
+pkgname=hiawatha
+pkgver=10.12
+pkgrel=2
+_php=php8
+pkgdesc='Secure and advanced webserver'
+url='https://www.hiawatha-webserver.org/'
+arch="all"
+license='GPL-2.0-only'
+options="suid !check"
+subpackages="$pkgname-doc $pkgname-openrc $pkgname-letsencrypt::noarch"
+makedepends="cmake libxml2-dev libxslt-dev mbedtls-dev"
+source="https://hiawatha-webserver.org/files/hiawatha-10/hiawatha-$pkgver.tar.gz
+	hiawatha.initd
+	hiawatha.conf.sample
+	letsencrypt.helper
+	"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DUSE_SYSTEM_MBEDTLS=ON \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+
+	sed -i 's|#ServerId = www-data|ServerId = nobody|' \
+		"$pkgdir"/etc/hiawatha/hiawatha.conf
+	sed -i 's|www-data|nobody|g' build/logrotate.d/hiawatha
+	install -Dm644 build/logrotate.d/hiawatha \
+		"$pkgdir"/etc/logrotate.d/hiawatha
+	install -Dm755 "$srcdir"/hiawatha.initd \
+		"$pkgdir"/etc/init.d/hiawatha
+	install -Dm644 "$srcdir"/hiawatha.conf.sample \
+		"$pkgdir"/usr/share/doc/hiawatha/hiawatha.conf.sample
+}
+
+letsencrypt() {
+	depends="$_php $_php-openssl"
+	pkgdesc="PHP scripts to generate SSL certificates with letsencrypt"
+
+	mkdir -p "$subpkgdir"/usr/sbin "$subpkgdir"/usr/share/man/man1
+	mv "$pkgdir"-doc/usr/share/man/man1/lefh.1.gz "$subpkgdir"/usr/share/man/man1/
+	mv "$pkgdir"/usr/lib "$subpkgdir"/usr/
+	mv "$pkgdir"/usr/sbin/lefh "$subpkgdir"/usr/sbin/
+	mkdir -p "$subpkgdir"/usr/lib/hiawatha/letsencrypt/scripts
+	install -Dm750 "$builddir"/extra/letsencrypt/scripts/* "$subpkgdir"/usr/lib/hiawatha/letsencrypt/scripts/
+	install -Dm750 "$srcdir"/letsencrypt.helper "$subpkgdir"/usr/sbin/letsencrypt
+}
+
+sha512sums="
+3b4866140e3073fdd4226a96362e7c29ab72f1d4a2b689ee1cd36e915f1aaa7e933bad453a2b236057c9fbfb3c5384b6b35589e59e85fdde38730e932ef045f8  hiawatha-10.12.tar.gz
+cec0adfb48e1751cf13031f2c28f4590340b2c747aa8e81d18c16bc8789bce69b2d9d99290a93b74b501db3b63190a071033a78abeeb8f60becba2dcaf3b5c40  hiawatha.initd
+771bed17b5831bb9d4a28eb94482dd39de8c4b5b35b2c08e1c303a2778254f9e34e40a8d791cc7ef4e73740f474c502685252378e7fe2cba494c782c11f960d4  hiawatha.conf.sample
+704d4968feb0cbc9bc3fcd76a52c43efb708d89048349ea2daf2313bea1034c4b88a73a9473d6a012759e82ad8167408257b6dd3d266ae9eedef541255ba0ab6  letsencrypt.helper
+"

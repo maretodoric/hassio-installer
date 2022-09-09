@@ -1,0 +1,35 @@
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=py3-asttokens
+pkgver=2.0.5
+pkgrel=1
+pkgdesc="Annotate AST trees with source code positions"
+url="https://github.com/gristlabs/asttokens"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-six"
+makedepends="py3-setuptools"
+checkdepends="py3-astroid py3-pytest"
+source="https://files.pythonhosted.org/packages/source/a/asttokens/asttokens-$pkgver.tar.gz
+	"
+builddir="$srcdir/"asttokens-$pkgver
+
+prepare() {
+	default_prepare
+
+	sed -e '/setuptools_scm/d' -i setup.cfg
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	env PYTHONPATH="$PWD/build/lib" py.test-3 -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="60b323be72de75b2d612e7d602a202fae46559f0842624d38ff0a22376573c3e4885ad2cece04314ef7f230f8e47ae6fc8d9f39a6bdacc1c74961a5158abd463  asttokens-2.0.5.tar.gz"

@@ -1,0 +1,47 @@
+# Contributor: Johannes Matheis <jomat+alpinebuild@jmt.gr>
+# Maintainer: Johannes Matheis <jomat+alpinebuild@jmt.gr>
+pkgname=i3lock
+pkgver=2.14.1
+pkgrel=0
+pkgdesc="An improved screenlocker based upon XCB and PAM"
+url="https://i3wm.org/i3lock/"
+arch="all"
+license="MIT"
+depends="xkeyboard-config"
+makedepends="
+	cairo-dev
+	libev-dev
+	libxkbcommon-dev
+	linux-pam-dev
+	meson
+	xcb-util-image-dev
+	xcb-util-xrm-dev
+	"
+subpackages="$pkgname-doc"
+source="https://i3wm.org/i3lock/i3lock-$pkgver.tar.xz"
+# fails if running under a wayland session even for version output
+options="!check"
+
+prepare() {
+	default_prepare
+
+	# Fix ticket FS#31544, sed line taken from gentoo
+	sed -i -e 's:login:base-auth:g' pam/i3lock
+}
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+check() {
+	./output/i3lock -v
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+63b6bd73f66654fe52639434f7d3da64006144ec2ed685ba8683186730d4cc2c10d5aa66174f965030030243f59afaf6def3ff732f710ae441410218f84d6deb  i3lock-2.14.1.tar.xz
+"

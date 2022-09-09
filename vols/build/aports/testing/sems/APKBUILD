@@ -1,0 +1,231 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Simon Frankenberger <simon-alpine@fraho.eu>
+pkgname=sems
+pkgver=1.7.0
+pkgrel=0
+pkgdesc="SIP Express Media Server, an extensible SIP media server"
+url="https://github.com/sems-server/sems/"
+arch="all"
+license="GPL-2.0-or-later"
+# upstream does not provide test
+options="!check"
+pkgusers="sems"
+pkggroups="sems"
+install="$pkgname.pre-install"
+depends="python3 bash"
+makedepends="cmake bash openssl-dev linux-headers
+	libsamplerate-dev spandsp-dev flite-dev gsm-dev speex-dev
+	libevent-dev libev-dev lame-dev opus-dev tiff-dev"
+subpackages="$pkgname-doc $pkgname-conference
+	$pkgname-diameter_client $pkgname-dsm $pkgname-early_announce
+	$pkgname-g722 $pkgname-gsm $pkgname-ilbc $pkgname-mp3
+	$pkgname-opus $pkgname-speex $pkgname-xmlrpc2di
+	$pkgname-webconference $pkgname-voicebox $pkgname-voicemail
+	$pkgname-annrecorder $pkgname-jsonrpc $pkgname-registrar $pkgname-openrc"
+
+source="$pkgname-$pkgver.tar.gz::https://github.com/sems-server/sems/archive/$pkgver.tar.gz
+	sems-0002-Allow-rewrite-of-custom-makefiles-by-CMake.patch
+	sems-0004-musl-fixes.patch
+	sems-0005-stats-needs-version.patch
+	sems-0014-further-musl-fixes.patch
+
+	sems.initd
+	"
+
+replaces="
+	$pkgname-ivr
+	$pkgname-mailbox
+	$pkgname-conf_auth
+	$pkgname-pin_collect
+	" # Removed in 1.6.0-r10 (due to depending on EOL python)
+
+prepare() {
+	default_prepare
+	rm -rf core/plug-in/gsm/gsm-1.0-pl10/
+}
+
+build() {
+	# force cmake to use relative paths. It helps us avoid having the
+	# full file path in the logs
+	cmake \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_USE_RELATIVE_PATHS=yes \
+		-DSEMS_USE_SPANDSP=yes \
+		-DSEMS_USE_LIBSAMPLERATE=yes \
+		-DSEMS_USE_ZRTP=NO \
+		-DSEMS_USE_MP3=yes \
+		-DSEMS_USE_OPUS=yes \
+		-DSEMS_USE_TTS=yes \
+		-DSEMS_USE_OPENSSL=yes \
+		-DSEMS_USE_MONITORING=yes \
+		-DSEMS_USE_IPV6=NO \
+		-DSEMS_CFG_PREFIX= \
+		-DSEMS_AUDIO_PREFIX=/usr/share \
+		-DSEMS_EXEC_PREFIX=/usr \
+		-DSEMS_LIBDIR=lib
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	# is empty
+	rm -f "$pkgdir"/etc/sems/etc/conf_auth.conf
+
+	install -o sems -g sems -d "$pkgdir"/var/spool/voicebox
+	install -d -o sems  "$pkgdir"/var/run/sems
+}
+
+_mv_sub() {
+	local i
+	for i in "$@"; do
+		mkdir -p "$subpkgdir"/${i%/*}
+		mv "$pkgdir"/$i "$subpkgdir"/$i
+	done
+}
+
+conference() {
+	pkgdesc="Conferencing application for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/conference.conf \
+		usr/lib/sems/plug-in/conference.so \
+		usr/share/sems/audio/conference
+}
+
+diameter_client() {
+	pkgdesc="A simple DIAMETER client implementation for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub usr/lib/sems/plug-in/diameter_client.so
+}
+
+dsm() {
+	pkgdesc="The state machine interpreter for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/dsm* \
+		usr/lib/sems/plug-in/dsm.so \
+		usr/lib/sems/dsm
+}
+
+early_announce() {
+	pkgdesc="Early announce application for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/early_announce.conf \
+		usr/lib/sems/plug-in/early_announce.so
+}
+
+g722() {
+	pkgdesc="G.722 support for SEMS"
+	depends="sems"
+	_mv_sub usr/lib/sems/plug-in/g722.so
+}
+
+#gateway() {
+#	pkgdesc="ISDN gateway for SEMS"
+#	depends="sems"
+#}
+
+gsm() {
+	pkgdesc="GSM support for SEMS"
+	depends="sems"
+	_mv_sub usr/lib/sems/plug-in/gsm.so
+}
+
+ilbc() {
+        pkgdesc="iLBC support for SEMS"
+        depends="sems"
+        _mv_sub usr/lib/sems/plug-in/ilbc.so
+}
+
+mp3() {
+	pkgdesc="MP3 support for SEMS"
+	depends="sems"
+	_mv_sub usr/lib/sems/plug-in/mp3.so
+}
+
+opus() {
+        pkgdesc=" OPUS codec for SEMS"
+        depends="sems"
+        _mv_sub usr/lib/sems/plug-in/opus.so
+}
+
+webconference() {
+	pkgdesc="Conference bridge via DI (xmlrpc) for SEMS"
+	depends="sems sems-xmlrpc2di"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/webconference.conf \
+		usr/share/sems/audio/webconference \
+		usr/lib/sems/plug-in/webconference.so
+}
+
+annrecorder() {
+	pkgdesc="Allow user to record personal greeting for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/annrecorder.conf \
+		usr/share/sems/audio/annrecorder \
+		usr/lib/sems/plug-in/annrecorder.so
+}
+
+voicebox() {
+	pkgdesc="Voicebox (call in for messsages) for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/voicebox.conf \
+		usr/share/sems/audio/voicebox \
+		usr/lib/sems/plug-in/voicebox.so \
+		var/spool/voicebox
+}
+
+voicemail() {
+	pkgdesc="Play greeting and record voicemail for SEMS"
+	depends="sems"
+	cd "$pkgdir"
+	_mv_sub etc/sems/etc/voicemail.conf \
+		usr/share/sems/audio/voicemail \
+		usr/lib/sems/plug-in/voicemail.so
+}
+
+speex() {
+	pkgdesc="Speex support for SEMS"
+	depends="sems"
+	_mv_sub usr/lib/sems/plug-in/speex.so
+}
+
+xmlrpc2di() {
+	pkgdesc="XMLRPC interface for SEMS"
+	depends="sems"
+	_mv_sub \
+		etc/sems/etc/xmlrpc2di.conf \
+		usr/lib/sems/plug-in/xmlrpc2di.so
+}
+
+jsonrpc() {
+	pkgdesc="Jsonrpc support for SEMS"
+	depends="sems"
+	_mv_sub \
+		etc/sems/etc/jsonrpc.conf \
+		usr/lib/sems/plug-in/jsonrpc.so
+}
+
+registrar() {
+	pkgdesc="Support for SEMS to register to a SIP server"
+	depends="sems"
+	_mv_sub \
+		etc/sems/etc/reg_agent.conf \
+		usr/lib/sems/plug-in/reg_agent.so \
+		usr/lib/sems/plug-in/registrar_client.so
+}
+
+sha512sums="
+6ebcba5c67a3b4478bb1da807aa82acef43ac2be420f4f5dfa687e76599295ab440d7a5bf0be25df2945c06eb3b83a65bce52b3f82654385bd9da16063f1403d  sems-1.7.0.tar.gz
+25d93994e444312445fd277b85fb8e53f9314fb370f2f2377b599c99e41c1d9787db392752f4b1c30b76bd6c4411ca5a67570f534f40282778e30a269a1d3c90  sems-0002-Allow-rewrite-of-custom-makefiles-by-CMake.patch
+d98cbabe9fe6154e4e7354a742c3871668d9ef798c32ec60a36d5f3b2bf4419a57609988bc979bcc53855e3ab1368616fa2ea647d5a00fe31ce65c93f32f9700  sems-0004-musl-fixes.patch
+28f07142a0b8b6698948d41bfb198e59637d5a921960adc496111b5cad4685a0b1cade821ac9cd9dbbf3f25ed6195f29485a12d077abf81428b9b6f8bfced79e  sems-0005-stats-needs-version.patch
+044a344706c099b6e420a01ca3a2947fb7a44ed81a6ccf4942d2fcdcc73dc174c504f151faa010c6a370d7463c6b02e6c14f6aa237a5ca706171e7cfb9499818  sems-0014-further-musl-fixes.patch
+5be93b6444a9592daa6c883c78e5906e9e662891e1daa850d872bdaa657eb756f1bc0879732033479b279b75c2fd42ef79aa530ebf3b1692e7fb222d484f804b  sems.initd
+"

@@ -1,0 +1,89 @@
+# Maintainer: Alex Xu (Hello71) <alex_y_xu@yahoo.ca>
+pkgname=libjxl
+_commit=7d047b5feca7a4a0bd620de171179d2c3810bc8e
+_testdata_commit=019a398599b860e15046f5c6c6da04493f75073d
+pkgver=0.6.1_git20220605
+pkgrel=0
+pkgdesc="JPEG XL image format reference implementation"
+url="https://github.com/libjxl/libjxl"
+arch="all"
+license="Apache-2.0"
+makedepends="
+	asciidoc
+	brotli-dev
+	cmake
+	gdk-pixbuf-dev
+	giflib-dev
+	gflags-dev
+	gtest-dev
+	highway-dev
+	lcms2-dev
+	libjpeg-turbo-dev
+	libpng-dev
+	openexr-dev
+	samurai
+	zlib-dev
+"
+subpackages="$pkgname-doc $pkgname-static $pkgname-tools $pkgname-dev"
+source="https://github.com/libjxl/libjxl/archive/$_commit/libjxl-$_commit.tar.gz
+	libjxl-testdata-$_testdata_commit.tar.gz::https://github.com/libjxl/testdata/archive/$_testdata_commit.tar.gz
+"
+builddir=$srcdir/$pkgname-$_commit
+
+# gimp-dev not available
+case "$CARCH" in
+	s390x|riscv64) ;;
+	*) makedepends="$makedepends gimp-dev"
+esac
+
+case "$CARCH" in
+	# many test failures, needs investigation
+	s390x) options="!check"
+esac
+
+prepare() {
+	default_prepare
+	rmdir testdata
+	ln -s ../testdata-* testdata
+}
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DBUILD_TESTING=ON \
+		-DJPEGXL_ENABLE_BENCHMARK=OFF \
+		-DJPEGXL_ENABLE_COVERAGE=OFF \
+		-DJPEGXL_ENABLE_EXAMPLES=OFF \
+		-DJPEGXL_ENABLE_FUZZERS=OFF \
+		-DJPEGXL_ENABLE_SJPEG=OFF \
+		-DJPEGXL_ENABLE_SKCMS=OFF \
+		-DJPEGXL_ENABLE_VIEWERS=OFF \
+		-DJPEGXL_FORCE_SYSTEM_GTEST=ON \
+		-DJPEGXL_FORCE_SYSTEM_BROTLI=ON \
+		-DJPEGXL_FORCE_SYSTEM_HWY=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	export CTEST_PARALLEL_LEVEL=$JOBS
+	if [ "$CARCH" = armv7 ]; then
+		skipped_tests="FastMathTargetTest\.TestFastSRGB"
+	fi
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest ${skipped_tests+-E "$skipped_tests"}
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+tools() {
+	pkgdesc="JPEG XL image format reference implementation tools (cjxl, djxl)"
+	amove usr/bin/*
+}
+
+sha512sums="
+b2598d7857f7e8326885786f44482360fce7da187a1cb8511cddf9c8e1e9c8808919b25e6ae27454c963f0fafbfd95f12dfc6261f2badb7f0aa7d7e9d7f1edac  libjxl-7d047b5feca7a4a0bd620de171179d2c3810bc8e.tar.gz
+d00a4802dda3d6d10f69eb93e98316471eae61da9a745e89b97a3d6e0892c4081c8fda5b892f2d21a49d72708e726b60f0f0a28342c083bbdcaf2edb3391e823  libjxl-testdata-019a398599b860e15046f5c6c6da04493f75073d.tar.gz
+"

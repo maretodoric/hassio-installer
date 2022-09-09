@@ -1,0 +1,26 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+_luaver=5.4
+pkgname=highlight
+pkgver=4.2
+pkgrel=2
+pkgdesc="Fast and flexible source code highlighter"
+url="http://www.andre-simon.de/doku/highlight/highlight.html"
+arch="all !mips !mips64" # Segfault during build
+options="!check"  # No test suite.
+license="GPL-3.0-or-later"
+makedepends="lua$_luaver-dev boost-dev"
+subpackages="$pkgname-doc"
+source="http://www.andre-simon.de/zip/highlight-$pkgver.tar.bz2"
+
+build() {
+	make cli LUA_PKG_NAME=lua5.4
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+6b9a193975c108bca4228188b8f3ddb395eb1cedd689b44fb18bfa7d4cb878cf6148b2275ef2881973fbd7e08b9038e866aad7c406e975fa3d1a59470b6a3867  highlight-4.2.tar.bz2
+"

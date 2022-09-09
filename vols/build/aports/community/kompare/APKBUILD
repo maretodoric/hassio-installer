@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kompare
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kiconthemes
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/development/org.kde.kompare"
+pkgdesc="Graphical File Differences Tool"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kcodecs-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kdoctools-dev
+	kiconthemes-dev
+	kjobwidgets-dev
+	kparts-dev
+	ktexteditor-dev
+	kwidgetsaddons-dev
+	libkomparediff2-dev
+	qt5-qtbase-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kompare-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+629a4aa8978d7befa94398a223c7b671d02db0c74c43da98751fbacc61e0e6024619f5716f5c500f7191b5eb0a2b997f0b87b65231b152f1f320272167e6d23d  kompare-22.04.2.tar.xz
+"

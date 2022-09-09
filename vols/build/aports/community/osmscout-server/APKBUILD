@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=osmscout-server
+pkgver=2.1.2
+pkgrel=0
+pkgdesc="Maps server providing tiles, geocoder, and router"
+url="https://rinigus.github.io/osmscout-server"
+# armhf blocked by kirigami2
+# s390x and riscv64 blocked by luajit -> valhalla
+arch="all !armhf !s390x !riscv64"
+license="GPL-3.0-or-later"
+depends="
+	kirigami2
+	procps
+	qt5-qtbase-sqlite
+	"
+makedepends="
+	bash
+	date-dev
+	kyotocabinet-dev
+	libmarisa-dev
+	libmicrohttpd-dev
+	libpostal-dev
+	qt5-qtbase-dev
+	qt5-qtlocation-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qttools-dev
+	sqlite3pp
+	valhalla-dev
+	"
+source="https://github.com/rinigus/osmscout-server/releases/download/$pkgver/osmscout-server-$pkgver.tar.gz
+	osmscout-server.desktop
+	"
+subpackages="$pkgname-dbg"
+
+build() {
+	qmake-qt5 \
+		PREFIX=/usr \
+		CONFIG+=disable_osmscout \
+		CONFIG+=disable_mapnik \
+		CONFIG+=disable_systemd \
+		SCOUT_FLAVOR=kirigami \
+		CONFIG+=use_dbusactivation
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make INSTALL_ROOT="$pkgdir" install
+
+	install -Dm644 "$srcdir"/osmscout-server.desktop -t "$pkgdir"/etc/xdg/autostart/
+}
+
+sha512sums="
+c0df40db67a238ec8c7f191f69053bb95143399b88d45d8d164c6c670930a456cd628c47dbdc58473c428544e5ae044b61d1f63887f87133900b1e7d9010d13a  osmscout-server-2.1.2.tar.gz
+46519ab4f56ec98821bd5790a66106021152301928fc6ae5fc766172b5f72f2fa9d8561984cb3aa5ee7841dc319d4208cc20f3df411b873db4581f1b0185bc5d  osmscout-server.desktop
+"

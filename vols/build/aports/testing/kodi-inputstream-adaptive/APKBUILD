@@ -1,0 +1,34 @@
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Damian Kurek <starfire24680@gmail.com>
+pkgname=kodi-inputstream-adaptive
+pkgver=2.6.23
+_realname=Matrix
+pkgrel=0
+pkgdesc="kodi inputstream addon for several manifest types"
+url="https://github.com/peak3d/inputstream.adaptive"
+arch="x86 x86_64 aarch64" # tests fail on armv7
+license="GPL-2.0-only"
+makedepends="cmake expat-dev kodi-dev"
+source="$pkgname-$pkgver-$_realname.tar.gz::https://github.com/peak3d/inputstream.adaptive/archive/$pkgver-$_realname.tar.gz"
+builddir="$srcdir/inputstream.adaptive-$pkgver-$_realname"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_MODULE_PATH=/usr/lib/cmake/kodi \
+		-DUSE_LTO=1
+	make -C build
+}
+
+check() {
+	make -C build test
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+8aa33acf1c4658d6d515bc92972e42c6a32c3a03a2e51f381b19452f7d214b5f5e770c6a62b78618cf8800157c20767629f9de3fa5920a800c559f720a36f808  kodi-inputstream-adaptive-2.6.23-Matrix.tar.gz
+"

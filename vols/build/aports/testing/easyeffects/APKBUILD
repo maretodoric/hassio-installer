@@ -1,0 +1,61 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=easyeffects
+pkgver=6.2.6
+pkgrel=0
+pkgdesc="audio plugins for PipeWire applications"
+url="https://github.com/wwmm/easyeffects"
+# s390x: blocked by pipewire
+# riscv64: blocked by gtk4.0
+# armv7: blocked by lsp-plugins
+arch="all !armv7 !s390x !riscv64"
+license="GPL-3.0-or-later"
+options="!check" # no testsuite
+depends="
+	calf-lv2
+	lsp-plugins
+	lv2
+	mda-lv2
+	zam-plugins
+	"
+makedepends="
+	appstream-glib-dev
+	fftw-dev
+	fmt-dev
+	gtk4.0-dev
+	itstool
+	libadwaita-dev
+	libbs2b-dev
+	libebur128-dev
+	libsamplerate-dev
+	libsigc++3-dev
+	libsndfile-dev
+	libtbb-dev
+	lilv-dev
+	lv2-dev
+	meson
+	nlohmann-json
+	pipewire-dev
+	rnnoise-dev
+	rubberband-dev
+	speexdsp-dev
+	zita-convolver-dev
+	"
+subpackages="$pkgname-doc $pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wwmm/easyeffects/archive/refs/tags/v$pkgver.tar.gz
+	setlocale.patch
+	"
+
+build() {
+	abuild-meson . build
+	meson compile -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+sha512sums="
+0c93c6afdc337bd5fe60beab00475087eece250ac7014a8b5ac0e6cad9154b3ac22cfa61a44bbbaa99aff79d4706772e903a056c3719a58d9507772684d6f767  easyeffects-6.2.6.tar.gz
+f071053028f28bcaf3299247a7cdb7011ae461b00f6aa0549bdd42de1962ba65dc2b933c7e33b020c244471de63291cd85b6fdfc3df4d0a159d2796245df5e25  setlocale.patch
+"

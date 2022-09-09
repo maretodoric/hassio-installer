@@ -1,0 +1,111 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=xapian-bindings
+pkgver=1.4.19
+pkgrel=3
+pkgdesc="Binding libraries for xapian"
+url="http://www.xapian.org"
+arch="all"
+license="GPL-2.0-or-later"
+# Disabled check for now since ruby smoketest fails
+options="!check"
+_py_makedepends="
+	py3-sphinx-autobuild py3-sphinx
+	py3-requests py3-setuptools
+	py3-urllib3 py3-chardet py3-idna
+	python3-dev py3-certifi"
+_perl_makedepends="perl-dev"
+_lua_makedepends="lua5.3-dev"
+_ruby_makedepends="ruby-dev ruby ruby-rdoc"
+_tcl_makedepends="tcl-dev"
+
+makedepends="automake autoconf libtool bash xapian-core-dev sphinx
+	$_py_makedepends
+	$_perl_makedepends
+	$_lua_makedepends
+	$_ruby_makedepends
+	$_tcl_makedepends"
+subpackages="$pkgname-perl $pkgname-lua $pkgname-doc
+	$pkgname-python3 $pkgname-ruby $pkgname-tcl"
+source="http://www.oligarchy.co.uk/xapian/$pkgver/xapian-bindings-$pkgver.tar.xz"
+
+
+prepare() {
+	default_prepare
+	aclocal && autoconf
+	libtoolize
+	autoreconf -fvi
+	# workaround for non-existing-dir while build docs for python
+	mkdir -p python3/docs/_static
+}
+
+build() {
+	export LUA=/usr/bin/lua5.3
+	export LUA_INC=/usr/include/lua5.3
+	export LUA_LIB=/usr/lib/lua/5.3
+	export LUA_SO=.so
+	export PERL=/usr/bin/perl
+	export PERL_LIB=/usr/share/perl5/vendor_perl
+	export PERL_ARCH=/usr/share/perl5/vendor_perl
+	export PYTHON3=/usr/bin/python3
+	export RUBY=/usr/bin/ruby
+	export RUBY_LIB=/usr/lib/ruby
+	export RUBY_LIB_ARCH=/usr/lib/ruby
+	export TCLSH=/usr/bin/tclsh8.6
+	export TCL_LIB=/usr/lib/tcl8.6/$pkgname-$pkgver
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--with-perl \
+		--with-lua \
+		--without-php7 \
+		--with-python3 \
+		--with-ruby \
+		--with-tcl \
+		XAPIAN_CONFIG=/usr/bin/xapian-config
+	make
+}
+
+package() {
+	make DESTDIR=$pkgdir install
+}
+
+perl() {
+	pkgdesc="Perl bindings for the Xapian search engine library"
+
+	install -d "$subpkgdir"/usr/share/perl5
+	mv "$pkgdir"/usr/share/perl5 "$subpkgdir"/usr/share/
+}
+
+lua() {
+	pkgdesc="Lua 5.3 bindings for the Xapian search engine library"
+
+	install -d "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/lua "$subpkgdir"/usr/lib
+}
+
+python3() {
+	pkgdesc="Python3 bindings for the Xapian search engine library"
+
+	install -d "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/python3* "$subpkgdir"/usr/lib
+}
+
+ruby() {
+	pkgdesc="Ruby bindings for the Xapian search engine library"
+
+	install -d "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/ruby "$subpkgdir"/usr/lib
+}
+
+tcl() {
+	pkgdesc="Tcl bindings for the Xapian search engine library"
+
+	install -d "$subpkgdir"/usr/lib/tcl8.6
+	mv "$pkgdir"/usr/lib/tcl8.6/$pkgname-$pkgver "$subpkgdir"/usr/lib/tcl8.6
+}
+
+sha512sums="
+c3e353a192822be5d86d448b9d5e4c5eb15d5eb2d079560f7c457f8f7ca85d42e2b933891e784d384c188577f427ca1929c2b47732b9d637e36543e8b5b704d6  xapian-bindings-1.4.19.tar.xz
+"

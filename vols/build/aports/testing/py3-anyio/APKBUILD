@@ -1,0 +1,37 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-anyio
+pkgver=3.6.1
+pkgrel=0
+pkgdesc="High level compatibility layer for multiple asynchronous event loop implementations"
+url="https://github.com/agronholm/anyio"
+license="MIT"
+arch="noarch !armhf !ppc64le" # limited by py3-uvloop
+depends="python3 py3-idna py3-sniffio"
+makedepends="py3-setuptools py3-setuptools_scm"
+checkdepends="py3-pytest py3-pytest-mock py3-hypothesis py3-trustme py3-trio py3-uvloop"
+source="https://github.com/agronholm/anyio/archive/$pkgver/py3-anyio-$pkgver.tar.gz"
+builddir="$srcdir/anyio-$pkgver"
+
+export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py install --root="$PWD/test_install" --skip-build
+
+	# Behavior of getaddrinfo differs between event loop implementations
+	# on musl-based systems
+	PYTHONPATH="$(echo $PWD/test_install/usr/lib/python3*/site-packages)" pytest \
+		--deselect tests/test_sockets.py::test_getaddrinfo_ipv6addr
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+e40bcda795226f5ab49e9450c6945637e65489d2d1a577a630aa22e3eb166da5aac3def75028a1f392f216fb3c901e73fe967c7b01ea2609f17647606725f4e0  py3-anyio-3.6.1.tar.gz
+"

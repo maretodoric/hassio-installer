@@ -1,0 +1,75 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=dolphin
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/system/dolphin"
+pkgdesc="KDE File Manager"
+license="GPL-2.0-only"
+depends="
+	udisks2
+	kio-extras
+	"
+depends_dev="
+	baloo-dev
+	baloo-widgets-dev
+	kactivities-dev
+	kbookmarks-dev
+	kcmutils-dev
+	kcompletion-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	kfilemetadata-dev
+	ki18n-dev
+	kiconthemes-dev
+	kinit-dev
+	kio-dev
+	knewstuff-dev
+	knotifications-dev
+	kparts-dev
+	ktextwidgets-dev
+	kuserfeedback-dev
+	kwindowsystem-dev
+	phonon-dev
+	qt5-qtbase-dev
+	samurai
+	solid-dev
+	"
+makedepends="$depends_dev extra-cmake-modules ruby-test-unit"
+checkdepends="
+	xvfb-run
+	dbus
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/dolphin-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# kfileitemmodeltest, placesitemmodeltest and dolphinmainwindowtest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "(kfileitemmodel|placesitemmodel|dolphinmainwindow)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# We don't ship systemd
+	rm -r "$pkgdir"/usr/lib/systemd
+}
+
+sha512sums="
+67c0e536aa09b20b54a22a35e369cad51fb17618503cef7418d40189cfca113f672c199eebee22130e385ba29210c64c475302ff8c6227df5560a537e7846ff0  dolphin-22.04.2.tar.xz
+"

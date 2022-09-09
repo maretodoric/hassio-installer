@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-o2em
+pkgver=0_git20220409
+pkgrel=0
+_commit="641f06d67d192a0677ec861fcb731d3ce8da0f87"
+pkgdesc="port of O2EM to the libretro API, an Odyssey 2 / VideoPac emulator"
+url="https://github.com/libretro/libretro-o2em"
+arch="all"
+license="Artistic-2.0"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/libretro-o2em/archive/$_commit.tar.gz"
+builddir="$srcdir/libretro-o2em-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 o2em_libretro.so "$pkgdir"/usr/lib/libretro/o2em_libretro.so
+}
+
+sha512sums="
+9a88eb341d75f377a3d73ee99f35ac61f0dce653eee5639c092400350aa857f4f70c5f6d8fd9d5c819b6fc5d7f7cf7e77deeb61d17012665966409e4defb1991  libretro-o2em-641f06d67d192a0677ec861fcb731d3ce8da0f87.tar.gz
+"

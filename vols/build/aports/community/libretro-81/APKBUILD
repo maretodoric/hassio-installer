@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-81
+pkgver=0_git20220412
+pkgrel=0
+_commit="2e34567a320cba27b9162b1776db4de3cdb7cf03"
+pkgdesc="a port of the EightyOne ZX81 Emulator to libretro"
+url="https://github.com/libretro/81-libretro"
+arch="all"
+license="GPL-3.0-only"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/81-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/81-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make -f Makefile.libretro
+}
+
+package() {
+	install -Dm644 81_libretro.so "$pkgdir"/usr/lib/libretro/81_libretro.so
+}
+
+sha512sums="
+5bccc47de182119c461992064205c7117f134226298875a9b4a745e02f483e89ad295f63f741197509662bfa176cd049996e019bdae073fcbce864f0225995d1  libretro-81-2e34567a320cba27b9162b1776db4de3cdb7cf03.tar.gz
+"

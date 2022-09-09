@@ -1,0 +1,35 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-tempora
+pkgver=5.0.1
+pkgrel=1
+pkgdesc="Objects and routines pertaining to date and time (tempora)"
+url="https://github.com/jaraco/tempora"
+arch="noarch"
+license="MIT"
+depends="
+	py3-jaraco.functools
+	py3-tz
+	python3
+	"
+makedepends="py3-build py3-installer py3-setuptools_scm py3-wheel"
+checkdepends="py3-pytest py3-freezegun py3-pytest-freezegun"
+source="https://pypi.python.org/packages/source/t/tempora/tempora-$pkgver.tar.gz"
+builddir="$srcdir/tempora-$pkgver"
+
+build() {
+	export SETUPTOOLS_SCM_PRETEND_VERSION="$pkgver"
+	python3 -m build --no-isolation --wheel
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" dist/tempora-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+941b1a231bfae6cf2321325ada785806578643dc9ae215116393623f780de7a409f918c215aae353013bd89c6866ab870ac61470af09f281af0953ce6e20ea3b  tempora-5.0.1.tar.gz
+"

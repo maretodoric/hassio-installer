@@ -1,0 +1,63 @@
+# Maintainer: David Heidelberg <david@ixit.cz>
+# Contributor: David Heidelberg <david@ixit.cz>
+pkgname=gnome-console
+pkgver=42_beta
+_pkgver=42.beta
+# for some reason this is part of the directory name in the archive
+_commit=c15483838555fe2ee0426e94448cb776f0140598
+pkgrel=0
+pkgdesc="User-friendly terminal for GNOME"
+url="https://gitlab.gnome.org/GNOME/console"
+# s390x and riscv64 blocked by rust -> libhandy
+arch="all !s390x !riscv64"
+license="GPL-3.0-only"
+depends="
+	dbus
+	gsettings-desktop-schemas
+	"
+makedepends="
+	desktop-file-utils
+	glib-dev
+	gsettings-desktop-schemas-dev
+	gtk+3.0-dev
+	libgtop-dev
+	libhandy1-dev
+	meson
+	nautilus-dev
+	pcre2-dev
+	sassc
+	vte3-dev
+	"
+subpackages="$pkgname-nautilus $pkgname-lang"
+source="https://gitlab.gnome.org/GNOME/console/-/archive/$_pkgver/gnome-console-$_pkgver.tar.gz"
+builddir="$srcdir"/console-$_pkgver-$_commit
+replaces="kgx"
+provides="kgx=$pkgver-r$pkgrel"
+
+build() {
+	abuild-meson \
+		-Dtests=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+nautilus() {
+	pkgdesc="$pkgdesc (Nautilus extension)"
+	install_if="$pkgname=$pkgver-r$pkgrel nautilus"
+	replaces="kgx-nautilus"
+	provides="kgx-nautilus=$pkgver-r$pkgrel"
+
+	amove usr/lib/nautilus/extensions-3.0/libkgx-nautilus.so
+}
+
+sha512sums="
+3db40a135043072adf0fb90c0a17333251623df639d93d7b140664e253e2e6bc7d426fc7aeb6b306c117c2e540620292f8286ed73f616b8596402c2e0bfc9361  gnome-console-42.beta.tar.gz
+"

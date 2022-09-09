@@ -1,0 +1,32 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=py3-django-extra-views
+pkgver=0.13.0
+pkgrel=2
+pkgdesc="Extra class-based views for Django"
+options="!check" # Requires unpackaged django-nose
+url="https://github.com/AndrewIngram/django-extra-views"
+arch="noarch"
+license="MIT"
+depends="py3-django py3-six"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/AndrewIngram/django-extra-views/archive/$pkgver.tar.gz"
+
+builddir="$srcdir/django-extra-views-$pkgver"
+
+replaces="py-django-extra-views" # Backwards compatibility
+provides="py-django-extra-views=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 runtests.py
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="e31a6923c27183c8d6996a63882f490c4e63d89fa398a4499fdaa48e95376a31cb0ed2b0c056518c7a2eac5db73d3da751fa660c6e04d625c23b897285f3b155  py3-django-extra-views-0.13.0.tar.gz"

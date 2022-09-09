@@ -1,0 +1,65 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=etcd
+pkgver=3.5.4
+pkgrel=1
+pkgdesc="A highly-available key value store for shared configuration and service discovery"
+options="chmod-clean"
+url="https://github.com/etcd-io/etcd"
+license="Apache-2.0"
+arch="all"
+makedepends="go bash"
+install="$pkgname.pre-install"
+provides="etcd-api"
+provider_priority=1
+pkgusers="etcd"
+pkggroups="etcd"
+subpackages="$pkgname-doc $pkgname-ctl $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/coreos/etcd/archive/v$pkgver.tar.gz
+	$pkgname.yaml-$pkgver
+	$pkgname.confd
+	$pkgname.initd
+	"
+
+export CGO_ENABLED=0
+
+prepare() {
+	default_prepare
+	export GOPATH="$(pwd)/_gopath"
+	export GOFLAGS="$GOFLAGS -mod=mod"
+	_coreos="$GOPATH/src/github.com/etcd-io"
+	mkdir -vp $_coreos
+	ln -vsf $srcdir/$pkgname-$pkgver $_coreos/$pkgname
+}
+
+build() {
+	GO_LDFLAGS="-w -s" bash -x ./build
+}
+
+package() {
+	mkdir -p "$pkgdir"/var/lib/$pkgname
+	chown -R $pkgusers:$pkggroups "$pkgdir"/var/lib/$pkgname
+	chmod 700 "$pkgdir"/var/lib/$pkgname
+	install -Dm755 bin/etcd "$pkgdir"/usr/bin/etcd
+	install -Dm644 $srcdir/$pkgname.yaml-$pkgver  "$pkgdir"/etc/etcd/conf.yml
+	install -Dm644 $srcdir/$pkgname.confd "$pkgdir"/etc/conf.d/$pkgname
+	install -Dm755 $srcdir/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+cleanup_srcdir() {
+	go clean -modcache
+	default_cleanup_srcdir
+}
+
+ctl() {
+	pkgdesc="A command-line client for etcd"
+	install -Dm755 "$builddir"/bin/etcdctl "$subpkgdir"/usr/bin/etcdctl
+}
+
+sha512sums="
+a4b35618c56a2510f0eec541e911594ea902fe5b5a64942ff057aa2bd73dcf5a236049596726bb507a80241f3b44571115b05f1efabc6f8264f65a7fb69f3602  etcd-3.5.4.tar.gz
+86f726d77a3fbe87908c5a5b6e3c5b81f0b428de05a211fd1ea82058285c1a64898ca8a79ef8458db5ed5fd53d72e3a457eb55c0c297981363edf60d2d28b4af  etcd.yaml-3.5.4
+8b917d2b3a136a97dd9565a91377420ce1f812bfb10bb0caa95f1024dd366cb78ebb0539f16ddfbc399325d41a6664b856d49c5c9aa67bc27e36040f2227356e  etcd.confd
+b67f7fd209a29ed2a6ef86d5a3c07cf5dc4138af7c61c3a928471cd79f5579ce7861fd21167db332727dfb2a8e554722366c6505e447f3b2feeae819f869aa11  etcd.initd
+"

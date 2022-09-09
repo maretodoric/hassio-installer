@@ -1,0 +1,284 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=networkmanager
+pkgver=1.38.2
+pkgrel=0
+pkgdesc="Network Management daemon"
+url="https://wiki.gnome.org/Projects/NetworkManager"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="
+	$pkgname-common=$pkgver-r$pkgrel
+	libnm=$pkgver-r$pkgrel
+	dbus
+	iptables
+	"
+makedepends="
+	bash
+	curl-dev
+	dbus-glib-dev
+	elogind-dev
+	eudev-dev
+	gnutls-dev
+	gobject-introspection-dev
+	gtk-doc
+	intltool
+	jansson-dev
+	jansson-dev
+	libgudev-dev
+	libndp-dev
+	libnl3-dev
+	libpsl-dev
+	libsoup-dev
+	libteam-dev
+	libxslt
+	linux-headers
+	meson
+	mobile-broadband-provider-info
+	modemmanager-dev
+	newt-dev
+	nss-dev
+	openresolv
+	polkit-dev
+	ppp-dev
+	py3-gobject3
+	python3
+	readline-dev
+	util-linux-dev
+	vala
+	"
+install="
+	$pkgname.pre-install
+	$pkgname.pre-upgrade
+	$pkgname.post-install
+	$pkgname.post-upgrade
+	"
+subpackages="
+	libnm
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-lang
+	$pkgname-openrc
+	$pkgname-elogind
+	$pkgname-adsl
+	$pkgname-bluetooth
+	$pkgname-ovs
+	$pkgname-ppp
+	$pkgname-wwan
+	$pkgname-wifi
+	$pkgname-cli
+	$pkgname-tui
+	$pkgname-initrd-generator:initrd_generator
+	$pkgname-bash-completion
+	$pkgname-common
+	"
+source="https://download.gnome.org/sources/NetworkManager/${pkgver:0:4}/NetworkManager-$pkgver.tar.xz
+	wwan-no-libsystemd.patch
+	$pkgname.conf
+	$pkgname.initd
+	$pkgname.rules
+	$pkgname-dispatcher.initd
+	"
+options="!check" # fail to compile on musl
+builddir="$srcdir/NetworkManager-$pkgver"
+
+_plugindir="usr/lib/NetworkManager/$pkgver"
+
+build() {
+	msg 'Building without elogind'
+	_build output \
+		-Dsession_tracking=no \
+		-Dsuspend_resume=consolekit
+
+	msg 'Building with elogind'
+	_build output-elogind \
+		-Dsession_tracking=elogind \
+		-Dsuspend_resume=elogind
+}
+
+_build() {
+	local outdir=$1; shift
+
+	abuild-meson \
+		-Dsystemdsystemunitdir=no \
+		-Dudev_dir=/lib/udev \
+		-Diptables=/sbin/iptables \
+		-Ddnsmasq=/usr/sbin/dnsmasq \
+		-Dmodify_system=true \
+		-Dselinux=false \
+		-Dsystemd_journal=false \
+		-Dlibaudit=no \
+		-Diwd=true \
+		-Dpppd=/usr/sbin/pppd \
+		-Dconfig_plugins_default=ifupdown \
+		-Difupdown=true \
+		-Ddhcpcd=true \
+		-Dconfig_dhcp_default=internal \
+		-Dvapi=true \
+		-Dtests="$(want_check && echo yes || echo no)" \
+		-Dpolkit=true \
+		-Dqt=false \
+		-Dofono=true \
+		-Dcrypto=nss \
+		-Ddbus_conf_dir=/usr/share/dbus-1/system.d \
+		-Ddocs=true \
+		"$@" \
+		. "$outdir"
+
+	# fix build with many buildjobs
+	ninja -C "$outdir" introspection/libnmdbus.a
+	meson compile ${JOBS:+-j ${JOBS}} -C "$outdir"
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	provider_priority=100  # highest (other provider is $pkgname-elogind)
+
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	install -m755 -D "$srcdir"/networkmanager.initd "$pkgdir"/etc/init.d/networkmanager
+	install -m755 -D "$srcdir"/networkmanager-dispatcher.initd "$pkgdir"/etc/init.d/networkmanager-dispatcher
+	install -m644 -D "$srcdir/$pkgname.conf" "$pkgdir"/etc/NetworkManager/NetworkManager.conf
+
+	# allow plugdev users to modify connections
+	install -m644 -D "$srcdir/$pkgname.rules" \
+		"$pkgdir/usr/share/polkit-1/rules.d/01-org.freedesktop.NetworkManager.settings.modify.system.rules"
+
+	mkdir -p "$pkgdir/usr/share/apk-tools/$pkgname"
+	mv "$pkgdir/usr/share/doc/NetworkManager" "$pkgdir/usr/share/doc/$pkgname"
+
+	# post-install message
+	cat > "$pkgdir"/usr/share/doc/$pkgname/README.alpine <<-EOF
+		To modify system network connections without the root password: add your user account to the 'plugdev' group, or use Polkit.
+
+		To use iwd instead of the default wpa_supplicant install iwd, start its service and add the following to your /etc/NetworkManager/NetworkManager.conf:
+
+		[device]
+		wifi.backend=iwd
+	EOF
+}
+
+dev() {
+	default_dev
+
+	amove usr/share/dbus-1/interfaces/*.xml
+}
+
+openrc() {
+	default_openrc
+	install_if="openrc $pkgname-common=$pkgver-r$pkgrel"
+}
+
+libnm() {
+	pkgdesc="GObject-based client library for NetworkManager"
+	depends=""
+	replaces="$pkgname<1.34.0-r3 $pkgname-elogind<1.34.0-r3"
+
+	amove usr/lib/libnm.so*
+}
+
+elogind() {
+	pkgdesc="$pkgname (with elogind hibernation support)"
+	provides="$pkgname=$pkgver-r$pkgrel"
+	provider_priority=10  # lowest (other provider is $pkgname)
+	replaces="$pkgname<1.34.0-r3"
+
+	cd "$builddir"/output-elogind
+	install -D -m755 src/core/NetworkManager -t "$subpkgdir"/usr/sbin/
+}
+
+adsl() {
+	_default_plugin
+	pkgdesc="ADSL device plugin for NetworkManager"
+}
+
+bluetooth() {
+	_default_plugin
+	pkgdesc="BlueTooth device plugin for NetworkManager"
+	depends="$depends bluez"
+}
+
+ovs() {
+	_default_plugin
+	pkgdesc="Open vSwitch device plugin for NetworkManager"
+	depends="$depends openvswitch"
+}
+
+ppp() {
+	pkgdesc="PPP plugin for NetworkManager"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove $_plugindir/libnm-ppp-plugin.so
+	amove usr/lib/pppd/*/nm-pppd-plugin.so
+}
+
+# TODO: Add dependency on wpa_supplicant or iwd via some virtual (?).
+wifi() {
+	_default_plugin
+	pkgdesc="WiFi device plugin for NetworkManager"
+	depends="$depends wireless-regdb"
+	install="$subpkgname.post-install"
+}
+
+wwan() {
+	_default_plugin
+	pkgdesc="Mobile broadband device plugin for NetworkManager"
+	depends="$depends mobile-broadband-provider-info"
+}
+
+cli() {
+	pkgdesc="$pkgdesc (command line interface)"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/bin/nmcli
+}
+
+tui() {
+	pkgdesc="$pkgdesc (textbased user interface)"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/bin/nmtui*
+}
+
+initrd_generator() {
+	pkgdesc="Early boot NetworkManager configuration generator"
+	depends=""  # Q: should it depend on $pkgname?
+	replaces="$pkgname<1.34.0-r3"
+
+	amove usr/libexec/nm-initrd-generator
+}
+
+common() {
+	pkgdesc="Common files for networkmanager and networkmanager-elogind"
+	depends=""
+	replaces="$pkgname<1.34.0-r3 $pkgname-elogind<1.34.0-r3"
+
+	# Move all that left to subpackage.
+	amove etc/* lib/* usr/* var/*
+
+	# Move NetworkManager back to the base package (that's the only file
+	# from the networkmanager package that differs between default and
+	# elogind variant).
+	mkdir -p "$pkgdir"/usr/sbin
+	mv "$subpkgdir"/usr/sbin/NetworkManager "$pkgdir"/usr/sbin/
+}
+
+_default_plugin() {
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove $_plugindir/libnm*-${subpkgname#$pkgname-}.so
+}
+
+sha512sums="
+0da3294bec659e6742c2b941eb6cb2464df1018e801148ac37cce0a0612c4468701add13659c18b1c08b51556c7e3e2782ad2353804fdf2a094e97d531da964b  NetworkManager-1.38.2.tar.xz
+7056d53372bc15f7a87dbc864dc8c3e0be5e283aeb94e957b2056d9f8298b6426965cbda04b3eaafde633411bcf1dbc862e6837d6fac42c3ed4bd5cc3cef908a  wwan-no-libsystemd.patch
+0f79016bf717dea43830962f524deae8d1cedc274376e40bd912ebe63208c5b1c3b7a5aa14379da19020c587dbd5588df2f0066ca1540070a226983a43e4159b  networkmanager.conf
+5ac6d11b588c479de9c7e1fef79ed0a2c04dc159a2173636a6a77a2867c839cc1609860756109e9e794f23a02238a6d94834d8fb6fcb81a6be3ef1dbf4a34e6f  networkmanager.initd
+9820ed2ead0af689644842de57657bb10330a1eaff0e85b21ae9913f55e399e47d8b41b0a12956f30de80272b4424c6e55f33acbc88e156879003a260bf576f6  networkmanager.rules
+0b82a5d3d60797fc7106e9e896c3349b64d50cefa43fb54e0cafbf21d418448cf56daaf78f4fac1525e35b4e496e9acec90f0120be5a33995cdf464cb2098013  networkmanager-dispatcher.initd
+"

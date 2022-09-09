@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=filelight
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/utilities/filelight"
+pkgdesc="An application to visualize the disk usage on your computer"
+license="(GPL-2.0-only OR GPL-3.0-only) AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kdoctools-dev
+	ki18n-dev
+	kio-dev
+	kxmlgui-dev
+	qt5-qtbase-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/filelight-$pkgver.tar.xz
+	0001-Fix-musl-build.patch
+	"
+subpackages="$pkgname-dbg $pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+36e2af8cdc77258e24b212ade6685dbed471a14fd6fd6ff0fc3410f0b01f3bc5d02172bed4a29f71fadcad2fcfd283a8f7eebe67358f28388e8e4b3ac1708ab6  filelight-22.04.2.tar.xz
+db0d2fe06a3073c981814989edbaa97cd8b14fa05894c735273b30fc3f95c69207db22bd87db31a703d8f187d1b65827663d60192ba979b977ad51d4cdaa37ad  0001-Fix-musl-build.patch
+"

@@ -1,0 +1,79 @@
+# Contributor: Robert Günzler <r@gnzler.io>
+# Contributor: Xe <xe@tailscale.com>
+# Maintainer: Robert Günzler <r@gnzler.io>
+pkgname=tailscale
+pkgver=1.26.1
+pkgrel=0
+pkgdesc="The easiest, most secure way to use WireGuard and 2FA"
+url="https://tailscale.com/"
+license="BSD-3-Clause"
+arch="all !s390x" # upstream still doesn't have hardware to debug this
+options="chmod-clean"
+depends="iptables ip6tables" # https://github.com/tailscale/tailscale/issues/391
+makedepends="go linux-headers"
+checkdepends="openssh"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/tailscale/tailscale/archive/v$pkgver.tar.gz
+	tailscale.confd
+	tailscale.initd
+	tailscale.logrotate
+	tailscale.modules-load
+	skip-flaky-ssh-test.patch
+	"
+builddir="$srcdir/src/github.com/tailscale/$pkgname"
+
+prepare() {
+	export GOPATH="$srcdir"
+
+	mkdir -p "$(dirname $builddir)"
+	mv "$srcdir"/$pkgname-$pkgver "$builddir"/
+
+	default_prepare
+}
+
+build() {
+	msg2 "Prepare GOPATH and GOBIN..."
+	export GOPATH="$srcdir"
+	export GOBIN="$GOPATH/bin"
+
+	msg2 "Building tailscale..."
+
+	TAGS="netcgo osusergo static_build xversion"
+	VERSIONFLAGS="
+	-X tailscale.com/version.Short=$pkgver
+	-X tailscale.com/version.Long=$pkgver-AlpineLinux
+	-X tailscale.com/version.GitCommit=AlpineLinux
+	"
+	GOLDFLAGS="-w -s"
+
+	go build -tags "$TAGS" -ldflags "$VERSIONFLAGS $GOLDFLAGS" ./cmd/tailscale
+	go build -tags "$TAGS" -ldflags "$VERSIONFLAGS $GOLDFLAGS" ./cmd/tailscaled
+}
+
+check() {
+	# shellcheck disable=SC2046
+	go test $(go list ./... | grep -Ev '(wgengine/magicsock|tstest/archtest)')
+}
+
+package() {
+	install -m755 -D tailscale \
+		"$pkgdir"/usr/bin/tailscale
+	install -m755 -D tailscaled \
+		"$pkgdir"/usr/sbin/tailscaled
+
+	install -m644 -D -t "$pkgdir"/usr/share/doc/$pkgname README.md
+
+	install -m755 -D "$srcdir"/tailscale.initd "$pkgdir"/etc/init.d/tailscale
+	install -m644 -D "$srcdir"/tailscale.confd "$pkgdir"/etc/conf.d/tailscale
+	install -m644 -D "$srcdir"/tailscale.logrotate "$pkgdir"/etc/logrotate.d/tailscale
+	install -m644 -D "$srcdir"/tailscale.modules-load "$pkgdir"/usr/lib/modules-load.d/tailscale.conf
+}
+
+sha512sums="
+3498f691ed9c1a0f42bb5c5d1b81e31a2990b88db1734b0de700ef9671a95800261c1fbe3a9fb40ea36339a0d7f51e256df2665652c4dad4d85749ebea60be07  tailscale-1.26.1.tar.gz
+24706f10a6f5f7091c0f73a13e0c2d72e969e92e6f7aa21abe504f8e2c16af4d1d80fd28c33acbe4866dd8174abd9dc201d97eb5271f6355f7589a56f470f52c  tailscale.confd
+5cb35e0144d3bc2c20b1fde1ee402aab642b666c259bb324bf1c742a79fd8b3892cf2e7419e684764a50b6a29dc562ee674915bbf16a76eda543fd9c8988428c  tailscale.initd
+c139461ff829359bfdc66866ef4cd6561f781e2bc3b40e5cfe9c9d06e3e749d179835ee8548d2b2e725f9a59644db64b1136393dff78ae29955c905e76c8ef46  tailscale.logrotate
+871b650ff982be061532b4c5fe4812f41e6e2c58fc69b24f8a745f9a43389da44e742a69b0467b3c3d9e2b031af0728e20f10fa4584695c4f5ac87768a1fd34e  tailscale.modules-load
+b7fcb329b50938f10af54ea7caddf5ed8946f9ac9d58ce26c62ae7cdf70993a2dab91cf770138e7867f1cf2ec3224e9fc9c512a4cfa483944a966f0587e31a11  skip-flaky-ssh-test.patch
+"

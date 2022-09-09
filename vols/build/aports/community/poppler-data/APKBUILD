@@ -1,0 +1,22 @@
+# Contributor: Sascha Paunovic <azarus@posteo.net>
+# Maintainer: Sascha Paunovic <azarus@posteo.net>
+pkgname=poppler-data
+pkgver=0.4.11
+pkgrel=0
+pkgdesc="encoding data for the poppler PDF rendering library"
+url="https://poppler.freedesktop.org/"
+arch="noarch"
+license="GPL-2.0-or-later AND BSD-3-Clause AND MIT"
+options="!check" # No test suite
+source="https://poppler.freedesktop.org/poppler-data-$pkgver.tar.gz"
+
+package() {
+	make prefix=/usr DESTDIR="$pkgdir" install
+	install -m755 -d "$pkgdir"/usr/share/licenses/$pkgname
+	install -m644 COPYING COPYING.adobe \
+		"$pkgdir"/usr/share/licenses/$pkgname/
+}
+
+sha512sums="
+a5b7ace28d1677e12f7500ab6345b277dc22cd48ace8d472c083933416879edf4da4efe8217b0e11f75a3387ed98d832fe50567884095b6c0e09ebd8802b0f32  poppler-data-0.4.11.tar.gz
+"

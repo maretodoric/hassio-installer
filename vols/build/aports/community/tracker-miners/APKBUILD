@@ -1,0 +1,43 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=tracker-miners
+pkgver=3.3.0
+pkgrel=1
+pkgdesc="Data miners for tracker"
+url="https://gitlab.gnome.org/GNOME/tracker-miners"
+# s390x and riscv64 blocked by polkit -> networkmanager
+arch="all !s390x !riscv64"
+arch="$arch" # exempi not available
+license="GPL-2.0-or-later"
+depends="tracker"
+makedepends="meson glib-dev intltool tracker-dev dbus-dev exempi-dev
+	flac-dev gexiv2-dev gstreamer-dev enca-dev libexif-dev
+	libgsf-dev libgxps-dev libiptcdata-dev libjpeg-turbo-dev libosinfo-dev
+	libpng-dev libseccomp-dev tiff-dev libxml2-dev libvorbis-dev poppler-dev
+	taglib-dev totem-pl-parser-dev upower-dev zlib-dev gst-plugins-base-dev
+	giflib-dev libgrss-dev icu-dev asciidoc networkmanager-dev"
+checkdepends="bash coreutils python3 py3-gobject3"
+options="!check" # Requires itself to be installed on the system
+subpackages="$pkgname-doc $pkgname-lang $pkgname-dbg"
+source="https://download.gnome.org/sources/tracker-miners/${pkgver%.*}/tracker-miners-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dtracker_core=system \
+		-Dsystemd_user_services=false \
+		-Dminer_rss=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+ef28abf48633125e2386cc6c9cc4afbc8c203cfd6fcd31eb6928eb6132e033be232e1141655b5d517e66170c5abb3799f9ea3c76f4b5db66e18524aea59f3969  tracker-miners-3.3.0.tar.xz
+"

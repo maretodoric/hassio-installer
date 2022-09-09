@@ -1,0 +1,40 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=grilo-plugins
+pkgver=0.3.14
+pkgrel=0
+pkgdesc="GNOME media discovery framework plugins"
+url="https://wiki.gnome.org/Projects/Grilo"
+# s390x and riscv64 blocked by polkit -> tracker-miners
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later"
+depends="tracker-miners"
+makedepends="glib-dev grilo-dev avahi-dev meson gstreamer-dev json-glib-dev
+	libsoup-dev libxml2-dev sqlite-dev tracker-dev totem-pl-parser-dev
+	gperf gnome-online-accounts-dev itstool gom-dev libmediaart-dev
+	libgdata-dev tracker-testutils"
+options="!check" # Tracker tests get stuck on some arches
+checkdepends="gst-plugins-base gst-plugins-good"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang $pkgname-dbg"
+source="https://download.gnome.org/sources/grilo-plugins/${pkgver%.*}/grilo-plugins-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Denable-chromaprint=no \
+		-Denable-lua-factory=no \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	export LANG="en_GB.UTF-8"
+	meson test -t 100 --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+941d9524cfb33e33315ac7575051521d9117ef517b169cca90660dee788252eaf1e6f8171ccc7beede5564d63149e065faf08c3244e17f7c1c193bfb7d2af1f8  grilo-plugins-0.3.14.tar.xz
+"

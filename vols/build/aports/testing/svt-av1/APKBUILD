@@ -1,0 +1,35 @@
+# Contributor: Oleg Titov <oleg.titov@gmail.com>
+# Maintainer: Oleg Titov <oleg.titov@gmail.com>
+pkgname=svt-av1
+pkgver=1.1.0
+pkgrel=0
+pkgdesc="Scalable Vector Technology for AV1 encoder (SVT-AV1 Encoder)"
+url="https://01.org/svt"
+arch="x86_64" # x86: inlining failed in call to always_inline '_mm_load_sd': target specific option mismatch
+license="BSD-3-Clause-Clear"
+options="!check" # No test suite from upstream
+makedepends="cmake samurai yasm"
+subpackages="$pkgname-dev $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OpenVisualCloud/SVT-AV1/archive/v$pkgver.tar.gz"
+builddir="$srcdir/SVT-AV1-$pkgver"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=Release \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+94ca03d730824b6998dd41c309f3904698a9e8049cd70bfb0ed20e0e5123d0dbfc671bc6735eb4d7f7bd4830da71e67731d8fafac32b72e9d8148025b6061007  svt-av1-1.1.0.tar.gz
+"

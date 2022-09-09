@@ -1,0 +1,36 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=cinnamon-desktop
+pkgver=5.4.0
+pkgrel=0
+pkgdesc="Library providing shared API for Cinnamon applications"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+url="https://github.com/linuxmint/cinnamon-desktop"
+license="GPL-2.0-only"
+makedepends="
+	accountsservice-dev
+	dconf-dev
+	gobject-introspection-dev
+	gtk+3.0-dev
+	intltool
+	libxkbfile-dev
+	meson
+	pulseaudio-dev
+	xkeyboard-config-dev
+	"
+source="https://github.com/linuxmint/cinnamon-desktop/archive/$pkgver/cinnamon-desktop-$pkgver.tar.gz"
+options="!check"  # no tests
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="
+b6006b89d208078c0404a433c938010aa731e9a650509d2b6ca1b80f8ce9c30ddac1ea583565517da28829861637f4dcc16dcde034164f20a00cad1caa8c8262  cinnamon-desktop-5.4.0.tar.gz
+"

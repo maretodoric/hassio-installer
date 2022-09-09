@@ -1,0 +1,32 @@
+# Maintainer:
+pkgname=py3-shortuuid
+_pkgname=shortuuid
+pkgver=1.0.2
+pkgrel=1
+pkgdesc="Python library that generates short, pretty, unambiguous unique IDs"
+url="https://pypi.python.org/pypi/shortuuid/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/shortuuid-$pkgver"
+
+replaces="py-shortuuid" # Backwards compatibility
+provides="py-shortuuid=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c8ee7a88dc5f369990995dc106f03d052b58bdc6f97b93701a24ec4865ca474a67bfd2991c62149950c36c519f00ed356a011babc783ec6d1df9b54d51772aa4  shortuuid-1.0.2.tar.gz
+"

@@ -1,0 +1,32 @@
+# Contributor: Russ Webber <russ@rw.id.au>
+# Maintainer: Russ Webber <russ@rw.id.au>
+pkgname=py3-pydot
+pkgver=1.4.2
+pkgrel=1
+pkgdesc="Python interface to Graphviz's Dot language"
+url="https://github.com/pydot/pydot"
+arch="noarch"
+license="MIT"
+depends="python3 py3-parsing"
+makedepends="py3-setuptools"
+checkdepends="py3-chardet graphviz"
+source="https://github.com/pydot/pydot/archive/v$pkgver/pydot-v$pkgver.tar.gz"
+options="!check" # graphviz unable to parse jpe files
+builddir="$srcdir/pydot-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	cd test
+	PYTHONPATH="$builddir/build/lib" python3 pydot_unittest.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+caa8051561710129b5164fd1392da941829fd977092a6ec8b00efe7a199d2d60bc7ef13cb0e51615f384550f0fb80190d0f56b83d8d80d1fe372efb5dbbd3632  pydot-v1.4.2.tar.gz
+"

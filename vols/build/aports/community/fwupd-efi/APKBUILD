@@ -1,0 +1,36 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=fwupd-efi
+pkgver=1.3
+pkgrel=1
+pkgdesc="EFI application used by uefi-capsule plugin in fwupd"
+url="https://github.com/fwupd/fwupd-efi"
+arch="all !armhf !ppc64le !s390x" # limited by gnu-efi
+arch="$arch !riscv64" # upstream does not recognize it
+license="LGPL-3.0-or-later"
+makedepends="meson gnu-efi-dev"
+subpackages="$pkgname-dev"
+source="https://people.freedesktop.org/~hughsient/releases/fwupd-efi-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Defi_sbat_distro_id=alpine \
+		-Defi_sbat_distro_summary='Alpine Linux' \
+		-Defi_sbat_distro_pkgname=$pkgname \
+		-Defi_sbat_distro_version=$pkgver \
+		-Defi_sbat_distro_url=https://alpinelinux.org \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+582bc0298f773b3017fab317a392b6fe95a9d1698bfe17e56370515f4563c8d45c12f28ae52d304866e4b077043bb0c9d5c1abf4b75ded5f70b6d8ccad495ea5  fwupd-efi-1.3.tar.xz
+"

@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdav
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="A DAV protocol implementation with KJobs"
+url="https://community.kde.org/Frameworks"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+license="LGPL-2.0-or-later"
+depends_dev="
+	kcoreaddons-dev
+	ki18n-dev
+	kio-dev
+	qt5-qtbase-dev
+	qt5-qtxmlpatterns-dev
+	samurai
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kdav-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+801c10381cf7115a30c66c7e4279b0da922db956c1a24c4e12654da0e99c2d12a3a7aec3a65dd538fd1c878c5a18f814bcccbebe3faaa13243e4e8f8e5afd147  kdav-5.95.0.tar.xz
+"

@@ -1,0 +1,124 @@
+# Contributor: Isaac Dunham <ibid.ag@gmail.com>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer:
+pkgname=openblas
+_pkgname=OpenBLAS
+pkgver=0.3.20
+pkgrel=0
+pkgdesc="fast BSD-licensed BLAS based on gotoBLAS2, with LAPACK"
+url="https://www.openblas.net/"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="gfortran"
+makedepends="$depends_dev perl linux-headers"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc"
+source="https://github.com/xianyi/$_pkgname/archive/v$pkgver/$pkgname-$pkgver.tar.gz
+	separate-tests.patch
+	"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+# OpenBLAS library is huge and it's heavily optimized for performance.
+# It doesn't make sense to compile it with -Os.
+CFLAGS=${CFLAGS/-Os/-O2}
+
+_builddir64="$builddir-64"
+
+# ILP64 is not supported on aarch64 (https://github.com/xianyi/OpenBLAS/issues/956)
+_ilp64=false
+if [ "$CARCH" = "x86_64" ]; then
+	subpackages="$subpackages $pkgname-ilp64"
+	_ilp64=true
+fi
+
+# USE_OPENMP=0: see GCC bug 60035
+# NO_AFFINITY: don't expect to work on musl, also breaks R and not
+#              recommended for Julia
+_flags="USE_OPENMP=0
+	NO_LAPACK=0
+	MAJOR_VERSION=3
+	NO_AFFINITY=1
+	"
+case "$CARCH" in
+	ppc64le) _flags="$_flags NUM_THREADS=64";;  # POWER machines are big
+	*64|s390x) _flags="$_flags NUM_THREADS=32";;  # match kernel's CONFIG_NR_CPUS
+	*) _flags="$_flags NUM_THREADS=8";;  # 32bit machines usually have less cores
+esac
+
+# DYNAMIC_ARCH is supported on x86* only, see https://github.com/xianyi/OpenBLAS/issues/709
+[ "${CARCH%%_64*}" = "x86" ] && _flags="$_flags DYNAMIC_ARCH=1" || _flags="$_flags DYNAMIC_ARCH=0"
+case "$CARCH" in
+	x86*) _flags="$_flags TARGET=CORE2";;
+	armhf) _flags="$_flags TARGET=ARMV7";;
+	aarch64) _flags="$_flags TARGET=ARMV8";;
+	ppc64le) _flags="$_flags TARGET=POWER8";;
+	s390x) _flags="$_flags TARGET=ZARCH_GENERIC";;
+	riscv64) _flags="$_flags TARGET=RISCV64_GENERIC";;
+esac
+
+# Flags for ILP64 variant.
+_flags64="$_flags
+	INTERFACE64=1
+	SYMBOLSUFFIX=64_
+	"
+
+prepare() {
+	default_prepare
+
+	if [ "$CARCH" = "ppc64le" ] ; then
+		# Skip test level 3 on ppc64le for a while
+		sed 's/level2 level3/level2/g' -i "$builddir"/test/Makefile
+		sed 's/all2 all3/all2/g' -i "$builddir"/ctest/Makefile
+	fi
+	cp -ar "$builddir" "$_builddir64"
+}
+
+build() {
+	CFLAGS= make -C "$builddir" \
+		$_flags CFLAGS="$CFLAGS" PREFIX=/usr
+
+	if $_ilp64; then
+		msg "Building with ILP64..."
+		CFLAGS= make -C "$_builddir64" $_flags64 CFLAGS="$CFLAGS" PREFIX=/usr
+	fi
+}
+
+dev() {
+	provides="blas-dev lapack-dev"
+	replaces="$provides"
+
+	default_dev
+}
+
+check() {
+	CFLAGS= make $_flags CFLAGS="$CFLAGS" tests
+}
+
+package() {
+	if $_ilp64; then
+		make -C "$_builddir64" $_flags64 PREFIX="$pkgdir/usr" install
+	fi
+
+	make $_flags PREFIX="$pkgdir/usr" install
+
+	# Remove reference to $pkgdir.
+	sed -e "s|$pkgdir||" \
+		-i "$pkgdir"/usr/lib/cmake/$pkgname/OpenBLASConfig.cmake \
+		-i "$pkgdir"/usr/lib/pkgconfig/openblas.pc
+
+	install -Dm 0644 Changelog.txt TargetList.txt USAGE.md \
+		-t "$pkgdir"/usr/share/doc/$pkgname/
+
+	install -Dm 0644 LICENSE \
+		-t "$pkgdir"/usr/share/licenses/$pkgname/
+}
+
+ilp64() {
+	pkgdesc="$pkgdesc (ILP64)"
+
+	amove usr/lib/libopenblas64_*
+}
+
+sha512sums="
+0742d40b74b11b781021280fd627fa5798e6856b49f2ba1111a5927aac1a7823bcb8162187555f4cf3a4dd7eadf5b1f2a4685c0b5e189847b2869166d1bc7391  openblas-0.3.20.tar.gz
+de2769ba6d1adcb31e19732c6c4a9f39dc1745932b954106a8037a4dfa98d77a468bd414abadab0d72bbbabf17f86748fb9297051c937fd6eae3d375aa5f5ad7  separate-tests.patch
+"

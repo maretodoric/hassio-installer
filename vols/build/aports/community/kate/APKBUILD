@@ -1,0 +1,101 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kate
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kio
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/utilities/org.kde.kate"
+pkgdesc="A multi-document, multi-view text editor"
+license="LGPL-2.0-only AND LGPL-2.0-or-later"
+makedepends="
+	extra-cmake-modules
+	kactivities-dev
+	kconfig-dev
+	kcrash-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kitemmodels-dev
+	kjobwidgets-dev
+	knewstuff-dev
+	kparts-dev
+	ktexteditor-dev
+	kuserfeedback-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	samurai
+	threadweaver-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kate-$pkgver.tar.xz"
+subpackages="kwrite:kwrite kwrite-doc:kwrite_doc kwrite-lang:kwrite_lang $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build/kate -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_kwrite=FALSE
+	cmake --build build/kate
+	cmake -B build/kwrite -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_kate=FALSE \
+		-DBUILD_addons=FALSE
+	cmake --build build/kwrite
+}
+
+check() {
+	cd build/kate
+	# kateapp-session_manager_test and kateapp-filetree_model_test are broken
+	# kateapp-sessions_action_test requires OpenGL
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "(kateapp-session_manager|kateapp-sessions_action|kateapp-filetree_model)_test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build/kate
+
+	mkdir -p "$pkgdir"/usr/share/doc/$pkgname
+	mv "$pkgdir"/usr/share/doc/HTML "$pkgdir"/usr/share/doc/$pkgname/
+}
+
+kwrite() {
+	cd "$builddir"
+	DESTDIR="$subpkgdir" cmake --install build/kwrite
+
+	mkdir -p "$subpkgdir"/usr/share/doc/$subpkgname
+	mv "$subpkgdir"/usr/share/doc/HTML "$subpkgdir"/usr/share/doc/$subpkgname/
+
+	# Man package only exists for Kate
+	rm -rf "$subpkgdir"/usr/share/man
+}
+
+kwrite_doc() {
+	pkgdesc="KWrite documentation"
+	install_if="docs kwrite=$pkgver-r$pkgrel"
+
+	mkdir -p "$subpkgdir"/usr/share/doc/kwrite
+	mv "$subpkgdir"/../kwrite/usr/share/doc/kwrite/HTML \
+		"$subpkgdir"/usr/share/doc/kwrite
+}
+
+kwrite_lang() {
+	pkgdesc="Languages for package KWrite"
+	install_if="kwrite=$pkgver-r$pkgrel lang"
+
+	local dir
+	for dir in ${langdir:-/usr/share/locale}; do
+		mkdir -p "$subpkgdir"/${dir%/*}
+		mv "$subpkgdir"/../kwrite/"$dir" "$subpkgdir"/"$dir"
+	done
+}
+
+sha512sums="
+7f96d368e0cb0587b35eb0cc485d7b7f268faffeb1a60fc42596354b6a30506c77ba5c41356939594f50788c54a953700aa651f09d4fa847f787f7669c84cbc5  kate-22.04.2.tar.xz
+"

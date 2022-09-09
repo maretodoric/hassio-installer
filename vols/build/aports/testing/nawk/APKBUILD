@@ -1,0 +1,30 @@
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=nawk
+pkgver=20220122
+pkgrel=0
+pkgdesc="The one, true implementation of AWK"
+url="https://www.cs.princeton.edu/~bwk/btl.mirror/"
+arch="x86_64"
+license=MIT
+makedepends="bison"
+checkdepends="bash"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/onetrueawk/awk/archive/refs/tags/$pkgver.tar.gz"
+builddir="$srcdir/awk-$pkgver"
+
+build() {
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	install -Dm755 a.out "$pkgdir"/usr/bin/$pkgname
+	install -Dm644 awk.1 "$pkgdir"/usr/share/man/man1/$pkgname.1
+}
+
+sha512sums="
+46ab7936705288c9cd22867ad9f5b080ade67c4b05d674304e0e5cae8ea329420a9a46e3578bf3a014b7066a1185b7506b0f74445bb52aafb1090e7a82a5bf28  nawk-20220122.tar.gz
+"

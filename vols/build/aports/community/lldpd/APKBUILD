@@ -1,0 +1,75 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=lldpd
+pkgver=1.0.14
+pkgrel=1
+pkgdesc="Implementation of IEEE 802.1ab"
+url="https://lldpd.github.io/"
+arch="all"
+license="ISC"
+makedepends="autoconf automake libtool linux-headers bsd-compat-headers
+	libevent-dev libxml2-dev net-snmp-dev libbsd-dev jansson-dev
+	doxygen perl-dev readline-dev"
+install="$pkgname.post-install"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-openrc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	"
+pkgusers="lldpd"
+pkggroups="lldpd"
+source="$pkgname-$pkgver.tar.gz::https://github.com/vincentbernat/lldpd/archive/$pkgver.tar.gz
+	$pkgname.confd
+	$pkgname.initd"
+
+# secfixes:
+#   1.0.13-r0:
+#     - CVE-2021-43612
+#   1.0.8-r0:
+#     - CVE-2020-27827
+
+prepare() {
+	# this should be shipped with the release tarball
+	echo $pkgver > .dist-version
+	./autogen.sh
+	default_prepare
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--sysconfdir=/etc \
+		--enable-static=no \
+		--enable-pie \
+		--enable-hardening \
+		--without-embedded-libevent \
+		--with-snmp \
+		--with-xml \
+		--with-privsep-user=$pkgusers \
+		--with-privsep-group=$pkggroups \
+		--with-privsep-chroot=/run/$pkgname \
+		--with-lldpd-ctl-socket=/run/$pkgname/$pkgname.socket \
+		--with-lldpd-pid-file=/run/$pkgname/$pkgname.pid
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	install -Dm644 /dev/null "$pkgdir/etc/lldpd.conf"
+	install -Dm644 "$srcdir"/$pkgname.confd "$pkgdir/etc/conf.d/$pkgname"
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir/etc/init.d/$pkgname"
+	install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+aa016bb4072c21f98438d8e7f7058ac459ce8c2aa869e66f4a3c89ac138f7b8af8168c9dc783a21a4b134eeaa1e29c679f0b503337dd6a0a1c32f8975f8f7f1c  lldpd-1.0.14.tar.gz
+a2a4c85068a6b8b80c92fe56af7799a8b8cb2516e5a65b3ae4cb28f278e5acc72402da2a35f0c48a6048fd4a8536061142cafaa49a4bae8e52ca0a5d9ed38b4c  lldpd.confd
+8d88e2a21efee6389d4de4f1ce2fcc9da8bd8ab3cb5a2bf2d322bde577e255662d027688065282146b389b3b8076fb883897e600fd931bcdc30d757fc7191e34  lldpd.initd
+"

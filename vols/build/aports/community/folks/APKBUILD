@@ -1,0 +1,46 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=folks
+pkgver=0.15.5
+pkgrel=0
+pkgdesc="GObject Library to aggregate people into metacontacts"
+url="https://wiki.gnome.org/Projects/Folks"
+# s390x and riscv64 blocked by tracker -> networkmanager -> polkit -> rust
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later"
+makedepends="
+	evolution-data-server-dev
+	gobject-introspection-dev
+	gtk-doc
+	libgee-dev
+	meson
+	py3-dbusmock
+	py3-setuptools
+	python3
+	readline-dev
+	telepathy-glib-dev
+	tracker-dev
+	vala
+	"
+options="!check" # Can only be run against installed instance
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/folks/${pkgver%.*}/folks-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Ddocs=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+696d158234cc5b4c504491c6e01dc45ed53c4ac02e3e62e637d229207dde396a82a850d143d8615dc838d99c756edfce145405ea3972c556951d6408fb8487ea  folks-0.15.5.tar.xz
+"

@@ -1,0 +1,56 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-joblib
+pkgver=1.0.1
+pkgrel=3
+pkgdesc="Computing with Python functions"
+options="net" # Net access required for tests, https://github.com/joblib/joblib/issues/1084
+url="https://joblib.readthedocs.org/en/latest/"
+arch="noarch !s390x" # test fail
+license="BSD-3-Clause"
+depends="
+	py3-cloudpickle
+	py3-distributed
+	py3-loky
+	python3
+	"
+makedepends="
+	cython
+	py3-setuptools
+	"
+checkdepends="
+	py3-pytest
+	py3-threadpoolctl
+	"
+source="https://pypi.python.org/packages/source/j/joblib/joblib-$pkgver.tar.gz
+	de-vendor.patch
+	"
+
+builddir="$srcdir/joblib-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest -v joblib \
+		--deselect joblib/test/test_memmapping.py::test_permission_error_windows_memmap_sent_to_parent[loky] \
+		--deselect joblib/test/test_memmapping.py::test_multithreaded_parallel_termination_resource_tracker_silent \
+		--deselect joblib/test/test_memmapping.py::test_many_parallel_calls_on_same_object[loky] \
+		--deselect joblib/test/test_parallel.py::test_memmapping_leaks[loky] \
+		--deselect joblib/test/test_parallel.py::test_thread_bomb_mitigation[loky] \
+		--deselect joblib/test/test_memory.py::test_parallel_call_cached_function_defined_in_jupyter[True] \
+		--deselect joblib/test/test_memory.py::test_parallel_call_cached_function_defined_in_jupyter[False]
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# Remove tests and vendored dependencies
+	local _py3ver=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+	rm -r "$pkgdir"/usr/lib/python$_py3ver/site-packages/joblib/test
+	rm -r "$pkgdir"/usr/lib/python$_py3ver/site-packages/joblib/externals
+}
+
+sha512sums="e985982d9f4fb1abf5f9a55008e4666a06fe7d39324877a89823e9acd7edd447dc342c264a21d4546eb29f285b1b735f25b3064e5c0361be4dbf723860e4fdbe  joblib-1.0.1.tar.gz
+7d29d6990f4fca03a69bd6b7c7d52360f307f93198fc23aa2373b828a7b4b15b7df4ef94970aa320e42ef726690194b518ee13e57a56c8c9a653ed7c6a38fc04  de-vendor.patch"

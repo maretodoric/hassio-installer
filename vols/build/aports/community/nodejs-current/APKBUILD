@@ -1,0 +1,153 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jose-Luis Rivas <ghostbar@riseup.net>
+#
+# secfixes:
+#   17.3.1-r0:
+#     - CVE-2021-44531
+#     - CVE-2021-44532
+#     - CVE-2021-44533
+#     - CVE-2022-21824
+#   16.11.1-r0:
+#     - CVE-2021-22959
+#     - CVE-2021-22960
+#   16.6.2-r0:
+#     - CVE-2021-3672
+#     - CVE-2021-22931
+#     - CVE-2021-22939
+#   16.6.0-r0:
+#     - CVE-2021-22930
+#   15.10.0-r0:
+#     - CVE-2021-22883
+#     - CVE-2021-22884
+#   15.5.1-r0:
+#     - CVE-2020-8265
+#     - CVE-2020-8287
+#   15.3.0-r0:
+#     - CVE-2020-8277
+#   14.11.0-r0:
+#     - CVE-2020-8201
+#     - CVE-2020-8251
+#   14.4.0-r0:
+#     - CVE-2020-8172
+#     - CVE-2020-11080
+#     - CVE-2020-8174
+#   13.11.0-r0:
+#     - CVE-2019-15604
+#     - CVE-2019-15605
+#     - CVE-2019-15606
+#   11.10.1-r0:
+#     - CVE-2019-5737
+#   11.3.0-r0:
+#     - CVE-2018-12121
+#     - CVE-2018-12122
+#     - CVE-2018-12123
+#     - CVE-2018-0735
+#     - CVE-2018-0734
+#   9.10.0-r0:
+#     - CVE-2018-7158
+#     - CVE-2018-7159
+#     - CVE-2018-7160
+#   9.2.1-r0:
+#     - CVE-2017-15896
+#     - CVE-2017-15897
+
+pkgname=nodejs-current
+# The current stable version, i.e. non-LTS.
+pkgver=18.4.0
+pkgrel=0
+pkgdesc="JavaScript runtime built on V8 engine - current stable version"
+url="https://nodejs.org/"
+arch="all !riscv64"
+license="MIT"
+depends="ca-certificates"
+depends_dev="libuv"
+makedepends="
+	brotli-dev
+	c-ares-dev
+	icu-dev
+	libuv-dev
+	linux-headers
+	nghttp2-dev
+	openssl1.1-compat-dev
+	python3
+	samurai
+	zlib-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+provides="nodejs"
+provider_priority=10
+replaces="nodejs nodejs-lts"  # nodejs-lts for backward compatibility
+source="https://nodejs.org/dist/v$pkgver/node-v$pkgver.tar.gz
+	dont-run-gyp-files-for-bundled-deps.patch
+	elf.patch
+	unbundle-uv.patch
+	39739.patch
+	"
+builddir="$srcdir/node-v$pkgver"
+
+prepare() {
+	default_prepare
+
+	# openssl.cnf required for build
+	local _openssl_deps=deps/openssl/openssl/apps/
+	mv $_openssl_deps/openssl.cnf .
+	# Remove bundled dependencies that we're not using.
+	rm -rf deps/brotli deps/cares deps/icu-small deps/openssl deps/uv deps/zlib
+	# restore required file
+	install -D -m 644 openssl.cnf $_openssl_deps/openssl.cnf
+	rm openssl.cnf
+}
+
+build() {
+	# Add defines recommended in libuv readme.
+	local common_flags="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+
+	# Os overwrites the optimizations in BUILDTYPE=Release
+	# increases binary size by ~10% (53.1 MiB -> 58.6 MiB),
+	# but also increases performance by ~20%  according to
+	# v8/web-tooling-benchmark. Node.js is quite huge anyway;
+	# there are better options for size constrained environments.
+	export CFLAGS="${CFLAGS/-Os/} $common_flags"
+	export CXXFLAGS="${CXXFLAGS/-Os/} $common_flags"
+	export CPPFLAGS="${CPPFLAGS/-Os/} $common_flags"
+
+	case "$CARCH" in
+		riscv64) _carchflags="--dest-cpu=riscv64";
+	esac
+
+	./configure --prefix=/usr \
+		$_carchflags \
+		--shared-brotli \
+		--shared-zlib \
+		--shared-libuv \
+		--shared-openssl \
+		--shared-cares \
+		--shared-nghttp2 \
+		--ninja \
+		--with-intl=system-icu \
+		--without-npm \
+		--openssl-use-def-ca-store
+
+	make BUILDTYPE=Release
+}
+
+# TODO Run provided test suite.
+check() {
+	cd "$builddir"/out/Release
+
+	./node -e 'console.log("Hello, world!")'
+	./node -e "require('assert').equal(process.versions.node, '$pkgver')"
+	./node -e 'console.log("Openssl:", process.versions.openssl)'
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+de8b6d8fbc3286b2994910590764588006b5e894fc963919d609aa0c8743298efe994d0cbc364d233c4cc2482057c40e33ab58e924691956891b6a0e1e1339e0  node-v18.4.0.tar.gz
+940cc90aaa77a531cde13e31918a9978f9478936c3851038bcdf2869e64de03ce84dec5a46519469a90a8ba2853226825452d23d9347752abdbe04e944c083eb  dont-run-gyp-files-for-bundled-deps.patch
+e6f2907bdf2082097841f44ac9380d5b1bc65eca39be7153da081266940c6a10d2932e16a2e15bdcf12fec61c45549d009d1a07e5e1633603172968b5f6fdb77  elf.patch
+d8f1092a92f7a168755020b3e40fe72b743f9150de6d18f7664074dadaef866ecb4fa8252fa891fd7cf34b3dc183455af8d5570d7b3f1883464c2b6e3a9f2789  unbundle-uv.patch
+080ede859262f5507a913b1f9995092ed075777e94c73c23ee74d74c739e9b2e6b4cc3afad189a333692f10485e7e3e12a15662286df2c946f73bdd6083baee8  39739.patch
+"

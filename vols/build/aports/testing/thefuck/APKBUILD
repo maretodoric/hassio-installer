@@ -1,0 +1,30 @@
+# Contributor: Simon Frankenberger <simon-alpine@fraho.eu>
+# Maintainer: Simon Frankenberger <simon-alpine@fraho.eu>
+pkgname=thefuck
+pkgver=3.32
+pkgrel=0
+pkgdesc="The Fuck is a magnificent app that corrects errors in previous console commands."
+url="https://github.com/nvbn/thefuck"
+arch="noarch"
+license="MIT"
+depends="py3-colorama py3-six py3-decorator py3-psutil py3-pyte"
+makedepends="py3-setuptools"
+source="thefuck-$pkgver.tar.gz::https://github.com/nvbn/thefuck/archive/$pkgver.tar.gz
+"
+
+check() {
+	python3 setup.py check
+}
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+
+sha512sums="
+961b9b6dc374cc0b854698455f688cf110adb21cfebd4cb645eb5f1ce11c14de6699bb4d40de86a5f9461273cbfc2eea318a9d437f803dc578dd431966cf26c1  thefuck-3.32.tar.gz
+"

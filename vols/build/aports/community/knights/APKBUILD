@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=knights
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Chess board by KDE with XBoard protocol support"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/applications/games/knights/"
+license="GPL-2.0-or-later"
+makedepends="
+	extra-cmake-modules
+	kconfigwidgets-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	kio-dev
+	kplotting-dev
+	ktextwidgets-dev
+	kwallet-dev
+	kxmlgui-dev
+	libkdegames-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/knights-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+34e989938a60fccebf5762787be7f0426a3ec3064286f2add0fa13ebdb766441dd6fee9ac36d41007dde115736c35b4b0c8fcce9cc12ef02cf197cff10e28630  knights-22.04.2.tar.xz
+"

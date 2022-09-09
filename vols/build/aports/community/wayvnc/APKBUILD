@@ -1,0 +1,26 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=wayvnc
+pkgver=0.4.1
+pkgrel=0
+pkgdesc="A VNC server for wlroots-based Wayland compositors"
+url="https://github.com/any1/wayvnc"
+license="ISC"
+arch="all"
+makedepends="meson wlroots-dev libuv-dev neatvnc-dev bsd-compat-headers scdoc"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/any1/wayvnc/archive/v$pkgver.tar.gz"
+options="!check" # no test suite
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+6cffaa198e3baad172c7befa413ba21b03985f1acc936200cbde94d98d125ef804b0f30d355ea0aeb9e50624a01d2db499bed5bf6d3f01a7d1db3308c7fc605f  wayvnc-0.4.1.tar.gz
+"

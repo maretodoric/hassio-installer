@@ -1,0 +1,45 @@
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=tcpflow
+pkgver=1.6.1
+pkgrel=6
+pkgdesc="A Tool for monitoring, capturing and storing TCP connections flows"
+url="https://github.com/simsong/tcpflow"
+arch="all"
+license="GPL-3.0-only"
+makedepends="libpcap-dev zlib-dev boost-dev openssl1.1-compat-dev autoconf automake"
+subpackages="$pkgname-doc"
+source="https://fossies.org/linux/misc/tcpflow-$pkgver.tar.gz
+	"
+
+# secfixes:
+#   1.5.0-r1:
+#     - CVE-2018-18409
+#   1.5.0-r0:
+#     - CVE-2018-14938
+
+prepare() {
+	default_prepare
+	sed -i 's/test-pdfs.sh//' tests/Makefile.am
+	autoreconf -fsiv
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--mandir=/usr/share/man
+
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="8a54554f2e47f6b136396b245eaeeafbfe3833e250a1eaf1905fadc14ccf821ca0f7ed18bf976fefa1de3efeae4895413af2c675bb6690d87b1368639cb15148  tcpflow-1.6.1.tar.gz"

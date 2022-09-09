@@ -1,0 +1,49 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=java-jffi
+_pkgname=${pkgname#java-}
+pkgver=1.3.9
+_libver=1.2
+pkgrel=0
+pkgdesc="Java Foreign Function Interface"
+url="https://github.com/jnr/jffi"
+# ppc64le blocked by build failure
+# riscv64 blocked by openjdk8
+arch="all !ppc64le !riscv64"
+license="Apache-2.0"
+depends="$pkgname-native=$pkgver-r$pkgrel java-jre-headless"
+makedepends="apache-ant file linux-headers openjdk8 texinfo"
+subpackages="$pkgname-native"
+source="https://github.com/jnr/$_pkgname/archive/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$_pkgname-$pkgver"
+
+# Tests fail on non-x86_64 platforms, they are probably broken.
+if [ "$CARCH" != x86_64 ]; then
+	options="!check"
+fi
+
+build() {
+	ant jar
+}
+
+check() {
+	ant test
+}
+
+package() {
+	install -m644 -D "$builddir"/dist/jffi.jar \
+		"$pkgdir"/usr/share/java/$_pkgname-$pkgver.jar
+	ln -sf $_pkgname-$pkgver.jar "$pkgdir"/usr/share/java/$_pkgname.jar
+}
+
+native() {
+	depends=""
+
+	# Note: jffi expects file named libjffi-x.y.so, not libjffi.so.x.y.
+	install -m755 -D "$builddir"/build/jni/libjffi-$_libver.so \
+		"$subpkgdir"/usr/lib/libjffi-$_libver.so
+}
+
+sha512sums="
+21bf6997c64c0764c1fe86c9ab9b854037241489789f443a3337253ecc95100c94723a57165c85eed7a6c3837b8c04751af4a1fb5873a9c9fcd9a4535b68fc10  jffi-1.3.9.tar.gz
+"

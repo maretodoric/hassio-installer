@@ -1,0 +1,31 @@
+# Contributor: <xmingske@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=py3-django-registration
+_pyname=django-registration
+pkgver=3.2
+pkgrel=1
+pkgdesc="simple user-registration application for Django"
+url="https://github.com/ubernostrum/django-registration"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="$_pyname-$pkgver.tar.gz::https://github.com/ubernostrum/django-registration/archive/$pkgver.tar.gz"
+
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1cf3b1d3c175f61ffbc299f31684b03727aaa83a87a31e55166069335febc6ee37f51377c321754ab5c3c716bcb8df719de5053d81ccebb4fb9ac219ad8e757b  django-registration-3.2.tar.gz
+"

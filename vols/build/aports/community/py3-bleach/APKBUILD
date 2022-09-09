@@ -1,0 +1,43 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-bleach
+pkgver=4.0.0
+pkgrel=2
+pkgdesc="whitelist-based HTML sanitizing library"
+options="!check" # 3 tests fail
+url="https://github.com/mozilla/bleach"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-six py3-webencodings py3-html5lib py3-packaging"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mozilla/bleach/archive/v$pkgver.tar.gz
+	0002-no_vendored_html5lib.patch
+	"
+builddir="$srcdir/bleach-$pkgver"
+
+# secfixes:
+#   3.3.0-r0:
+#     - CVE-2021-23980
+#   3.1.2-r0:
+#     - CVE-2020-6816
+#   3.1.1-r0:
+#     - CVE-2020-6802
+
+build() {
+	rm -rf bleach/_vendor
+	python3 setup.py build
+}
+
+check() {
+	python3 -m pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c85e625887cf1f4b5cb21ebffdc516028ba9036a5b7ea86838333bcbf6a70dde086bac67b0f67e117eba9f36f5701b2f8df3ef61300a1a2fb6af11ee6d5f06e6  py3-bleach-4.0.0.tar.gz
+b294a3ddbae5c13fdb0489cf46e2c024c97f601052ceb549899cb63bb2972df46384a980a947a0dc307930adc8013dec12a8259db02baaeea909fa8f3e32022d  0002-no_vendored_html5lib.patch
+"

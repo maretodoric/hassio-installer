@@ -1,0 +1,30 @@
+# Maintainer: Luca Weiss <luca@z3ntu.xyz>
+pkgname=confclerk
+pkgver=0.7.1
+pkgrel=0
+pkgdesc="Offline conference schedule application"
+url="http://www.toastfreeware.priv.at/confclerk"
+arch="all"
+license="GPL-2.0-or-later"
+depends="qt5-qtbase-sqlite"
+makedepends="qt5-qtbase-dev"
+subpackages="$pkgname-doc"
+source="https://www.toastfreeware.priv.at/tarballs/confclerk/confclerk-$pkgver.tar.gz"
+options="!check" # no tests
+
+build() {
+	qmake-qt5
+	make all data/confclerk.1
+}
+
+package() {
+	make install INSTALL_ROOT="$pkgdir"
+
+	install -Dm644 data/confclerk.1 "$pkgdir"/usr/share/man/man1/confclerk.1
+	install -Dm644 data/confclerk.desktop "$pkgdir"/usr/share/applications/confclerk.desktop
+	install -Dm644 data/confclerk.svg "$pkgdir"/usr/share/icons/hicolor/scalable/apps/confclerk.svg
+}
+
+sha512sums="
+643af1cc7eaabd061af4d9924e5f063cc3ec167034f5d7dd6766a2399b95367c50cdbfc964b26a05eac5dd21bdb849d017cf9882d78b4772eb20dc8f86b162cd  confclerk-0.7.1.tar.gz
+"

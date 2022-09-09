@@ -1,0 +1,107 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-desktop
+pkgver=5.25.1
+pkgrel=0
+pkgdesc="KDE Plasma Desktop"
+# armhf blocked by qt5-qtdeclarative
+# s390x blocked by ibus
+# ppc64le blocked by kaccounts-integration
+# riscv64 blocked by polkit -> kwin
+arch="all !armhf !s390x !ppc64le !riscv64"
+url='https://kde.org/plasma-desktop/'
+license="GPL-2.0-only AND LGPL-2.1-only"
+depends="
+	accountsservice
+	font-noto-emoji
+	ibus-emoji
+	kirigami2
+	plasma-workspace
+	qqc2-desktop-style
+	setxkbmap
+	xdg-user-dirs
+	"
+makedepends="
+	attica-dev
+	baloo-dev
+	eudev-dev
+	extra-cmake-modules
+	fontconfig-dev
+	ibus-dev
+	kaccounts-integration-dev
+	kactivities-dev
+	kactivities-stats-dev
+	kauth-dev
+	kcmutils-dev
+	kcodecs-dev
+	kconfig-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	kdelibs4support-dev
+	kdoctools-dev
+	kemoticons-dev
+	kglobalaccel-dev
+	ki18n-dev
+	kitemmodels-dev
+	knewstuff-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kpeople-dev
+	krunner-dev
+	kwallet-dev
+	kwin-dev
+	libxcursor-dev
+	libxi-dev
+	libxkbfile-dev
+	plasma-framework-dev
+	plasma-workspace-dev
+	qqc2-desktop-style-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtsvg-dev
+	qt5-qtx11extras-dev
+	samurai
+	signon-plugin-oauth2-dev
+	xf86-input-evdev-dev
+	xf86-input-libinput-dev
+	xf86-input-synaptics-dev
+	xkeyboard-config-dev
+	"
+checkdepends="xvfb-run iso-codes"
+
+case "$pkgver" in
+	*.90*) _rel=unstable;;
+	*) _rel=stable;;
+esac
+source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-desktop-$pkgver.tar.xz"
+subpackages="$pkgname-dbg $pkgname-doc $pkgname-lang knetattach"
+options="!check" # Requires running dbus
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+knetattach() {
+	pkgdesc="Wizard which makes it easier to integrate network resources with the Plasma Desktop"
+	depends="kdelibs4support"
+
+	amove usr/bin/knetattach
+	amove usr/share/applications/org.kde.knetattach.desktop
+}
+
+sha512sums="
+6cbe16331f6bcd7eed407ebc7daf169ad1c89535f301cc53c5ebdf58e82e212a17b93f7e558a09f3340a319f7b2adc326429d6c0bd31c2bbbeadcf95fab6da51  plasma-desktop-5.25.1.tar.xz
+"

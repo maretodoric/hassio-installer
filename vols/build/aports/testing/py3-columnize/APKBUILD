@@ -1,0 +1,30 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-columnize
+pkgver=0.3.10
+pkgrel=2
+pkgdesc="Python module to align in columns a simple list"
+url="https://github.com/rocky/pycolumnize"
+arch="noarch"
+license="MIT"
+replaces="py-columnize" # for backwards compatibility
+provides="py-columnize=$pkgver-r$pkgrel" # for backwards compatibility
+depends="python3"
+makedepends="py3-setuptools py3-nose"
+checkdepends="py3-pytest py3-mock py3-pytest-mock"
+source="https://files.pythonhosted.org/packages/source/c/columnize/columnize-$pkgver.tar.gz"
+builddir="$srcdir"/columnize-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="684799077601eee5c92ce6f696d56eda79cdf081b880f8d5086b5229876aeeb2c322fdceecfe0bb151e1cb2d1cbb835056b5a53ef7bf63c35ebd0a32aa93c1a6  columnize-0.3.10.tar.gz"

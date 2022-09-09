@@ -1,0 +1,134 @@
+# Maintainer: Olliver Schinagl <oliver@schinagl.nl>
+pkgname=mtd-utils
+pkgver=2.1.3
+pkgrel=2
+pkgdesc="Utilities for handling MTD devices, and for dealing with FTL, NFTL JFFS2, etc."
+options="!check" # Tests fail on builder
+url="http://www.linux-mtd.infradead.org/"
+arch="all"
+license="GPL-2.0-only"
+makedepends="
+	acl-dev
+	autoconf
+	automake
+	coreutils
+	cmocka-dev
+	libtool
+	linux-headers
+	lzo-dev
+	openssl1.1-compat-dev
+	util-linux-dev
+	zlib-dev
+	zstd-dev
+	"
+checkdepends="findutils"
+_subpackages="
+	$pkgname-flash
+	$pkgname-jffs
+	$pkgname-misc
+	$pkgname-nand
+	$pkgname-nor
+	$pkgname-ubi
+	$pkgname-dev
+	"
+subpackages="$pkgname-doc $_subpackages"
+source="ftp://ftp.infradead.org/pub/mtd-utils/mtd-utils-$pkgver.tar.bz2
+	"
+
+build() {
+	./configure \
+	            --build="$CBUILD" \
+	            --enable-tests \
+	            --enable-unit-tests \
+	            --host="$CHOST" \
+	            --mandir="/usr/share/man" \
+	            --prefix="/usr" \
+	            --sysconfdir="/etc"
+	make
+}
+
+_cat_found_file() {
+	local _rc="$?"
+	find -name "$1" -type f -ls -printf '%P {{{\n' -exec cat -v -n '{}' ';' -printf '}}} %P\n'
+	return "$_rc"
+}
+
+check() {
+	make check || _cat_found_file 'test-suite.log'
+}
+
+dev() {
+	mkdir -p "$subpkgdir/usr/include" "$subpkgdir/usr/lib"
+	cd "$builddir/include"
+	mv libmtd.h libscan.h libubi.h libubigen.h "$subpkgdir/usr/include/"
+	cd $builddir
+	mv libmtd.a libscan.a libubi.a libubigen.a "$subpkgdir/usr/lib/"
+}
+
+flash() {
+	pkgdesc="MTD utils (flash commands)"
+
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \( \
+	     -iname '*flash*' \) \
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+jffs() {
+	pkgdesc="MTD utils (JFFS* commands)"
+
+	echo "$subpkgdir"
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \(\
+	     -iname '*jffs*' -o -iname 'sumtool' \)\
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+misc() {
+	pkgdesc="MTD utils (miscellaneous commands)"
+
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \(\
+	     -iname '*doc*' -o -iname 'ftl*' -o \
+	     -iname 'mtdpart' -o -iname 'mtd_debug' -o \
+	     -iname 'recv_image' -o -iname 'serve_image' \)\
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+nand() {
+	pkgdesc="MTD utils (NAND and FTL commands)"
+
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \(\
+	     -iname 'nand*' -o -iname 'nftl*' \)\
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+nor() {
+	pkgdesc="MTD utils (NOR flash commands)"
+
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \(\
+	     -iname '*nor*' -o -iname 'rfd*' \)\
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+ubi() {
+	pkgdesc="MTD utils (UBI and UBIFS commands)"
+
+	mkdir -p "$subpkgdir/usr/sbin"
+	find "$pkgdir/usr/sbin/" -type f \(\
+	     -iname '*ubi*' -o \
+	     -iname 'lsmtd' -o -iname 'mtdinfo' \)\
+	     -exec mv -t "$subpkgdir/usr/sbin/" "{}" +
+}
+
+package() {
+	depends="$_subpackages"
+
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+b4a6f2d0e6360a1ebc7262b4796d84e80723d9d789ae81134e133cd7d307430141f5f825cdd7b66f0198d026da2037479fec28b417a8336c801f7df78a1bff7b  mtd-utils-2.1.3.tar.bz2
+"

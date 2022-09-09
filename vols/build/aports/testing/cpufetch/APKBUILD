@@ -1,0 +1,26 @@
+# Contributor: Milan P. Stanić <mps@arvanta.net>
+# Maintainer: Milan P. Stanić <mps@arvanta.net>
+pkgname=cpufetch
+pkgver=1.02
+pkgrel=0
+pkgdesc="simple yet fancy CPU architecture fetching tool"
+url="https://github.com/Dr-Noob/cpufetch"
+arch="x86_64 armhf armv7 aarch64" # x86 missing asm/hwcap.h
+license="MIT"
+options="!check" # no test
+makedepends="linux-headers"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Dr-Noob/cpufetch/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -rf "$pkgdir"/usr/share/licenses
+}
+
+sha512sums="
+b548af4dccd632c2899a3b0fd70e67f7abdc4bd66371927876c851168d0df47e23bd8f798d82509b83b268c50b0e9a6697a56f6fcf7772711108e2538cd1c09a  cpufetch-1.02.tar.gz
+"

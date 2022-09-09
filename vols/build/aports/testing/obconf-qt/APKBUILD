@@ -1,0 +1,36 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=obconf-qt
+pkgver=0.16.2
+pkgrel=0
+pkgdesc="Qt port of obconf, the Openbox configuration tool"
+url="https://github.com/lxqt/obconf-qt"
+# s390x, riscv64: blocked by openbox
+# *: blocked by lxqt
+arch="all !s390x !armhf !riscv64"
+license="LGPL-2.0-or-later"
+makedepends="
+	cmake lxqt-build-tools liblxqt-dev
+	qt5-qttools-dev openbox-dev
+	"
+options="!check" # No testsuite
+source="https://github.com/lxqt/obconf-qt/releases/download/$pkgver/obconf-qt-$pkgver.tar.xz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+sha512sums="
+bd91a5669f07471966d296b91d78e2a40e2e3640405de2179513457088eb7d6cb063dbfaff623db6f404985734e986b52c1e3155a050f374b7afa58f7d720c0d  obconf-qt-0.16.2.tar.xz
+"

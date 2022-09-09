@@ -1,0 +1,32 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-wayland-protocols
+pkgver=1.7.0
+pkgrel=0
+pkgdesc="Plasma Specific Protocols for Wayland"
+# armhf blocked by extra-cmake-modules
+arch="noarch !armhf"
+url="https://www.kde.org/plasma-desktop/"
+license="GPL-2.0-or-later AND (GPL-2.0-only OR GPL-3.0-only) AND LGPL-2.1-only"
+makedepends="
+	extra-cmake-modules
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-wayland-protocols/plasma-wayland-protocols-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+1ed01ce6af375c4012b3367377cea172446f2a7f1bef01c2e56dc2482c378955f9507e4e3bbb2ab316ba116ec181beaf9287f5b81199a02d5fd9eefb658bcb9c  plasma-wayland-protocols-1.7.0.tar.xz
+"

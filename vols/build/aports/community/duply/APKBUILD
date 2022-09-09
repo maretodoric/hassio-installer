@@ -1,0 +1,31 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=duply
+pkgver=2.4
+pkgrel=0
+pkgdesc="Wrapper for duplicity"
+url="https://duply.net"
+arch="noarch"
+license="GPL-2.0-or-later"
+depends="duplicity bash"
+# no test provided upstream
+options="!check"
+makedepends="txt2man"
+subpackages="$pkgname-doc"
+source="https://sourceforge.net/projects/ftplicity/files/duply%20%28simple%20duplicity%29/2.4.x/duply_$pkgver.tgz"
+builddir="$srcdir"/duply_$pkgver
+
+package() {
+	install -Dm755 duply \
+		"$pkgdir"/usr/bin/duply
+	mkdir -p "$pkgdir"/usr/share/man/man1
+	"$pkgdir"/usr/bin/duply txt2man > \
+		"$pkgdir"/usr/share/man/man1/duply.1
+	install -Dm644 gpl-2.0.txt \
+		"$pkgdir"/usr/share/licenses/$pkgname/COPYING
+}
+
+sha512sums="
+8ed4cf9b4659a5db603989667d16dca1a5100b6e3884a69e7ae5190006a18c6170f02ab377b0bcc0eba730a5793b0b455dcc59cd3d9d5249be36f867427986b7  duply_2.4.tgz
+"

@@ -1,0 +1,78 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ruqola
+pkgver=1.7.2
+pkgrel=0
+pkgdesc="A Qt/QML client for Rocket Chat"
+url="https://invent.kde.org/network/ruqola"
+# armhf blocked by qt5-qtdeclarative-dev
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+license="GPL-2.0-only OR GPL-3.0-only"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	ki18n-dev
+	kidletime-dev
+	kio-dev
+	knotifications-dev
+	knotifyconfig-dev
+	ktextwidgets-dev
+	kuserfeedback-dev
+	kxmlgui-dev
+	libsecret-dev
+	prison-dev
+	qt5-qtbase-dev
+	qt5-qtkeychain-dev
+	qt5-qtmultimedia-dev
+	qt5-qtnetworkauth-dev
+	qt5-qtwebsockets-dev
+	samurai
+	sonnet-dev
+	syntax-highlighting-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/ruqola/ruqola-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# Skip broken tests
+	local skipped_tests="("
+	local tests="
+		roomscleanhistoryjob
+		roomsexportjob
+		user
+		channelcounterinfo
+		roomheaderwidget
+		messagelinewidget
+		messagelistdelegate
+		inviteuserswidget
+		showvideowidget
+		"
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)test"
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+9a752331291bf52173882983b2c99c75274db9de792490b1e710fb5a2e71dc98598be27722735ff18c8dff3041baf95521f706f477e1946e6b6daefab31d66f8  ruqola-1.7.2.tar.xz
+"

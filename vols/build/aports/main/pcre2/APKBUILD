@@ -1,0 +1,81 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=pcre2
+pkgver=10.40
+pkgrel=0
+pkgdesc="Perl-compatible regular expression library"
+url="https://pcre.org/"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="libedit-dev zlib-dev"
+makedepends="$depends_dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-tools
+	libpcre2-16:_libpcre libpcre2-32:_libpcre"
+source="https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$pkgver/pcre2-$pkgver.tar.bz2"
+
+case "$CARCH" in
+	s390x) _enable_jit="";; # https://bugs.exim.org/show_bug.cgi?id=2468
+	riscv*) _enable_jit="" ;;
+	*) _enable_jit="--enable-jit";;
+esac
+
+# secfixes:
+#   10.40-r0:
+#     - CVE-2022-1586
+#     - CVE-2022-1587
+
+build() {
+	case "$CARCH" in
+	mips64*) export CPPFLAGS="$CPPFLAGS -DSLJIT_IS_FPU_AVAILABLE=0";;
+	mips*) export CPPFLAGS="$CPPFLAGS -DSLJIT_IS_FPU_AVAILABLE=0 -DSLJIT_MIPS_R1=1";;
+	esac
+
+	# Note: Forced -O3 is recommended (needed?) for Julia.
+	./configure \
+		CFLAGS="$CFLAGS -O3" \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--docdir=/usr/share/doc/$pkgname-$pkgver \
+		--htmldir=/usr/share/doc/$pkgname-$pkgver/html \
+		--enable-pcre2-16 \
+		--enable-pcre2-32 \
+		--enable-pcre2grep-libz \
+		--enable-pcre2test-libedit \
+		--with-match-limit-depth=8192 \
+		$_enable_jit
+	make
+}
+
+# Note: RunTest and pcre2_jit_test generates some binaries in .libs that needs
+# to disable MPROTECT on grsecurity kernel. That's why it's so complicated...
+check() {
+	./RunTest
+
+	if [ -n "$_enable_jit" ]; then
+		./pcre2_jit_test
+	fi
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+_libpcre() {
+	local bits="${subpkgname##*-}"
+	pkgdesc="PCRE2 with $bits bit character support"
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libpcre2-$bits.so* "$subpkgdir"/usr/lib/
+}
+
+tools() {
+	pkgdesc="Auxiliary utilities for PCRE2"
+
+	mkdir -p "$subpkgdir"/usr/
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+}
+
+sha512sums="
+00e7b48a6554b9127cb6fe24c5cacf72783416a9754ec88f62f73c52f46ed72c86c1869e62c91a31b2ff2cbafbbedabca44b3f1eb7670bc92f49d8401c7374e8  pcre2-10.40.tar.bz2
+"

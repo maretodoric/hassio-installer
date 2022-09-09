@@ -1,0 +1,33 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-obfuscate
+pkgver=0.0.4
+_pkgurl=f16a8ac07d6baf7148f4b396ca08dc35
+pkgrel=0
+pkgdesc="Censor private information"
+url="https://gitlab.gnome.org/World/obfuscate"
+# s390x and riscv64 blocked by cargo/rust
+arch="all !s390x !riscv64"
+license="MIT"
+makedepends="meson cargo gtk4.0-dev libadwaita-dev"
+checkdepends="desktop-file-utils appstream-glib"
+subpackages="$pkgname-lang"
+source="https://gitlab.gnome.org/World/obfuscate/uploads/$_pkgurl/obfuscate-$pkgver.tar.xz"
+builddir="$srcdir/obfuscate-$pkgver"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+af26cf274deb8908a5207b45f0245960ed50f2c848761a7a105b4b75f26122bb91591abea9675c77950992bd603a5a4c72592ac021f943924d506476828c18f7  obfuscate-0.0.4.tar.xz
+"

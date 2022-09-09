@@ -1,0 +1,51 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Sean McAvoy <seanmcavoy@gmail.com>
+pkgname=distrobuilder
+pkgver=2.1
+pkgrel=1
+pkgdesc="System container image builder"
+url="https://linuxcontainers.org/distrobuilder/"
+arch="all !armhf !armv7"
+license="Apache-2.0"
+depends="gnupg xz"
+makedepends="go linux-headers"
+subpackages="$pkgname-lxc::noarch $pkgname-lxd::noarch $pkgname-doc"
+checkdepends="squashfs-tools"
+source="https://github.com/lxc/distrobuilder/archive/refs/tags/distrobuilder-$pkgver.tar.gz"
+builddir="$srcdir/distrobuilder-distrobuilder-$pkgver"
+
+build() {
+	export GOPATH="$srcdir"
+	GOFLAGS="$GOFLAGS -modcacherw"
+	make
+}
+
+check() {
+	go install -v -x github.com/remyoudompheng/go-misc/deadcode@latest
+	PATH="$PATH:$GOPATH/bin"
+	make check
+}
+
+package() {
+	install -Dm755 $srcdir/bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+	install -Dm644 -t "$pkgdir"/usr/share/doc/distrobuilder doc/*.md
+	install -Dm644 -t "$pkgdir"/usr/share/doc/distrobuilder/examples doc/examples/*.yaml
+}
+
+lxc() {
+	pkgdesc="$pkgdesc (for LXC)"
+	depends="$pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel lxc"
+	mkdir -p "$subpkgdir"
+}
+
+lxd() {
+	pkgdesc="$pkgdesc (for LXD)"
+	depends="$pkgname squashfs-tools"
+	install_if="$pkgname=$pkgver-r$pkgrel lxd"
+	mkdir -p "$subpkgdir"
+}
+
+sha512sums="
+8b57a90b1065efed29fa4a6d6c4699d81539a4bd802739d55b31d9a45b55d40fb19abe09ce76d861d96555c41942a7d874a8886ac4916fadab61eb190071b478  distrobuilder-2.1.tar.gz
+"

@@ -1,0 +1,42 @@
+# Contributor: prspkt <prspkt@protonmail.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-importlib-metadata
+pkgver=4.11.3
+pkgrel=1
+pkgdesc="Read metadata from Python packages"
+url="https://github.com/python/importlib_metadata"
+arch="noarch"
+license="Apache-2.0"
+depends="py3-zipp"
+makedepends="
+	py3-build
+	py3-installer
+	py3-setuptools
+	py3-toml
+	py3-wheel
+	"
+checkdepends="
+	py3-pyfakefs
+	py3-pytest
+	"
+source="https://pypi.python.org/packages/source/i/importlib_metadata/importlib_metadata-$pkgver.tar.gz"
+options="!check" # Tests fail to find module "test"
+builddir="$srcdir/importlib_metadata-$pkgver"
+
+build() {
+	python3 -m build --no-isolation --skip-dependency-check --wheel
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 -m installer \
+		-d "$pkgdir" \
+		dist/importlib_metadata-0.0.0-py3-none-any.whl
+}
+
+sha512sums="
+d33efa2abba5f6f770615f133c940a61948ce5091d59526ee2c7e3866aebd74d79ac464f72602404c2b56fe284a93a9cd1b0cac251ceea53666019485bdddf23  importlib_metadata-4.11.3.tar.gz
+"

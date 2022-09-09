@@ -1,0 +1,24 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=suil
+pkgver=0.10.10
+pkgrel=0
+pkgdesc="C library for loading and wrapping LV2 plugin UIs"
+url="http://drobilla.net/software/suil"
+arch="all"
+license="ISC"
+makedepends="python3 gtk+2.0-dev gtk+3.0-dev lv2-dev qt5-qtbase-dev"
+subpackages="$pkgname-dev"
+source="http://download.drobilla.net/suil-$pkgver.tar.bz2"
+options="!check" # No tests
+
+build() {
+	python3 waf configure --prefix=/usr
+	python3 waf build
+}
+
+package() {
+	python3 waf install --destdir="$pkgdir"
+}
+
+sha512sums="e442022096150b2f71d65bbd625e2e262cb3e3865c57f5a30f0472dac8ef90ad2fbbf67235823055019017e3751b46330f6e98b8e1745e5845eb02c4d2a4fc21  suil-0.10.10.tar.bz2"

@@ -1,0 +1,29 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-funcparserlib
+_pkgname=funcparserlib
+pkgver=1.0.0
+pkgrel=0
+pkgdesc="Recursive descent parsing library based on functional combinators"
+url="https://github.com/vlasovskikh/funcparserlib"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-funcparserlib" # for backwards compatibility
+provides="py-funcparserlib=$pkgver-r$pkgrel" # for backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+df8add867f559b129743e962352c776af4a053fc9a026884125b315b9c17928b8c9bb132a8239960513381ac0f03748c58e56e4e47821a0ae36378af19577048  funcparserlib-1.0.0.tar.gz
+"

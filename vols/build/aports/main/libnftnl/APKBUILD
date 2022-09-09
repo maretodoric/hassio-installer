@@ -1,0 +1,45 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=libnftnl
+pkgver=1.2.2
+pkgrel=0
+pkgdesc="Netfilter library providing interface to the nf_tables subsystem"
+url="https://netfilter.org/projects/libnftnl"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="bash jansson-dev libmnl-dev"
+provides="$pkgname-libs=$pkgver-r$pkgrel"  # for backward compatibility (Alpine <3.15)
+replaces="$pkgname-libs"  # for backward compatibility (Alpine <3.15)
+subpackages="$pkgname-dev"
+source="https://netfilter.org/projects/libnftnl/files/libnftnl-$pkgver.tar.bz2"
+
+case "$CARCH" in
+	s390x) options="!check" ;; # FIXME
+esac
+
+build() {
+	cd "$builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--enable-static
+	make
+}
+
+check() {
+	cd "$builddir"/tests
+	make check
+}
+
+package() {
+	cd "$builddir"
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+657d48aa263043b80daa39eb8e2647c84c03b3e3a4a30b85bec1d8e4a0976075a71ad233bb384f4460d5f6662f285c12947feb8c1a6c9a534a2c9cf7ba04eee3  libnftnl-1.2.2.tar.bz2
+"

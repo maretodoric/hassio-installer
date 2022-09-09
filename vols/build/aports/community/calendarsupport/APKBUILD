@@ -1,0 +1,57 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=calendarsupport
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Library providing calendar support"
+# armhf blocked by extra-cmake-modules
+# ppc64le blocked by akonadi-calendar
+# s390x, and riscv64 blocked by polkit -> kio
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org"
+license="GPL-2.0-or-later AND Qt-GPL-exception-1.0 AND LGPL-2.0-or-later"
+depends_dev="
+	akonadi-calendar-dev
+	akonadi-dev
+	akonadi-mime-dev
+	akonadi-notes-dev
+	kcalendarcore-dev
+	kcalutils-dev
+	kcodecs-dev
+	kguiaddons-dev
+	kholidays-dev
+	ki18n-dev
+	kidentitymanagement-dev
+	kio-dev
+	kmime-dev
+	pimcommon-dev
+	qt5-qtbase-dev
+	samurai
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	qt5-qttools-dev
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/calendarsupport-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+25098a85947d349cd88ec1dd6eb31bb3b57c6596391cea8b485d8cb66ad06289f6902aeeb9d75c3d0b4e061b55108d09d55e24e5c7d78230df5600da7722c746  calendarsupport-22.04.2.tar.xz
+"

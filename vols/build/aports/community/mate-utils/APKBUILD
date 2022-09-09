@@ -1,0 +1,36 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=mate-utils
+pkgver=1.26.0
+pkgrel=0
+pkgdesc="Utilities for the MATE Desktop"
+url="https://github.com/mate-desktop/mate-utils"
+# s390x and riscv64 blocked by librsvg -> mate-panel
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+makedepends="intltool glib-dev gtk+3.0-dev mate-panel-dev udisks2-dev
+	libgtop-dev libcanberra-dev inkscape itstool libsm-dev libxml2-utils"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/mate-utils-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--enable-static=no \
+		--prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+c8752f6b43a836adc647ec8a9eef4fcea782914994d27ee8491406188da584aa98244d0ba402005beecc293d1b6e50a9ed5339467011e05f301a6b98c2374b91  mate-utils-1.26.0.tar.xz
+"

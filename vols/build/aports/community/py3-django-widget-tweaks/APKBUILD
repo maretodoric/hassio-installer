@@ -1,0 +1,29 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=py3-django-widget-tweaks
+pkgver=1.4.8
+pkgrel=2
+pkgdesc="Tweak the form field rendering in templates, not in python-level form definitions"
+url="https://github.com/jazzband/django-widget-tweaks"
+arch="noarch"
+license="MIT"
+depends="py3-django"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/d/django-widget-tweaks/django-widget-tweaks-$pkgver.tar.gz"
+builddir="$srcdir/django-widget-tweaks-$pkgver"
+replaces="py-django-widget-tweaks" # Backwards compatibility
+provides="py-django-widget-tweaks=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 build/lib/widget_tweaks/tests.py
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="2e82546fa56d44fe2757586fd1b09d138b6fbca694d7fa4bd282a3364a9134ea68e6bfe461bf3bea81236e514434be94388ce8a082d2cee3d00f94394960466e  django-widget-tweaks-1.4.8.tar.gz"

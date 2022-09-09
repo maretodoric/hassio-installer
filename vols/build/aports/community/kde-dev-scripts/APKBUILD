@@ -1,0 +1,34 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kde-dev-scripts
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+arch="all !armhf !s390x"
+url="https://kde.org/applications/development/"
+pkgdesc="Scripts and setting files useful during development of KDE software"
+license="GPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	extra-cmake-modules
+	kdoctools-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kde-dev-scripts-$pkgver.tar.xz"
+subpackages="$pkgname-doc"
+options="!check" # No code to test
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+76301d51e40bc66e2977bf31a3db2e082fa06d894046f14dba73720ba7da959b9899cc2e80bb93363727b40403771e55f5453e8c2de0e52d7bb6cb931a250cdb  kde-dev-scripts-22.04.2.tar.xz
+"

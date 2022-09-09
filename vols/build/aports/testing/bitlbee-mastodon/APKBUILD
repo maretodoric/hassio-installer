@@ -1,0 +1,27 @@
+# Contributor: Marvin Preuss <marvin@xsteadfastx.org>
+# Maintainer: Marvin Preuss <marvin@xsteadfastx.org>
+pkgname=bitlbee-mastodon
+pkgver=1.4.4
+pkgrel=0
+pkgdesc="Mastodon plugin for Bitlbee"
+url="https://alexschroeder.ch/cgit/bitlbee-mastodon"
+arch="all"
+license="LGPL-2.1-only"
+depends="bitlbee"
+makedepends="bitlbee-dev autoconf automake libtool"
+source="bitlbee-mastodon-$pkgver.tar.gz::https://github.com/kensanata/bitlbee-mastodon/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+sha512sums="b5a84cd6b716f94f67f7780dfe9f1ea7c9de2469322185199814ef5acab75b1f1b95389c614e37e012edfbe4ecabb347e5a308f14e2496542cbbdd1d46b46065  bitlbee-mastodon-1.4.4.tar.gz"

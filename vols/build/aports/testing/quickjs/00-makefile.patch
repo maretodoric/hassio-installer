@@ -1,0 +1,41 @@
+Source: Chloe "SpaceToast" Kudryavtsev <toast@toast.cafe>
+Remove When: The default Makefile doesn't enforce 32 bit binaries and allows for static linking.
+
+1. Make M32 mode conditional and not dependent on cross-compilation (off by default).
+2. Fix up LIBS.
+3. Allow for static linking.
+--- a//Makefile
++++ b/Makefile
+@@ -33,6 +33,7 @@
+ #CONFIG_WERROR=y
+ # force 32 bit build for some utilities
+ #CONFIG_M32=y
++#CONFIG_STATIC=y
+ 
+ ifdef CONFIG_DARWIN
+ # use clang instead of gcc
+@@ -113,6 +114,9 @@
+ CFLAGS_OPT=$(CFLAGS) -O2
+ CFLAGS_NOLTO:=$(CFLAGS_OPT)
+ LDFLAGS=-g
++ifdef CONFIG_STATIC
++LDFLAGS+=-static
++endif
+ ifdef CONFIG_LTO
+ CFLAGS_SMALL+=-flto
+ CFLAGS_OPT+=-flto
+@@ -126,11 +130,11 @@
+ CFLAGS+=-fsanitize=address -fno-omit-frame-pointer
+ LDFLAGS+=-fsanitize=address -fno-omit-frame-pointer
+ endif
+-ifdef CONFIG_WIN32
+-LDEXPORT=
+-else
++ifndef CONFIG_WIN32
++ifndef CONFIG_STATIC
+ LDEXPORT=-rdynamic
+ endif
++endif
+ 
+ PROGS=qjs$(EXE) qjsc$(EXE) run-test262
+ ifneq ($(CROSS_PREFIX),)

@@ -1,0 +1,140 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=lxd-feature
+pkgver=5.2
+pkgrel=0
+pkgdesc="Container hypervisor and a new user experience for LXC - 'Feature' release channel"
+url="https://linuxcontainers.org/lxd/"
+arch="all"
+license="Apache-2.0"
+pkggroups="lxd"
+depends="
+	acl
+	attr
+	netcat-openbsd
+	cgmanager
+	squashfs-tools
+	rsync
+	dqlite
+	shadow-subids
+	lxc
+	ip6tables
+	dnsmasq
+	ca-certificates
+	tar
+	iproute2
+	xz
+	"
+makedepends="
+	lxc-dev
+	gettext-dev
+	acl-dev
+	acl-static
+	tcl-dev
+	libuv-dev
+	eudev-dev
+	libcap-dev
+	linux-headers
+
+	rsync
+	go
+	intltool
+
+	libtool
+	autoconf
+	automake
+	patchelf
+	dqlite-dev
+	dqlite-static
+	lz4-dev
+	sqlite-dev
+	sqlite-static
+	raft-dev
+	raft-static
+	gettext-static
+	zlib-static
+	libuv-static
+	libseccomp-static
+	libcap-static
+	"
+subpackages="
+	$pkgname-scripts:scripts:noarch
+	$pkgname-bash-completion
+	$pkgname-openrc
+	$pkgname-doc
+	"
+install="$pkgname.pre-install"
+options="!check"
+source="https://linuxcontainers.org/downloads/lxd/lxd-$pkgver.tar.gz
+	$pkgname.confd
+	$pkgname.initd
+	"
+ldpath="/usr/lib/lxd"
+sonameprefix="$pkgname:"
+builddir="$srcdir/lxd-$pkgver"
+
+build() {
+	export GOPATH="$builddir/_dist"
+	export GOFLAGS="$GOFLAGS -buildmode=pie -trimpath"
+	export CGO_LDFLAGS="-lintl $LDFLAGS"
+	export CGO_LDFLAGS_ALLOW="(-Wl,-wrap,pthread_create)|(-Wl,-z,now)"
+	export GO111MODULE=on
+
+	mkdir -p bin
+	go build -v -tags "netgo" -ldflags '-extldflags "-static -lm -ldl -lz -lpthread -lz -lintl -lraft -ldqlite -luv -lseccomp -lcap"' -o bin/ ./lxd-migrate/...
+	go build -v -tags "agent" -ldflags '-extldflags "-static -lm -ldl -lz -lpthread -lz -lintl -lraft -ldqlite -luv -lseccomp -lcap"' -o bin/ ./lxd-agent/...
+
+	for tool in fuidshift lxc lxc-to-lxd lxd lxd-benchmark; do
+		go build -v -tags "libsqlite3" -o bin/ ./$tool/...
+	done
+}
+
+package() {
+	for tool in lxc fuidshift lxc-to-lxd lxd lxd-benchmark lxd-migrate lxd-agent; do
+		install -p -Dm755 "bin/$tool" "$pkgdir/usr/bin/$tool"
+	done
+	install -Dm755 bin/lxd "$pkgdir"/usr/sbin/lxd
+	install -Dm755 bin/lxc "$pkgdir"/usr/bin/lxc
+
+	patchelf --set-rpath "/usr/lib/lxd" "$pkgdir/usr/sbin/lxd"
+
+	install -Dm755 "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/lxd
+	install -Dm644 "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/lxd
+
+	mkdir -p "$pkgdir"/var/lib/lxd
+	chmod 755 "$pkgdir"/var/lib/lxd
+	chgrp $pkggroups "$pkgdir"/var/lib/lxd
+
+	mkdir -p "$pkgdir/usr/share/doc/lxd"
+		cat > "$pkgdir"/usr/share/doc/lxd/README.alpine <<EOF
+-----------------------------------
+Be sure to add your local user to the lxd group.
+EOF
+}
+
+bashcomp() {
+	depends="bash"
+	pkgdesc="Bash completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	cd $builddir
+	mkdir -p "$subpkgdir"/usr/share/bash-completion/completions
+	cp scripts/bash/lxd-client "$subpkgdir"/usr/share/bash-completion/completions/lxd-client
+}
+
+scripts() {
+	pkgdesc="LXD scripts"
+	depends="$pkgname py3-lxc jq"
+
+	cd $builddir
+	export GOPATH="$builddir/_dist"
+	install -Dm755 scripts/empty-lxd.sh "$subpkgdir"/usr/bin/empty-lxd.sh
+}
+
+sha512sums="
+37499f37124d3d70eb0f785696c542d52cda3bbecb9f89256b4698166c65f88fe5796576b82d1557fc65d5327095152bcb8a47c97b65ef9b3fd557830e2b3c10  lxd-5.2.tar.gz
+1bbb26a61b3812e6eb4c3cb7db6c2d9adb43195f96f317d6bba1ace6a97f1faed0677a12c3827002bc147edba9b355f0e7ead3960d254a131b25fb8c060ea8d0  lxd-feature.confd
+ebf9608ea3db25b456a557c81838c6a793adf5f490bd64e1f3dc6951bad619188cb0170f0a794b086adbd128267b4339ab46c1b6a815a4ae7f3a6566b7854d97  lxd-feature.initd
+"

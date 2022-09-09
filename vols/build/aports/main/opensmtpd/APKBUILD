@@ -1,0 +1,93 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Jonathan Curran <jonathan@curran.in>
+# Contributor: Shiz <hi@shiz.me>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+#
+# secfixes:
+#   6.6.2p1-r0:
+#     - CVE-2020-7247
+pkgname=opensmtpd
+pkgver=6.8.0p2
+pkgrel=4
+pkgdesc="Secure, reliable, lean, and easy-to configure SMTP server"
+url="https://www.opensmtpd.org/"
+arch="all"
+license="ISC"
+depends="!postfix ca-certificates"
+makedepends="automake autoconf libtool mandoc db-dev libasr-dev libevent-dev
+	fts-dev zlib-dev openssl1.1-compat-dev bison flex-dev linux-pam-dev"
+install="$pkgname.pre-install"
+subpackages="$pkgname-dbg $pkgname-pam $pkgname-openrc $pkgname-doc"
+source="https://www.opensmtpd.org/archives/opensmtpd-$pkgver.tar.gz
+	smtpd.initd
+	smtpd.confd
+	aliases
+	smtpd.conf.patch
+	"
+options="suid !check"
+
+prepare() {
+	default_prepare
+	cp -ar "$builddir" "$builddir-pam"
+}
+
+build() {
+	cd "$builddir"
+	_build
+
+	cd "$builddir-pam"
+	_build --with-auth-pam
+}
+
+_build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc/smtpd \
+		--with-libssl=/usr/include/openssl \
+		--mandir=/usr/share/man \
+		--libexecdir=/usr/lib \
+		--with-path-mbox=/var/mail \
+		--with-path-pidfile=/run \
+		--with-path-socket=/run \
+		--with-table-db \
+		--with-user-queue=smtpq \
+		--with-group-queue=smtpq \
+		--with-user-smtpd=smtpd \
+		--with-path-socket=/run \
+		--with-libs="-lfts" \
+		--with-pie \
+		--with-path-CAfile=/etc/ssl/certs/ca-certificates.crt \
+		--with-mantype=doc \
+		"$@"
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" -C "$builddir" install
+
+	install -Dm755 "$srcdir"/smtpd.initd "$pkgdir"/etc/init.d/smtpd
+	install -Dm644 "$srcdir"/smtpd.confd "$pkgdir"/etc/conf.d/smtpd
+	install -Dm644 "$srcdir"/aliases "$pkgdir"/etc/smtpd/aliases
+
+	# Create compatibility symlinks for mailq, newaliases, makemap and sendmail.
+	local binary; for binary in mailq newaliases makemap sendmail; do
+		ln -s /usr/sbin/smtpctl "$pkgdir"/usr/sbin/$binary
+	done
+
+	install -Dm755 "$builddir-pam"/mk/smtpd/smtpd "$pkgdir"/usr/sbin/smtpd-pam
+}
+
+pam() {
+	pkgdesc="OpenSMTPD with PAM support"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/sbin/smtpd-pam
+}
+
+sha512sums="
+48f152b75575146fdd09bdf47123041ea62fefb6e5de33a69826bf91a2126a918f8db1caffadb2f142a1a21de8126d492de88cb65bdf169e61c0b22d3e78d290  opensmtpd-6.8.0p2.tar.gz
+cce0c3b014a02d46c77d4de6495cf8e7e48d17c89c27432f121060d6712ae3606a6e5d51a74cf5504e826f7dd72176297dc83c9e6623f8e3fe9a952c8d02add1  smtpd.initd
+e68fca4a7e0ceda271ad61c5a6592a859789bea9ccb6417258f7a0b45d92163ed6097c208d3fdfb78bf978a6a01b6f3678e047e3ce972b2c521419d54a992e0a  smtpd.confd
+51d47b34eb3d728daa45f29d6434cc75db28dfa69b6fb3ecd873121df85b296a2d2c81016d765a07778aa26a496e4b29c09a30b82678cf42596a536734b5deca  aliases
+8639757c0190ca96dd32530b5b7e26637dab3204fd3750385eb495964e787157a8d3a084d109709889e5b2ca99f9e51da2192030fdfe9440f431531299a8e103  smtpd.conf.patch
+"

@@ -1,0 +1,106 @@
+# Contributor: Stuart Cardall <developer@it-offshore.co.uk>
+# Maintainer: Stuart Cardall <developer@it-offshore.co.uk>
+pkgname=xpra
+pkgver=3.1.2
+pkgrel=1
+pkgdesc="Xpra is 'screen for X' & allows you to run X programs, usually on a remote host over SSH or encrypted tcp"
+url="https://xpra.org"
+# riscv64 blocked by nodejs -> uglify-js
+arch="all !riscv64"
+license="GPL-2.0-or-later"
+depends="
+	py3-gobject3
+	py3-numpy
+	py3-opengl
+	py3-rencode
+	py3-lz4
+	py3-cryptography
+	py3-dbus
+	py3-openssl
+	py3-brotli
+
+	py3-pillow
+
+	xf86-video-dummy
+	xorg-server
+	xvfb
+	"
+makedepends="
+	x264-dev
+	x265-dev
+	ffmpeg4-dev
+	libvpx-dev
+	libwebp-dev
+	libpng-dev
+	libjpeg-turbo-dev
+
+	libogg-dev
+	opus-dev
+	libvorbis-dev
+
+	libx11-dev
+	libxrandr-dev
+	libxtst-dev
+	libxfixes-dev
+	libxkbfile-dev
+	libxcomposite-dev
+	libxdamage-dev
+
+	gtk+3.0-dev
+	glib-dev
+
+	py3-gobject3-dev
+	py3-cairo-dev
+
+	lz4-dev
+
+	python3-dev
+	cython
+	yasm
+	nasm
+	gmp-dev
+	mpfr-dev
+	uglify-js
+	"
+subpackages="$pkgname-openrc $pkgname-doc $pkgname-tests::noarch $pkgname-webclient::noarch"
+options="!check"
+source="https://xpra.org/src/xpra-$pkgver.tar.xz"
+
+build() {
+	# https://www.xpra.org/trac/ticket/1080
+	CFLAGS="$CFLAGS -fno-strict-aliasing"
+	python3 setup.py build \
+		--with-bundle_tests
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	# Fixes Error relocating /usr/lib/xorg/modules/drivers/dummy_drv.so: fbPictureInit: symbol not found
+	# https://bugs.alpinelinux.org/issues/5478
+	printf '\nSection "Module"\n  Load\t"fb"\nEndSection\n' >> "$pkgdir"/etc/xpra/xorg.conf
+
+	rm -rf "$pkgdir"/usr/lib/tmpfiles.d/xpra.conf
+	rm -rf "$pkgdir"/usr/lib/sysusers.d/xpra.conf
+
+	# Fix location of dbus conf
+	mkdir -p "$pkgdir"/usr/share/dbus-1
+	mv "$pkgdir"/etc/dbus-1/system.d "$pkgdir"/usr/share/dbus-1
+}
+
+tests() {
+	pkgdesc="Xpra test suite"
+
+	mkdir -p "$subpkgdir"/usr/share/xpra
+	cp -rf "$builddir"/tests "$subpkgdir"/usr/share/xpra/
+}
+
+webclient() {
+	pkgdesc="Xpra websockets client"
+
+	amove usr/share/xpra/www
+}
+
+sha512sums="
+36212db609b6ef3519d562e970d68fd558c99be089e36b9b79755b6f7218fafc6ae7c75b33c026b898462d4ca196885f6f84266dc53ab0ffad31b8261fa0c451  xpra-3.1.2.tar.xz
+"

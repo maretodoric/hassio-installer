@@ -1,0 +1,73 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Luca Weiss <luca@z3ntu.xyz>
+pkgname=shiboken6
+pkgver=6.3.1
+pkgrel=0
+pkgdesc="CPython bindings generator for C++ libraries"
+url="https://doc.qt.io/qtforpython/shiboken6/"
+arch="all"
+license="GPL-2.0-or-later"
+depends_dev="python3-dev"
+makedepends="
+	$depends_dev
+	clang-dev
+	clang-static
+	cmake
+	libxml2-dev
+	libxslt-dev
+	llvm-dev
+	llvm-static
+	py3-numpy-dev
+	py3-setuptools
+	qt6-qtbase-dev
+	samurai
+	"
+subpackages="lib$pkgname:libs lib$pkgname-dev py3-$pkgname:py3"
+source="
+	https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-$pkgver-src/pyside-setup-opensource-src-$pkgver.tar.xz
+	"
+builddir="$srcdir/pyside-setup-opensource-src-$pkgver"
+
+build() {
+	export CLANG_INSTALL_DIR=/usr
+	cmake -B build -G Ninja sources/shiboken6 \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DBUILD_TESTS=OFF \
+		-DUSE_PYTHON_VERSION=3 \
+		-DCMAKE_SKIP_RPATH=ON
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+libs() {
+	license="LGPL-2.1-or-later"
+	default_libs
+}
+
+dev() {
+	license="LGPL-2.1-or-later"
+	default_dev
+}
+
+py3() {
+	license="LGPL-2.1-or-later"
+	depends=""
+	pkgdesc="Python3 shiboken bindings"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/python3* "$subpkgdir"/usr/lib
+
+	# Install egg info
+	cd "$builddir"
+	export PATH="/usr/lib/qt6/bin:$PATH"
+	python3 setup.py egg_info --build-type=shiboken6
+	pythonpath="$(python3 -c "from sysconfig import get_path; print(get_path('platlib'))")"
+	cp -r shiboken6.egg-info "$subpkgdir/$pythonpath"
+}
+
+sha512sums="
+81751fa9e2c492ceae42b3cb1f871d3f95f56cc07c382f02574899f3eab8db52453b0b636e63d53e0d2195f1686a01ad2bee20953aa0a8237719ec06d2b6e321  pyside-setup-opensource-src-6.3.1.tar.xz
+"

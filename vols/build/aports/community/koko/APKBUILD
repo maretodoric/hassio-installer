@@ -1,0 +1,72 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=koko
+pkgver=22.06
+pkgrel=0
+_geonames_pkgver=2020.06.25
+pkgdesc="Image gallery application for Plasma Mobile"
+url="https://invent.kde.org/graphics/koko"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> kio
+# ppc64le blocked by qt5-qtwebengine -> purpose
+arch="all !armhf !s390x !ppc64le !riscv64"
+license="LGPL-2.0-or-later AND LGPL-2.1-only AND LGPL-3.0-only AND LicenseRef-KDE-Accepted-GPL"
+depends="
+	kdeclarative
+	kirigami2
+	kquickimageeditor
+	purpose
+	qt5-qtbase-sqlite
+	"
+makedepends="
+	exiv2-dev
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	kdeclarative-dev
+	kfilemetadata-dev
+	kguiaddons-dev
+	ki18n-dev
+	kio-dev
+	knotifications-dev
+	kquickimageeditor-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtlocation-dev
+	samurai
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/koko-$pkgver.tar.xz
+	https://github.com/pmsourcedump/geonames/archive/$_geonames_pkgver/geonames-$_geonames_pkgver.tar.gz
+	"
+options="!check" # Broken tests
+
+prepare() {
+	default_prepare
+
+	mv "$srcdir"/geonames-$_geonames_pkgver/cities1000.zip src/
+	mv "$srcdir"/geonames-$_geonames_pkgver/admin1CodesASCII.txt src/
+	mv "$srcdir"/geonames-$_geonames_pkgver/admin2Codes.txt src/
+}
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+3085a5f210a5f1c090f734fd44bfaac4df85d808ca589e427de609e3ed92f40a550d70f66ee4cd92f954dffebbe5699bb9ea1fd1818685c6bd2b6dc593ec7f17  koko-22.06.tar.xz
+07485983a5ce0f03f1e12e64c280abe01e81beaa22b2dd43bc1b0e7632298acbfb83f09ef8c01a0915481c8e918a430b97d68f1ed5d43f76506798245345bc14  geonames-2020.06.25.tar.gz
+"

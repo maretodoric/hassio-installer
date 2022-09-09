@@ -1,0 +1,49 @@
+# Contributors: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-calculator
+pkgver=42.1
+pkgrel=0
+pkgdesc="Calculator for solving mathematical equations"
+url="https://wiki.gnome.org/Apps/Calculator"
+# s390x and riscv64 blocked by gtk4
+arch="all !s390x !riscv64"
+license="GPL-3.0-or-later"
+# font needed for pango in tests and valadoc
+makedepends="
+	glib-dev
+	gtksourceview5-dev
+	gtk4.0-dev
+	itstool
+	libadwaita-dev
+	libgee-dev
+	libsoup-dev
+	libxml2-dev
+	meson
+	mpc1-dev
+	mpfr-dev
+	ttf-cantarell
+	vala
+	"
+subpackages="$pkgname-doc $pkgname-lang $pkgname-dev"
+source="https://download.gnome.org/sources/gnome-calculator/${pkgver%.*}/gnome-calculator-$pkgver.tar.xz"
+
+if [ "$CARCH" = armhf ]; then
+	options="$options !check" # tests time out on armhf
+fi
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+c919322e14fb917b3cb02eb365e806872d0b696f7207b25b0f4eaa192d2994fca83e2470355c20bf119f8fd95734beb9575d0c29e7a7b1bf1a9926c0b5ccf736  gnome-calculator-42.1.tar.xz
+"

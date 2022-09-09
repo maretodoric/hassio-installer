@@ -1,0 +1,32 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-shellingham
+_realname=shellingham
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="Python3 module to poke around and find out running shell"
+options="!check" # Requires unpackaged dependencies
+url="https://github.com/sarugaku/shellingham"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sarugaku/shellingham/archive/$pkgver.tar.gz"
+builddir="$srcdir/$_realname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c7dd1814d106e2e3a6abbb4bb0d8c3bcca1bd45e729d93085611f53c0f9102209a2d21a973e76df720648294d99ef83f737e9f3c3479a9f361766959c5c5b9cb  py3-shellingham-1.4.0.tar.gz
+"

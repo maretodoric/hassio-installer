@@ -1,0 +1,47 @@
+# Contributor: Antoine Fontaine <antoine.fontaine@epfl.ch>
+# Maintainer:
+pkgname=aisleriot
+pkgver=3.22.22
+pkgrel=0
+pkgdesc="Solitaire and other card games for GNOME"
+url="https://wiki.gnome.org/Apps/Aisleriot"
+arch="all !s390x !riscv64" # limited by librsvg -> rust
+license="GPL-3.0-or-later"
+options="!strip" # guille libraries cannot be stripped
+depends="guile"
+depends_doc="yelp"
+makedepends="
+	bash
+	gmp-dev
+	gtk+3.0-dev
+	guile-dev
+	itstool
+	libcanberra-dev
+	librsvg-dev
+	libxml2
+	libxml2-dev
+	libxml2-utils
+	meson
+	"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://gitlab.gnome.org/GNOME/aisleriot/-/archive/$pkgver/aisleriot-$pkgver.tar.gz"
+
+build() {
+	abuild-meson \
+		-Dtheme_kde=false \
+		-Dsound=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+28b188b0ae6b3da3f731c68e866a10a1e68a408bd76b6f34276c45c4157693784c6ea45cb6eec4a8ab98683381cb583abd7732f0559600247a2fa421f0bc6881  aisleriot-3.22.22.tar.gz
+"

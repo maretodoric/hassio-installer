@@ -1,0 +1,43 @@
+# Contributor: Justin Berthault <justin.berthault@zaclys.net>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=thonny
+pkgver=3.3.14
+pkgrel=2
+pkgdesc="Python IDE for beginners"
+url="https://thonny.org"
+arch="noarch"
+license="MIT"
+depends="
+	openssl
+	py3-astroid
+	py3-asttokens
+	py3-docutils
+	py3-jedi
+	py3-mypy
+	py3-pylint
+	py3-pyperclip
+	py3-pyserial
+	py3-send2trash
+	py3-setuptools
+	py3-wheel
+	python3-tkinter
+	"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/t/thonny/thonny-$pkgver.tar.gz"
+options="!check" # Tests need a DISPLAY
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+}
+
+sha512sums="
+73f9ba0a67f6bd638935c2388045e0e5677ea610567b0b523b0b4ca75635a4627e24d1ba5aaea403f9d2fa24a155a144432b18ec820f8da738701c0fcc1ea966  thonny-3.3.14.tar.gz
+"

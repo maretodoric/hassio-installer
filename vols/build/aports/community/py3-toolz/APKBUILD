@@ -1,0 +1,30 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-toolz
+pkgver=0.11.2
+pkgrel=1
+pkgdesc="functional standard library for Python"
+url="https://toolz.readthedocs.io/en/latest/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://pypi.python.org/packages/source/t/toolz/toolz-$pkgver.tar.gz"
+builddir="$srcdir/toolz-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+67e8aaea3f9fb8811027f19aa9cf56ab980e4f9cea43978ed9515662c78a7bea12314054b2c26da483b055382d4b080125c011fc43bc48b0965a6ff8415f7168  toolz-0.11.2.tar.gz
+"

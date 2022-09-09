@@ -1,0 +1,59 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kxmlgui
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="User configurable main windows"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-only AND LGPL-2.1-or-later"
+depends_dev="
+	attica-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kglobalaccel-dev
+	ki18n-dev
+	kiconthemes-dev
+	kitemviews-dev
+	ktextwidgets-dev
+	kwidgetsaddons-dev
+	qt5-qtbase-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="
+	mesa-dri-swrast
+	xvfb-run
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kxmlgui-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# kxmlgui_unittest, ktoolbar_unittest and ktooltiphelper_unittest are broken
+	LC_ALL=C CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E '(kxmlgui|ktoolbar|ktooltiphelper)_unittest'
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6aaf99420523d9bf22e5e7427f7dba90bd3b60c9dc718293ec5fdd489d910bd72973da03cbe4a04b202710ee3eedb2a99cc21aff9f97edbec39a4f47be5e2acb  kxmlgui-5.95.0.tar.xz
+"

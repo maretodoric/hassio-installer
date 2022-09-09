@@ -1,0 +1,21 @@
+# Contributor: Ted Trask <ttrask01@yahoo.com>
+# Maintainer: Ted Trask <ttrask01@yahoo.com>
+pkgname=acf-openvpn
+pkgver=0.11.1
+pkgrel=4
+pkgdesc="Web-based system administration interface for openvpn"
+url="https://gitlab.alpinelinux.org/acf/acf-openvpn"
+arch="noarch"
+license="GPL-2.0-only"
+options="!check" # no test suite
+depends="acf-core openvpn"
+source="https://gitlab.alpinelinux.org/acf/acf-openvpn/-/archive/v$pkgver/acf-openvpn-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+dccdd4f8c4a6be7d2492f779120678fcd98aeda97f81e1a426b3c542a65e7d9e1fd13622ff074e64b2a3a107be4bb5eb4df07f3fbfc3c5c29055e40b8196cb19  acf-openvpn-v0.11.1.tar.gz
+"

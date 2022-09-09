@@ -1,0 +1,42 @@
+# Contributor: Andreas Laghamn <andreas.laghamn@gmail.com>
+# Maintainer: Anjandev Momi <anjan@momi.ca>
+pkgname=cppzmq
+pkgver=4.8.1
+pkgrel=0
+pkgdesc="High-level C++ binding for ZeroMQ"
+options="!check" # CMake fails to find catch_discover_tests
+url="https://github.com/zeromq/cppzmq"
+arch="noarch"
+license="MIT"
+makedepends="cmake zeromq-dev catch2"
+source="$pkgname-$pkgver.tar.gz::https://github.com/zeromq/cppzmq/archive/v$pkgver.tar.gz
+	"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DCPPZMQ_BUILD_TESTS=OFF \
+		$CMAKE_CROSSOPTS .
+	make -C build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+
+	mkdir -p "$pkgdir"/usr/lib
+	mv "$pkgdir"/usr/share/cmake "$pkgdir"/usr/lib
+}
+
+sha512sums="
+02f9b77f67dd46557705511195eb3f4f4e52381256bc9687f36d3e69db6a628c19cfff02209b6e6b53822a60781ab0850eb064d8f020e059fc1aca4d191b66db  cppzmq-4.8.1.tar.gz
+"

@@ -1,0 +1,28 @@
+# Contributor: Stacy Harper <contact@stacyharper.net>
+# Maintainer: Stacy Harper <contact@stacyharper.net>
+pkgname=gmnitohtml
+pkgver=0.1.1
+pkgrel=5
+pkgdesc="Gemini text to HTML converter"
+options="!check" # No testsuite
+url="https://git.sr.ht/~adnano/gmnitohtml"
+arch="all"
+license="GPL-3.0-only"
+makedepends="go scdoc"
+subpackages="$pkgname-doc"
+source="
+	$pkgname-$pkgver.tar.gz::https://git.sr.ht/~adnano/gmnitohtml/archive/$pkgver.tar.gz
+	"
+
+build() {
+	go build -v -o bin/$pkgname --tags extended
+	make gmnitohtml.1
+}
+
+package() {
+	install -Dm755 bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+	install -Dm644 *.1 -t "$pkgdir"/usr/share/man/man1
+}
+sha512sums="
+dd17abd8a059954cbbee3849ef32ee5c74e2cb6f8a46c12e3f8e3a432e6b6cc3e34858cd215b9c755000358af526950236bdb0f4f4da848e9b659d5b6723aac9  gmnitohtml-0.1.1.tar.gz
+"

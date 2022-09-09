@@ -1,0 +1,46 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=binaryen
+pkgver=105
+pkgrel=0
+pkgdesc="Compiler infrastructure and toolchain library for WebAssembly, in C++"
+url="https://github.com/WebAssembly/binaryen"
+arch="all !s390x"
+license="Apache-2.0"
+makedepends="cmake python3 samurai"
+checkdepends="filecheck llvm-test-utils nodejs"
+subpackages="$pkgname-dev"
+source="https://github.com/WebAssembly/binaryen/archive/version_$pkgver/binaryen-$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-version_$pkgver"
+
+case "$CARCH" in
+	x86) options="!check";;  # XXX: two tests fail
+esac
+
+build() {
+	cmake -G Ninja -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DBUILD_SHARED_LIBS=ON
+	cmake --build build
+}
+
+check() {
+	# Tests are extremely chatty.
+	msg 'running tests with stdout/stderr redirected into ./check.log...'
+	python3 check.py --binaryen-bin build/bin > check.log 2>&1 || {
+		echo 'tests failed, printing last 1000 lines of check.log:' >&2
+		tail -n 1000 check.log
+		return 1
+	}
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+5b16551fab37c660900abeae49fb4e23abc0b61165d326ce4db23959a0eab640df0df03c5649c0bcd35a8515b959a7a9d78d1014c4ea6cb08da4ef48f715f702  binaryen-105.tar.gz
+"

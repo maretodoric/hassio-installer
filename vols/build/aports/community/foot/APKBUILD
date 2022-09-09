@@ -1,0 +1,65 @@
+# Maintainer: Alex McGrath <amk@amk.ie>
+pkgname=foot
+pkgver=1.12.1
+pkgrel=0
+pkgdesc="Fast, lightweight and minimalistic Wayland terminal emulator"
+url="https://codeberg.org/dnkl/foot"
+license="MIT"
+arch="all"
+depends="ncurses-terminfo"
+makedepends="
+	meson
+	scdoc
+	fcft-dev
+	tllist-dev
+	libxkbcommon-dev
+	wayland-dev
+	pixman-dev
+	freetype-dev
+	fontconfig-dev
+	wayland-protocols
+	ncurses
+	utf8proc-dev
+	"
+subpackages="
+	$pkgname-dbg
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	$pkgname-extra-terminfo:_extra_terminfo:noarch
+	$pkgname-themes:_themes:noarch
+	"
+source="$pkgname-$pkgver.tar.gz::$url/archive/$pkgver.tar.gz"
+options="!check" # no test suite
+builddir="$srcdir/foot"
+
+build() {
+	export CFLAGS="$CFLAGS -O3"	 # -O3 as the package is intended to use it
+	abuild-meson \
+		. output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+	mv "$pkgdir"/usr/share/fish/vendor_completions.d "$pkgdir"/usr/share/fish/completions
+}
+
+_extra_terminfo() {
+	pkgdesc="$pkgdesc (extra terminfo data)"
+
+	install -d "$subpkgdir"/usr/share/terminfo/f
+	mv "$pkgdir"/usr/share/terminfo/f/foot "$subpkgdir"/usr/share/terminfo/f/foot-extra
+	mv "$pkgdir"/usr/share/terminfo/f/foot-direct "$subpkgdir"/usr/share/terminfo/f/foot-extra-direct
+}
+
+_themes() {
+	pkgdesc="$pkgdesc (color schemes)"
+
+	amove /usr/share/foot/themes
+}
+
+sha512sums="
+553f404b074f4372fb8cfb050f0378d1cbe1620ea8afe2e279523df3006eefd0b0ed24addca33de10cfc8109e5aaec66beccbd5f30e032bb9f2bd9b81ac798cb  foot-1.12.1.tar.gz
+"

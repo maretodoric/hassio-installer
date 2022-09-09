@@ -1,0 +1,43 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=udiskie
+pkgver=2.4.2
+pkgrel=0
+pkgdesc="udisks2 frontend that allows managing removable media from userspace"
+url="https://github.com/coldfix/udiskie"
+arch="noarch !s390x !riscv64"  # no udisks2
+license="MIT"
+depends="
+	py3-docopt
+	py3-keyutils
+	py3-gobject3
+	py3-yaml
+	python3
+	udisks2
+	"
+makedepends="asciidoc py3-setuptools gettext"
+checkdepends="py3-pytest"
+subpackages="$pkgname-doc $pkgname-zsh-completion $pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/coldfix/udiskie/archive/refs/tags/v$pkgver.tar.gz"
+options="!check"  # tests broken
+
+build() {
+	python3 setup.py build
+	make -C doc
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	install -m 0644 -D "doc/$pkgname.8" "$pkgdir/usr/share/man/man8/$pkgname.8"
+	install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+	install -dm755 "$pkgdir/usr/share/zsh/site-functions"
+	install -m644 completions/zsh/* "$pkgdir/usr/share/zsh/site-functions"
+}
+
+sha512sums="
+439feea8a567e2ad1eee5dd28461c35428e535ec49da49de48d93d8e063088d002468d5ee54d35e86369501fe6d7b6a2bc0d01f350822bda5f8b1665c04866ae  udiskie-2.4.2.tar.gz
+"

@@ -1,0 +1,46 @@
+# Contributor: Paul Spooren <mail@aparcar.org>
+# Maintainer: Paul Spooren <mail@aparcar.org>
+pkgname=ucode
+pkgver=0.0.20220531
+pkgrel=0
+pkgdesc="Jinja-like micro templating"
+url="https://github.com/jow-/ucode"
+arch="all"
+license="ISC"
+source="https://github.com/jow-/ucode/archive/refs/tags/v$pkgver/ucode-v$pkgver.tar.gz"
+makedepends="
+	bash
+	cmake
+	coreutils
+	diffutils
+	json-c-dev
+	samurai
+	"
+subpackages="$pkgname-dev"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_LIBDIR=/usr/lib \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-D NL80211_SUPPORT=OFF \
+ 		-D RTNL_SUPPORT=OFF \
+ 		-D UBUS_SUPPORT=OFF \
+ 		-D UCI_SUPPORT=OFF \
+ 		-D ULOOP_SUPPORT=OFF
+	cmake --build build
+}
+
+check() {
+	export UCODE_BIN="$(pwd)/build/ucode"
+	export UCODE_LIB="$(pwd)/build/"
+	./tests/custom/run_tests.sh
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+c6adc2c4ad04d8918857a53c4ba93967451a9be9e1c22865dad43e64438bcc0c62a67d3aaa323143b3c6b9fdddaf6c5a768277179495050f8945bf6f44099edd  ucode-v0.0.20220531.tar.gz
+"

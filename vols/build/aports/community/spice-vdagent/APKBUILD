@@ -1,0 +1,49 @@
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=spice-vdagent
+pkgver=0.22.1
+pkgrel=0
+pkgdesc="Spice guest agent for Linux"
+url="https://spice-space.org/"
+arch="all"
+license="GPL-3.0-or-later"
+depends="dbus-x11"
+makedepends="
+	spice-protocol
+	alsa-lib-dev
+	dbus-dev
+	glib-dev
+	libdrm-dev
+	libpciaccess-dev
+	libxfixes-dev
+	libxinerama-dev
+	libxrandr-dev
+	"
+checkdepends="procps"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="https://spice-space.org/download/releases/spice-vdagent-$pkgver.tar.bz2
+	spice-vdagentd.initd
+	"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--localstatedir=/var \
+		--with-session-info=none
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+	install -Dm0755 "$srcdir"/spice-vdagentd.initd "$pkgdir"/etc/init.d/spice-vdagentd
+	install -dm 0755 "$pkgdir"/etc/modules-load.d/
+	printf 'uinput\n' >"$pkgdir"/etc/modules-load.d/spice-vdagent.conf
+}
+
+sha512sums="
+5a4d2661145f33a0583880a128d925b15ca5aec05df83271c80f8baa0fcdd28fab0242301bc38443ccddf70fbdcfd76b5d30bb5a6b4b7c895c3cea0eb38bdf92  spice-vdagent-0.22.1.tar.bz2
+ba5cf75d2599488dc6f36deac1931b576d5e1a2021ce79df79917c6641b13a93000d9bee62550ecd87ecac30fdc87b044c21b27acecc195ab6bf90485933d350  spice-vdagentd.initd
+"

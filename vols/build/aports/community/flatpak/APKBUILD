@@ -1,0 +1,103 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: André Klitzing <aklitzing@gmail.com>
+# Maintainer: André Klitzing <aklitzing@gmail.com>
+pkgname=flatpak
+# Follows GNOME versioning, MINOR (the 2nd number) must be even.
+pkgver=1.12.7
+pkgrel=0
+pkgdesc="Application deployment framework for desktop apps"
+url="https://flatpak.org/"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="LGPL-2.1-or-later"
+depends="bubblewrap xdg-dbus-proxy"
+makedepends="
+	appstream-glib-dev
+	bison
+	dconf-dev
+	fuse-dev
+	glib-dev
+	gpgme-dev
+	json-glib-dev
+	libarchive-dev
+	libcap-dev
+	libgcab-dev
+	libseccomp-dev
+	libsoup-dev
+	libxau-dev
+	libxslt-dev
+	ostree-dev>=2018.08
+	polkit-dev
+	py3-parsing
+	zstd-dev
+	"
+subpackages="
+	$pkgname-dbg
+	$pkgname-lang
+	$pkgname-dev
+	$pkgname-libs
+	$pkgname-bash-completion
+	$pkgname-fish-completion
+	$pkgname-zsh-completion
+	"
+install="flatpak.pre-install flatpak.pre-upgrade flatpak.post-install"
+source="https://github.com/flatpak/flatpak/releases/download/$pkgver/flatpak-$pkgver.tar.xz
+	modules-load.conf
+	"
+options="!check"  # Tests fail with no error message
+
+# secfixes:
+#   1.12.5-r0:
+#     - CVE-2022-21682
+#   1.12.3-r0:
+#     - CVE-2021-43860
+#   1.12.2-r0:
+#     - CVE-2021-41133
+#   1.10.1-r0:
+#     - CVE-2021-21261
+#   1.2.4-r0:
+#     - CVE-2019-10063
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--sbindir=/usr/bin \
+		--libexecdir=/usr/lib/$pkgname \
+		--disable-static \
+		--disable-documentation \
+		--with-priv-mode=none \
+		--with-system-bubblewrap \
+		--with-system-helper-user=flatpak \
+		--with-system-dbus-proxy \
+		--enable-gdm-env-file \
+		--with-dbus-config-dir=/usr/share/dbus-1/system.d
+	make
+}
+
+check() {
+	make -k check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	cd "$pkgdir"
+
+	# Remove systemd-specific files.
+	rm -rf usr/lib/systemd
+	rm -rf usr/lib/sysusers.d
+
+	# Move fish completions to directory where abuild expects it.
+	mv usr/share/fish/vendor_completions.d usr/share/fish/completions
+
+	install -Dm644 "$srcdir"/modules-load.conf usr/lib/modules-load.d/flatpak.conf
+}
+
+sha512sums="
+425f9d330c649de1079f3286cb6ad8cf7b6e5838921effa4fd6f51020b9bf7991ded9071566ec7032b9868ef3f7e14d1fb7c2be96f903e3af23a075592b78f50  flatpak-1.12.7.tar.xz
+57d23d2778556eafc3035e6be575bf95b4032f123b35f2b1657eff5e7496de253173edc657f90531ee58e25673f4f27a5cd1cc76b14a038edb244f104a231771  modules-load.conf
+"

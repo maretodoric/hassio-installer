@@ -1,0 +1,80 @@
+# Maintainer: Peter van Dijk <peter.van.dijk@powerdns.com>
+_pkgname=pdns-recursor # upstream package name
+pkgname=pdns-recursor
+pkgver=4.7.0
+pkgrel=1
+pkgdesc="PowerDNS Recursive Server"
+url="https://www.powerdns.com/"
+arch="all !s390x" # broken context
+license="GPL-2.0-only WITH OpenSSL-Exception"
+makedepends="autoconf automake libtool boost-dev openssl1.1-compat-dev libsodium-dev lua5.3-dev
+	net-snmp-dev curl curl-dev"
+install="$pkgname.pre-install"
+subpackages="$pkgname-doc $pkgname-openrc"
+pkgusers="recursor"
+pkggroups="recursor"
+source="https://downloads.powerdns.com/releases/$_pkgname-$pkgver.tar.bz2
+	$_pkgname.initd
+	recursor.conf
+	"
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+# secfixes:
+#   4.6.1-r0:
+#     - CVE-2022-27227
+#   4.3.5-r0:
+#     - CVE-2020-25829
+#   4.3.2-r0:
+#     - CVE-2020-14196
+#   4.3.1-r0:
+#     - CVE-2020-10995
+#     - CVE-2020-12244
+#   4.1.9-r0:
+#     - CVE-2019-3806
+#     - CVE-2019-3807
+#   4.1.8-r0:
+#     - CVE-2018-16855
+#   4.1.7-r0:
+#     - CVE-2018-10851
+#     - CVE-2018-14644
+#     - CVE-2018-14626
+#   4.1.1-r0:
+#     - CVE-2018-1000003
+#   4.0.7-r0:
+#     - CVE-2017-15090
+#     - CVE-2017-15092
+#     - CVE-2017-15093
+#     - CVE-2017-15094
+
+build() {
+	./configure --prefix=/usr \
+		--sysconfdir=/etc/pdns \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--libdir=/usr/lib/pdns \
+		--enable-dns-over-tls \
+		--enable-unit-tests
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	mv "$pkgdir"/etc/pdns/recursor.conf-dist  "$pkgdir"/etc/pdns/recursor.conf
+	cat "$srcdir/recursor.conf" >> "$pkgdir"/etc/pdns/recursor.conf
+
+	install -m755 -D "$srcdir/$_pkgname.initd" \
+		"$pkgdir/etc/init.d/$pkgname"
+
+}
+
+sha512sums="
+095272311623684a5a465ae48bd97b86ffe27d4092dea5dceee915ebb071ffb976eeb4055d560d834a3fafab0b15808137e384f28b7cec24719b78ac024e48c2  pdns-recursor-4.7.0.tar.bz2
+71f7be51d3a9a78f22f3946e95534d4f5b37b3bcbd1891ad3a17095be545fdb0eaf239d58c9f40ccc642542150c0b35ed025bf69acabfa779c0ab10c67a5e796  pdns-recursor.initd
+abda278d29b21e9635fb154c8685e5d346f47889498f075a8dd2e486f8ea4dcc2ccd20f4245783e4d55534fed88c49825b22fd3d1c55d8645522ce45cc53d661  recursor.conf
+"

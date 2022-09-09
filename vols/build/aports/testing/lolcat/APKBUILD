@@ -1,0 +1,22 @@
+# Contributor: Daniel Isaksen <d@duniel.no>
+# Maintainer: Simon Frankenberger <simon-alpine@fraho.eu>
+pkgname=lolcat
+pkgver=1.2
+pkgrel=1
+pkgdesc="High-performance implementation of lolcat"
+url="https://github.com/jaseg/lolcat/"
+arch="all"
+license="WTFPL"
+source="$pkgname-$pkgver.tar.gz::https://github.com/jaseg/lolcat/archive/v$pkgver.tar.gz"
+options="!check" # No upstream testsuite
+
+build() {
+	make
+}
+
+package() {
+	mkdir -p "$pkgdir/usr/bin"
+	make DESTDIR="$pkgdir/usr/bin" install
+}
+
+sha512sums="e8db711283267a38573eee584c01c64db4d20ea057f7b7db88c93c58189e0340eadd13129723e326618995e2a3dd80e1ff24aacb2b7e3d10c077c0f5f54a1fd3  lolcat-1.2.tar.gz"

@@ -1,0 +1,53 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+_luaversions="5.1 5.2 5.3"
+pkgname=lua-compat53
+_rockname=compat53
+_pkgname=lua-compat-5.3
+pkgver=0.10
+pkgrel=0
+pkgdesc="Compatibility module providing Lua-5.3-style APIs for Lua"
+url="https://github.com/keplerproject/lua-compat-5.3"
+arch="all"
+license="MIT"
+for _v in $_luaversions; do
+	makedepends="$makedepends lua$_v-dev luarocks$_v"
+	subpackages="$subpackages lua$_v-${pkgname#lua-}:_package"
+done
+source="$pkgname-$pkgver.tar.gz::https://github.com/keplerproject/$_pkgname/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	local lver; for lver in $_luaversions; do
+		msg "Building for Lua $lver..."
+
+		luarocks-$lver \
+			CC="$CC" \
+			CFLAGS="$CFLAGS -fPIC" \
+			LUA_INCDIR="$(pkg-config --variable=includedir lua$lver)" \
+			LUA_LIBDIR="$(pkg-config --variable=libdir lua$lver)" \
+			make --tree=./build rockspecs/compat53-scm-0.rockspec
+	done
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+_package() {
+	local lver="${subpkgname:3:3}"
+	pkgdesc="$pkgdesc $lver"
+	depends="lua$lver"
+	install_if="$pkgname=$pkgver-r$pkgrel lua$lver"
+	local rockdir="$subpkgdir/usr/lib/luarocks/rocks-$lver/$_rockname/$pkgver-1"
+
+	local path; for path in lib/lua/$lver share/lua/$lver; do
+		mkdir -p "$subpkgdir"/usr/${path%/*}
+		mv "$builddir"/build/$path "$subpkgdir"/usr/$path/
+	done
+
+	mkdir -p "$rockdir"
+	echo 'rock_manifest = {}' > "$rockdir"/rock_manifest
+}
+
+sha512sums="f7f39085f4f6b16095f41e635b4c5477b3dab5e42b5b65a9d522941a3807ea521d4a27a77293a3c9d0ecea78a1f6c2a2497394b2d220f4d7d65e23510563d46d  lua-compat53-0.10.tar.gz"

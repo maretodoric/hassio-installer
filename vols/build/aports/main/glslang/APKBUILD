@@ -1,0 +1,63 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Simon Zeni <simon@bl4ckb0ne.ca>
+pkgname=glslang
+pkgver=1.3.216.0
+_pkgver=sdk-$pkgver
+pkgrel=0
+pkgdesc="Khronos reference front-end for GLSL, ESSL, and sample SPIR-V generator"
+url="https://github.com/KhronosGroup/glslang"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="$pkgname"
+makedepends="cmake samurai python3 bison spirv-tools-dev"
+checkdepends="bash gtest-dev"
+subpackages="$pkgname-static $pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/KhronosGroup/glslang/archive/$_pkgver.tar.gz"
+builddir="$srcdir/$pkgname-$_pkgver"
+
+case "$CARCH" in
+s390x) options="$options !check" ;; # testsuite seems to fail on big endian
+esac
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build-shared -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DBUILD_SHARED_LIBS=ON \
+		-DENABLE_CTEST="$(want_check && echo ON || echo OFF)" \
+		$CMAKE_CROSSOPTS
+	cmake --build build-shared
+
+	sed -i '/add_library(glslang-default-resource-limits/ s/$/ STATIC/' StandAlone/CMakeLists.txt
+	cmake -B build-static -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DBUILD_SHARED_LIBS=OFF \
+		-DENABLE_CTEST="$(want_check && echo ON || echo OFF)" \
+		$CMAKE_CROSSOPTS
+	cmake --build build-static
+}
+
+check() {
+	msg "Testing shared version of glslang"
+	ctest --test-dir build-shared --output-on-failure
+
+	msg "Testing static version of glslang"
+	ctest --test-dir build-static --output-on-failure
+}
+
+package() {
+	# installing static first lets shared overwrite the executables so they
+	# themselves are not statically linking the library
+	DESTDIR="$pkgdir" cmake --install build-static
+	DESTDIR="$pkgdir" cmake --install build-shared
+}
+
+sha512sums="
+4ab3953df2e881e4eb923307d6ec906daaa1786a1ad1b4d7d6713d63599c8f7cfd41257d53f7caeddcc4ad8cc4aac707393d2b7a1c7452ff5e9d1ae5f84696e8  glslang-1.3.216.0.tar.gz
+"

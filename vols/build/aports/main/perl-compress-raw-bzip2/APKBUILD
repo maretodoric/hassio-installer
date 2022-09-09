@@ -1,0 +1,41 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:  Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=perl-compress-raw-bzip2
+_pkgname=Compress-Raw-Bzip2
+pkgver=2.103
+pkgrel=1
+pkgdesc="Perl low-level interface to bzip2 compression library"
+url="https://metacpan.org/release/PMQS/Compress-Raw-Bzip2-$pkgver"
+arch="all"
+license="GPL-1.0-or-later OR Artistic-1.0-Perl"
+depends="perl"
+makedepends="perl-dev"
+source="https://cpan.metacpan.org/authors/id/P/PM/PMQS/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+prepare() {
+	default_prepare
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+}
+
+build() {
+	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
+	make
+}
+
+check() {
+	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+
+	# remove man pages already provided by perl-doc
+	rm -rf "$pkgdir"/usr/share/man
+}
+
+sha512sums="
+d25dcee833e189ef7fbaa3d8b8ac1ec302fbcaff5e72931f37d45646e526e2562662c6df986ba5ca16f3a52203f34af0de9787f1054f282d3cf54c35f4445b66  Compress-Raw-Bzip2-2.103.tar.gz
+"

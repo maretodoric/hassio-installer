@@ -1,0 +1,35 @@
+# Contributor: Richard Mortier <mort@cantab.net>
+# Maintainer: Richard Mortier <mort@cantab.net>
+pkgname=jhead
+pkgver=3.06.0.1
+pkgrel=1
+pkgdesc="Exif Jpeg header manipulation tool"
+url="http://www.sentex.net/~mwandel/jhead/"
+arch="all"
+license="custom"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Matthias-Wandel/jhead/archive/refs/tags/$pkgver.tar.gz"
+options="!check" # no test suite
+
+# secfixes:
+#   3.06.0.1-r0:
+#     - CVE-2020-6624
+#     - CVE-2020-6625
+
+build() {
+	make all
+}
+
+package() {
+	install -Dm755 jhead "$pkgdir"/usr/bin/jhead
+}
+
+doc() {
+	cd "$builddir"
+	gzip -v9 jhead.1
+	install -Dm644 jhead.1.gz "$subpkgdir"/usr/share/man/man1/jhead.1.gz
+	install -Dm644 readme.txt \
+		"$subpkgdir"/usr/share/licenses/$pkgname/readme.txt
+}
+
+sha512sums="7804f4bab1b07eb08ed981364b3634b1c25e0657d57651871aede640254c33f9d2307ba7c9fb3bc81eb06b71ba5d27437275a3fe53859e9e9457e37e12545db9  jhead-3.06.0.1.tar.gz"

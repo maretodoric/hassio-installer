@@ -1,0 +1,25 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=py3-invoke
+_pkgname=invoke
+pkgver=1.5.0
+pkgrel=3
+pkgdesc="Pythonic task execution"
+options="!check" # Can't find invoke.vendor.six
+url="http://docs.pyinvoke.org/en/1.3/"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3 py3-yaml"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="ac6b1939907ba34930836f567454aeea63373aa510644964eb18e1e684f30d4053c75a73506d0e947a38ca206daf847ce927ec2df15e73932278c2c73c3e20bd  invoke-1.5.0.tar.gz"

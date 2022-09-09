@@ -1,0 +1,36 @@
+# Contributor: Leon Marz <main@lmarz.org>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=utfcpp
+pkgver=3.2.1
+pkgrel=0
+pkgdesc="UTF-8 with C++ in a portable way"
+url="https://github.com/nemtrif/utfcpp"
+arch="noarch"
+license="BSL-1.0"
+makedepends="cmake"
+source="$pkgname-$pkgver.tar.gz::https://github.com/nemtrif/utfcpp/archive/v$pkgver.tar.gz"
+options="!check" # problems with gtest
+
+build() {
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DUTF8_TESTS=OFF \
+		-DUTF8_SAMPLES=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=1 ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+5798487f12b1bc55d3e06aed38f7604271ca3402963efcf85d181fd590d8a088d21e961e77698e60dc2cdae8cf4506645903442c45fd328201752d9589180e0d  utfcpp-3.2.1.tar.gz
+"

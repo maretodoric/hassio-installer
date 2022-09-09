@@ -1,0 +1,54 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kpmcore
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kauth
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/applications/system/org.kde.partitionmanager"
+pkgdesc="Library for managing partitions"
+license="GPL-3.0-or-later"
+depends="
+	device-mapper-udev
+	sfdisk
+	smartmontools
+	"
+makedepends="
+	extra-cmake-modules
+	kauth-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kwidgetsaddons-dev
+	qca-dev
+	qt5-qtbase-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kpmcore-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+options="!check" # Requires running dbus server
+
+# secfixes:
+#   4.2.0-r0:
+#     - CVE-2020-27187
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+3ce043daccbe5a2d56f6fd849a3b8c6518b49c4c47db1989f7cea60282e63f430047815f6ff7c1a9a4195d9b06d2ad3ec357bc3ed66fef80b253762aea099f15  kpmcore-22.04.2.tar.xz
+"

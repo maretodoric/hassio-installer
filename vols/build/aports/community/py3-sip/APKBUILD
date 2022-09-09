@@ -1,0 +1,37 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer:  Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-sip
+pkgver=6.6.1
+pkgrel=1
+pkgdesc="A tool that makes it easy to create Python bindings for C and C++ libraries"
+options="!check" # No testsuite
+url="http://www.riverbankcomputing.com/software/sip/"
+arch="all"
+license="custom:sip"
+depends="
+	py3-packaging
+	py3-ply
+	py3-setuptools
+	py3-toml
+	"
+makedepends="
+	py3-setuptools
+	python3-dev
+	"
+source="https://pypi.python.org/packages/source/s/sip/sip-$pkgver.tar.gz"
+builddir="$srcdir/sip-$pkgver"
+
+replaces="py-sip" # Backwards comptibility
+provides="py-sip=$pkgver-r$pkgrel" # Backwards comptibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --skip-build --root="$pkgdir" --optimize=1
+}
+
+sha512sums="
+49d03730819210f4239946da0ddd0694583dc13458997edc11895ef399d8017f38e3354a87bae495492c3cf3334b810c2d924ec0f5bbb129e88cc15eac720c01  sip-6.6.1.tar.gz
+"

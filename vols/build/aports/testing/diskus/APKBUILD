@@ -1,0 +1,25 @@
+# Contributor: guddaff <guddaff@protonmail.com>
+# Maintainer: guddaff <guddaff@protonmail.com>
+pkgname=diskus
+pkgver=0.7.0
+pkgrel=0
+pkgdesc="fast alternative for du"
+url="https://github.com/sharkdp/diskus"
+arch="all !s390x !riscv64" # limited by cargo
+options="!check" #size_of_single_file test timout on armhf
+license="MIT"
+makedepends="cargo"
+source="$pkgname-$pkgdir.tar.gz::https://github.com/sharkdp/diskus/archive/refs/tags/v$pkgver.tar.gz"
+
+build() {
+	cargo build --release --locked
+}
+
+package() {
+	cargo install --locked --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+092e3640000fb233d975efa2513cec1020376f93a106b9a2c19a390c27f37298dc3b412a0853cb3c1ab267f5b16cfc7379307c2e6599b9396369e1e1dcc5803a  diskus-.tar.gz
+"

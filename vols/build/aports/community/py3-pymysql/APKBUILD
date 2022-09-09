@@ -1,0 +1,29 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=py3-pymysql
+_pyname=PyMySQL
+pkgver=1.0.2
+pkgrel=0
+pkgdesc="Pure Python MySQL Client"
+url="https://pypi.python.org/pypi/PyMySQL"
+arch="noarch"
+license="MIT"
+options="!check" #require mysql for tests
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/${_pyname:0:1}/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+replaces="py-pymysql" # Backwards  compatibility
+provides="py-pymysql=$pkgver-r$pkgrel" # Backwards  compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c831505dafe6aebf039129ec4b09ef6dcafd490bcee2b515f42c0d0412fe9c379ba28650fb329d21f1da7e9fcae64968e1bc6065a04a08e00497a24967e27146  py3-pymysql-1.0.2.tar.gz
+"

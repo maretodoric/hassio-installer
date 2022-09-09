@@ -1,0 +1,30 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xarchiver
+pkgver=0.5.4.18
+pkgrel=0
+pkgdesc="GTK+ frontend to various command line archivers"
+options="!check" # No testsuite
+url="https://github.com/ib/xarchiver"
+arch="all"
+license="GPL-2.0-or-later"
+depends="desktop-file-utils hicolor-icon-theme tar"
+makedepends="intltool gtk+3.0-dev libxslt"
+subpackages="$pkgname-doc $pkgname-lang"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ib/xarchiver/archive/$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--libexecdir=/usr/lib/xfce4
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a33236839d325a2d706fd0a9e2257ab5289895b030450b2060da856c047e5676ac5686312f8d00d3f38d329d0cf39fb22330a7c902b3ff5943856801435f6970  xarchiver-0.5.4.18.tar.gz
+"

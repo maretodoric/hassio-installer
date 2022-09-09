@@ -1,0 +1,67 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=biber
+# This version should be compatible with Biblatex in community
+pkgver=2.17
+pkgrel=0
+pkgdesc="Backend processor for BibLaTeX"
+url="https://github.com/plk/biber"
+arch="noarch"
+license="GPL-2.0"
+depends="perl perl-module-build perl-config-autoconf
+	perl-extutils-libbuilder perl-test-differences perl-file-which
+	perl-class-accessor perl-data-compare perl-data-dump perl-data-uniqid
+	perl-ipc-run3 perl-xml-writer perl-xml-libxml perl-xml-libxslt
+	perl-lwp-protocol-https perl-log-log4perl perl-list-allutils perl-list-moreutils
+	perl-mozilla-ca perl-regexp-common perl-file-slurp perl-encode-hanextra
+	perl-date-simple perl-xml-libxml-simple perl-autovivification
+	perl-unicode-linebreak perl-unicode-collate perl-text-roman perl-text-bibtex
+	perl-lingua-translit perl-encode-jis2k perl-encode-eucjpascii
+	perl-business-isbn perl-business-ismn perl-business-issn
+	perl-datetime-calendar-julian perl-datetime-format-builder perl-sort-key
+	perl-text-csv perl-text-csv_xs perl-list-moreutils-xs perl-perlio-utf8_strict perl-file-slurper
+	perl-parse-recdescent perl-io-string perl-mime-charset perl-namespace-autoclean"
+checkdepends="perl-test-simple"
+makedepends="perl-dev"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/plk/biber/archive/v$pkgver.tar.gz"
+options="!check" # test failures on latest perl
+
+prepare() {
+	default_prepare
+	# Disable long year tests on 32 bit
+	case "$CARCH" in arm*|x86)
+		sed -i '/17000002/ s+.*+eq_or_diff("dummy", "dummy", "skip 32 bit");+' t/dateformats.t
+		;;
+	esac
+
+	case "$CARCH" in arm*|x86)
+		sed -i -e '7s/53/47/' t/dateformats.t
+		sed -i -e '882s/.*/#&/' t/dateformats.t
+		sed -i -e '883s/.*/#&/' t/dateformats.t
+		sed -i -e '884s/.*/#&/' t/dateformats.t
+		sed -i -e '885s/.*/#&/' t/dateformats.t
+		sed -i -e '888s/.*/#&/' t/dateformats.t
+		sed -i -e '889s/.*/#&/' t/dateformats.t
+		;;
+	esac
+	perl Build.PL installdirs=vendor
+}
+
+build() {
+	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
+	./Build
+}
+
+check() {
+	./Build test
+}
+
+package() {
+	./Build install destdir="$pkgdir"
+	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
+}
+
+sha512sums="
+5dc076b6a2e42986e54dbadbcdab5ff9c01235e301f8bd4e9b52b0b823f1939ebe881810fb138de9b6c2f06bb1e894e934769a6946da42ce1cba96415de06430  biber-2.17.tar.gz
+"

@@ -1,0 +1,41 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=umoci
+pkgver=0.4.7
+pkgrel=6
+pkgdesc="umoci modifies Open Container images"
+url="https://umo.ci/"
+arch="all"
+license="Apache-2.0"
+makedepends="go"
+options="!check" # has no check
+source="umoci-$pkgver.tar.gz::https://github.com/opencontainers/umoci/archive/v$pkgver.tar.gz"
+builddir="$srcdir/src/github.com/opencontainers/$pkgname"
+
+# secfixes:
+#   0.4.7-r0:
+#     - CVE-2021-29136
+
+prepare() {
+	mkdir -p ${builddir%/*}
+	mv "$srcdir"/$pkgname-$pkgver "$builddir"/
+	default_prepare
+}
+
+build() {
+	export GOPATH="$srcdir"
+	go build -o bin/$pkgname ./cmd/$pkgname
+}
+
+package() {
+	install -Dm755 bin/$pkgname "$pkgdir"/usr/bin/$pkgname
+}
+
+cleanup_srcdir() {
+	go clean -modcache
+	default_cleanup_srcdir
+}
+
+sha512sums="
+bb76c6c74766bc6558fa414b66a626194c60a9dee49aee050ad459590675bd79032b8e8c390439c0aa74c09abc921a6789fac57fc996ef958a376bc1c675d9fc  umoci-0.4.7.tar.gz
+"

@@ -1,0 +1,41 @@
+# Maintainer: Alex Xu (Hello71) <alex_y_xu@yahoo.ca>
+pkgname=sof-bin
+pkgver=2.1.1
+pkgrel=0
+pkgdesc="Sound Open Firmware"
+url="https://github.com/thesofproject/sof-bin"
+arch="x86_64"
+license="BSD-3-Clause MIT ISC"
+options="!check"
+makedepends="libc6-compat alsa-lib" # trigger abuild autodetection
+subpackages="sof-doc:doc sof-firmware:firmware sof-tools:tools"
+source="https://github.com/thesofproject/$pkgname/releases/download/v$pkgver/$pkgname-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	depends="sof-firmware sof-tools"
+	mkdir -p $pkgdir
+}
+
+doc() {
+	mkdir -p $subpkgdir/usr/share/licenses
+	install -m644 $builddir/LICENCE.* $builddir/Notice.* $subpkgdir/usr/share/licenses/
+}
+
+firmware() {
+	mkdir -p $subpkgdir/lib/firmware/intel
+	cp -a $builddir/sof-v$pkgver $subpkgdir/lib/firmware/intel/
+	ln -s sof-v$pkgver $subpkgdir/lib/firmware/intel/sof
+	cp -a $builddir/sof-tplg-v$pkgver $subpkgdir/lib/firmware/intel/
+	ln -s sof-tplg-v$pkgver $subpkgdir/lib/firmware/intel/sof-tplg
+}
+
+tools() {
+	depends="libc6-compat" # work around abuild bug
+	install -d $subpkgdir/usr/bin
+	install -m755 $builddir/tools-v$pkgver/* $subpkgdir/usr/bin/
+}
+
+sha512sums="
+77e9562f67014d78b213fe428edef6a08dcc058a9a762da09a486c002c3aa0b907ea7c8ba6d4f88f5ddab5e564de06df9f2ed77206341a0fe2e1aaab1d9740ce  sof-bin-v2.1.1.tar.gz
+"

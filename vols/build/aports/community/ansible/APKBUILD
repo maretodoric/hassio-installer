@@ -1,0 +1,33 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Takuya Noguchi <takninnovationresearch@gmail.com>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=ansible
+pkgver=6.0.0
+pkgrel=0
+pkgdesc="core components for Ansible"
+url="https://ansible.com/"
+options="!check" # TODO: enable tests
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="python3 ansible-core"
+makedepends="py3-setuptools"
+source="https://pypi.python.org/packages/source/a/ansible/ansible-$pkgver.tar.gz"
+
+# secfixes:
+#   2.10.7-r0:
+#     - CVE-2021-20191
+#   2.10.1-r0:
+#     - CVE-2020-25646
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+490bdc574ad6a444f8007138a12be5e5fcd8eb7abdd5466ff1924ac7c34e0a71be1c2495666ceefa1c88da48900fa2bca2c1e8d5775f3f559b1fa285bbcdcae9  ansible-6.0.0.tar.gz
+"

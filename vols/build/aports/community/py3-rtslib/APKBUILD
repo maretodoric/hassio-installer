@@ -1,0 +1,29 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=py3-rtslib
+_pkgname=rtslib-fb
+pkgver=2.1_p74
+_ver=${pkgver/_rc/rc}
+_ver=${_ver/_p/.}
+pkgrel=1
+pkgdesc="Python library that provides an object API to RisingTide Systems generic SCSI Target"
+options="!check" # No testsuite
+url="https://github.com/open-iscsi/rtslib-fb"
+arch="noarch"
+license="Apache-2.0"
+depends="py3-udev python3 py3-six"
+makedepends="py3-setuptools"
+source="https://github.com/open-iscsi/rtslib-fb/archive/v$_ver.tar.gz"
+builddir="$srcdir"/$_pkgname-$_ver
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir"
+}
+
+sha512sums="
+181b57f699dd4e6bc050585e1abffe75a7eaf5ae8325220d61d37f932912f2cec878c4643172c584f0d4c231441d25ff0e09aa1f48c2305061b75acdce051c86  v2.1.74.tar.gz
+"

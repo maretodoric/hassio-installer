@@ -1,0 +1,35 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kapidox
+pkgver=5.95.0
+pkgrel=0
+arch="noarch !armhf" # armhf blocked by extra-cmake-modules
+pkgdesc="Scripts and data for building API documentation (dox) in a standard format and style"
+url="https://community.kde.org/Frameworks"
+license="BSD-3-Clause"
+depends="
+	doxygen
+	py3-jinja2
+	py3-yaml
+	python3
+	"
+makedepends="
+	py3-setuptools
+	python3-dev
+	samurai
+	"
+checkdepends="bash"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kapidox-$pkgver.tar.xz"
+options="!check" # No useful tests
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+876cf28b88680b4b027edb6603e4de12d7554ed9b8eda40738259550e703f53bc2465e26fa84a43c68b9d4a3a98b202b4c76033b1df6c9422e96a2aa7417e994  kapidox-5.95.0.tar.xz
+"

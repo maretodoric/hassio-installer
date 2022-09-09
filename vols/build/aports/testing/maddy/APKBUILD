@@ -1,0 +1,61 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=maddy
+pkgver=0.6.1
+pkgrel=0
+pkgdesc="Composable all-in-one mail server"
+url="https://maddy.email/"
+license="GPL-3.0-or-later"
+arch="all"
+makedepends="go libcap scdoc linux-pam-dev sqlite-dev"
+subpackages="$pkgname-openrc $pkgname-doc $pkgname-vim::noarch"
+pkgusers="$pkgname"
+pkggroups="$pkgname"
+install="$pkgname.pre-install"
+source="https://github.com/foxcpp/maddy/archive/v$pkgver/maddy-$pkgver.tar.gz
+	$pkgname.initd
+	use-syslog.patch
+	"
+
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw -tags=libsqlite3"
+export GOPATH="$srcdir"
+
+build() {
+	ldflags="-extldflags \"$LDFLAGS\" -s -w
+		-X github.com/foxcpp/maddy.Version=$pkgver
+		"
+
+	go build -ldflags="$ldflags" -v -o bin/maddy ./cmd/maddy
+
+	scdoc <docs/man/maddy.1.scd >maddy.1
+}
+
+check() {
+	go test ./...
+}
+
+package() {
+	install -Dm755 bin/maddy "$pkgdir"/usr/bin/maddy
+	setcap cap_net_bind_service=+ep "$pkgdir"/usr/bin/maddy
+
+	install -Dm644 maddy.conf "$pkgdir"/etc/maddy/maddy.conf
+
+	install -Dm755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+
+	install -Dm644 maddy.1 -t "$pkgdir"/usr/share/man/man1
+}
+
+vim() {
+	pkgdesc="$pkgdesc (vim syntax)"
+	depends=""
+	install_if="vim $pkgname=$pkgver-r$pkgrel"
+
+	mkdir -p "$subpkgdir"/usr/share/vim
+	cp -r "$builddir"/dist/vim "$subpkgdir"/usr/share/vim/vimfiles
+}
+
+sha512sums="
+25faf228d0a76b052446365cc5ba7cda775a2829b60c3795783be6d48fe3f5c7b7afc434c4bde058583c3b0a8466f46560fa72255a10af1eac795b3c2315f935  maddy-0.6.1.tar.gz
+3eb6829c9e0c078e35db611a82aac0323c2f2633cf5d1ad216cd862465cbcb191b067ab5e57e1748f9d5693351beba6053642d6e1481cd1536c2f53117fce09e  maddy.initd
+76dbb8d7f4b389f2fc1e4e9ecbf93bd7e9a002a8520d93067e39b7a8d35e74e92af7151c116d38aa9d7548747cdd107b38392204f7d3a8944914aee236f7934e  use-syslog.patch
+"

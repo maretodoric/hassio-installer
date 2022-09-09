@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-beetle-wswan
+pkgver=0_git20220409
+pkgrel=0
+_commit="d1fb3f399a2bc16b9ad0f2e8c8ba9f7051cd26bd"
+pkgdesc="standalone fork of Mednafen WonderSwan to libretro"
+url="https://github.com/libretro/beetle-wswan-libretro"
+arch="all"
+license="GPL-2.0-only"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/beetle-wswan-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/beetle-wswan-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 mednafen_wswan_libretro.so "$pkgdir"/usr/lib/libretro/mednafen_wswan_libretro.so
+}
+
+sha512sums="
+0c8b13af58e5a9d511dbf9950314933daa5c8b63af3857d6734c6776dbb0772b574979d21845d2bac63fd9c4793c6c504cca365b7a70268576eedf6c8559727a  libretro-beetle-wswan-d1fb3f399a2bc16b9ad0f2e8c8ba9f7051cd26bd.tar.gz
+"

@@ -1,0 +1,27 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-jaraco.packaging
+pkgver=9.0.0
+pkgrel=0
+pkgdesc="tools to supplement packaging Python releases"
+url="https://github.com/jaraco/jaraco.packaging"
+arch="noarch"
+license="MIT"
+# archive has no tests
+options="!check"
+depends="python3 py3-setuptools"
+makedepends="py3-build py3-pip py3-setuptools_scm py3-wheel"
+source="https://files.pythonhosted.org/packages/source/j/jaraco.packaging/jaraco.packaging-$pkgver.tar.gz"
+builddir="$srcdir/jaraco.packaging-$pkgver"
+
+build() {
+	python3 -m build --skip-dependency-check --no-isolation --wheel .
+}
+
+package() {
+	pip3 install --no-warn-script-location --ignore-installed --no-deps --root="$pkgdir" dist/jaraco.packaging-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+5968418251eeb7fa0f5657e8b8b4ead40f7f2b28fbaa8dc331a3bb0518d32b45646b85521e941e7c483ef8861d9a9cd47c45126cfdf2da708bd8f3b3514b47da  jaraco.packaging-9.0.0.tar.gz
+"

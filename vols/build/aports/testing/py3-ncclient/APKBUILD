@@ -1,0 +1,32 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=py3-ncclient
+pkgver=0.6.12
+pkgrel=1
+pkgdesc="Library for NETCONF clients"
+url="https://github.com/ncclient/ncclient"
+arch="noarch"
+license="Apache-2.0"
+depends="py3-lxml py3-paramiko py3-six py3-setuptools"
+checkdepends="py3-mock py3-nose"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ncclient/ncclient/archive/v$pkgver.tar.gz"
+builddir="$srcdir"/ncclient-$pkgver
+
+replaces="py-ncclient" # Backwards compatibility
+provides="py-ncclient=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	nosetests
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+ba1547579c830733f2f450ecafaf146a364b3a123f4cb0a3395e0ed19ad31025823b928d06acb537a531203a5ac65fc757b6fb34fefdde0f1e357e5f57bf73d0  py3-ncclient-0.6.12.tar.gz
+"

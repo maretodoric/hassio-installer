@@ -1,0 +1,55 @@
+# Contributor: tcely <ntpsec+aports@tcely.33mail.com>
+# Maintainer:
+pkgname=ntpsec
+pkgver=1.2.1
+pkgrel=3
+pkgdesc="NTP reference implementation, refactored for security"
+url="https://www.ntpsec.org/"
+arch="all"
+license="BSD-2-Clause"
+depends="bash busybox python3 py3-gpsd"
+makedepends="python3-dev bison asciidoc openssl1.1-compat-dev linux-headers
+	libcap-dev"
+subpackages="$pkgname-doc $pkgname-dev"
+source="https://github.com/ntpsec/ntpsec/archive/refs/tags/NTPsec_${pkgver//./_}.tar.gz"
+builddir="$srcdir"/ntpsec-NTPsec_${pkgver//./_}
+
+# secfixes:
+#   1.2.1-r0:
+#     - CVE-2021-22212
+#   1.1.3-r0:
+#     - CVE-2019-6442
+#     - CVE-2019-6443
+#     - CVE-2019-6444
+#     - CVE-2019-6445
+
+prepare() {
+	default_prepare
+
+	grep -r -l '#! /usr/bin/env python' . \
+		| xargs sed -i '1s/^.*$/#!\/usr\/bin\/python3/'
+
+}
+
+build() {
+	./waf configure \
+		--prefix=/usr \
+		--python=python3 \
+		--enable-leap-smear \
+		--enable-mssntp \
+		--refclock=all \
+		--pyshebang=/usr/bin/python3
+	./waf build --verbose
+}
+
+check() {
+	./waf check --verbose
+}
+
+package() {
+	./waf install --destdir="$pkgdir"
+}
+
+sha512sums="
+6938504ee6153eb6fd7dab572f63ab133d8bff83580047396c1d783d2547660d5982e912e82c906abd406f4b539e9579e5177ae1c2e8c9ea813072b9af827c5d  NTPsec_1_2_1.tar.gz
+"

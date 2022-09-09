@@ -1,0 +1,102 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-shell
+pkgver=42.2
+pkgrel=0
+pkgdesc="GNOME shell"
+url="https://wiki.gnome.org/Projects/GnomeShell"
+arch="all !s390x !riscv64" # rust
+license="GPL-2.0-or-later"
+depends="
+	accountsservice
+	caribou
+	elogind
+	gsettings-desktop-schemas
+	gst-plugins-good
+	gstreamer
+	upower
+	ibus
+	librsvg
+	gnome-bluetooth
+	gnome-control-center
+	gnome-shell-schemas
+	font-adobe-source-code-pro
+	ttf-cantarell
+	adwaita-icon-theme
+	gnome-themes-standard
+	unzip
+	"
+makedepends="
+	gnome-desktop-dev>=3.35.91
+	libxml2-dev
+	libcanberra-dev
+	gobject-introspection-dev
+	startup-notification-dev
+	libsoup-dev
+	polkit-dev
+	gcr-dev
+	gjs-dev>=1.64.0
+	mutter-dev>=3.36.0
+	pulseaudio-dev
+	evolution-data-server-dev evolution-dev
+	python3
+	meson
+	libxml2-utils
+	ibus-dev
+	sassc
+	networkmanager-dev
+	libnma-dev
+	gnome-control-center-dev
+	py3-setuptools
+	gnome-bluetooth-dev
+	gstreamer-dev
+	gnome-autoar-dev
+	asciidoc
+	elogind-dev
+	pipewire-dev
+	gtk4.0-dev
+	"
+checkdepends="
+	xvfb-run
+	mesa-dri-gallium
+	"
+	# gdm is also needed but introduces circular dep
+subpackages="$pkgname-dbg $pkgname-doc $pkgname-lang $pkgname-schemas::noarch"
+source="https://download.gnome.org/sources/gnome-shell/${pkgver%.*}/gnome-shell-$pkgver.tar.xz
+	disable-telepathy-integration.patch
+	"
+options="!check" # Tests have circular dependency 'gnome-shell <-> gdm'
+
+# secfixes:
+#   0:
+#     - CVE-2019-3820
+
+build() {
+	abuild-meson \
+		-Dsystemd=false \
+		-Dtests=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson test --no-rebuild -v -C output
+}
+
+schemas() {
+	pkgdesc="GNOME Shell gsetting schemas"
+	depends=""
+	replaces="gnome-shell"
+
+	amove usr/share/glib-2.0/schemas
+	amove usr/share/gnome-control-center/keybindings
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+dd77195772e23d8260e55a2db1103fa6dee8945ad168478c293e43e9971698aa191e17f7f5ef46cf46eeaae5051c34f0eb5df134690f7dc5ca98d6ca747e4eb0  gnome-shell-42.2.tar.xz
+2ca70115fab957fdf276b7f0772786e1afd56b0b22bcfd92f5b5f1d29676dc97c19cfb079434d0dbf7b459f1d133dbd8d1faa0d88f7b94846040a23856f951f8  disable-telepathy-integration.patch
+"

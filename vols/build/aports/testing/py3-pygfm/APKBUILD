@@ -1,0 +1,35 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Stefan Wagner <stw@bit-strickerei.de>
+pkgname=py3-pygfm
+_pkgname=py-gfm
+pkgver=1.0.0
+pkgrel=3
+pkgdesc="Github-Flavored Markdown for Python-Markdown"
+options="!check"
+url="https://github.com/zopieux/py-gfm"
+arch="noarch !armv7"
+license="BSD-3-Clause"
+depends="python3 py3-markdown"
+makedepends="py3-setuptools"
+checkdepends="py3-codecov py3-coverage py3-coveralls"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Zopieux/py-gfm/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-pygfm" # Backwards compatibility
+provides="py-pygfm=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 test.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm "$pkgdir"/usr/LICENSE
+}
+
+sha512sums="eb1b190d4b8ebdf229141965cad57531bdb7b2c834acf9ef62a06955f5c61fdc16e85a0871121f99d2bdb0d07482ed9bc84c52e85e6a446f49e869780c463b89  py3-pygfm-1.0.0.tar.gz"

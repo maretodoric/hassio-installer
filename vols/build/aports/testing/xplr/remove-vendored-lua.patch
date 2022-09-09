@@ -1,0 +1,51 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 582efbd..7688683 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -434,24 +434,6 @@ dependencies = [
+  "cfg-if",
+ ]
+
+-[[package]]
+-name = "lua-src"
+-version = "544.0.1"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "708ba3c844d5e9d38def4a09dd871c17c370f519b3c4b7261fbabe4a613a814c"
+-dependencies = [
+- "cc",
+-]
+-
+-[[package]]
+-name = "luajit-src"
+-version = "210.4.0+resty124ff8d"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "f76fb2e2c0c7192e18719d321c9a148f7625c4dcbe3df5f4c19e685e4c286f6c"
+-dependencies = [
+- "cc",
+-]
+-
+ [[package]]
+ name = "memchr"
+ version = "2.5.0"
+@@ -504,8 +486,6 @@ dependencies = [
+  "bstr",
+  "cc",
+  "erased-serde",
+- "lua-src",
+- "luajit-src",
+  "num-traits",
+  "once_cell",
+  "pkg-config",
+diff --git a/Cargo.toml b/Cargo.toml
+index 9149ba2..4430eee 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -60,7 +60,7 @@ features = ['serde']
+
+ [dependencies.mlua]
+ version = "0.7.4"
+-features = ['luajit', 'vendored', 'serialize', 'send']
++features = ['luajit', 'serialize', 'send']
+
+ [dependencies.tui-input]
+ version = "0.4.2"

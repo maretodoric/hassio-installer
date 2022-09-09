@@ -1,0 +1,31 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=boringproxy
+pkgver=0.9.1
+pkgrel=3
+pkgdesc="Simple tunneling reverse proxy with a fast web UI and auto HTTPS"
+url="https://github.com/boringproxy/boringproxy"
+options="!check" # no tests
+arch="all"
+license="MIT"
+makedepends="go inkscape libcap"
+source="$pkgname-$pkgver.tar.gz::https://github.com/boringproxy/boringproxy/archive/refs/tags/v$pkgver.tar.gz"
+
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly"
+
+build() {
+	# from ./scripts/generate_logo.sh
+	inkscape -w 192 -h 192 logo.svg -o logo.png
+
+	CGO_ENABLED=0 go build -ldflags "-X main.Version=$pkgver" \
+		-o boringproxy ./cmd/boringproxy
+}
+
+package() {
+	install -Dm0755 boringproxy -t "$pkgdir"/usr/bin
+	setcap cap_net_bind_service=+ep "$pkgdir"/usr/bin/boringproxy
+}
+
+sha512sums="
+29b91d110b950d08ee3aee9ba3b2fa8d5e14422cd586957c40bb60e5fbdbdb086546dffdd21ba3617b83a84d438ea8cb737bbbf10aa3d3f26098c573788c8e2c  boringproxy-0.9.1.tar.gz
+"

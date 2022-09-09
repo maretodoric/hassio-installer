@@ -1,0 +1,59 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kasts
+pkgver=22.06
+pkgrel=0
+pkgdesc="Kirigami-based podcast player"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by networkmanager-qt
+arch="all !armhf !s390x !riscv64"
+url="https://invent.kde.org/plasma-mobile/kasts"
+license="LicenseRef-KDE-Accepted-GPL AND CC0-1.0"
+depends="
+	kirigami2
+	qt5-qtbase-sqlite
+	gst-plugins-good
+	"
+makedepends="
+	extra-cmake-modules
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kirigami2-dev
+	networkmanager-qt-dev
+	openssl1.1-compat-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtkeychain-dev
+	qt5-qtmultimedia-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	samurai
+	syndication-dev
+	taglib-dev
+	threadweaver-dev
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/kasts-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+81ddf45ba2a439bae953002cca15cc37e62713ef298daf56890d393980970408c1d34beeb31864b0fbbcaa9e7297a278f33d86c43823db7926a25a5f72ac51b9  kasts-22.06.tar.xz
+"

@@ -1,0 +1,32 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=qtermwidget
+pkgver=1.1.0
+pkgrel=0
+pkgdesc="Terminal widget for QTerminal"
+url="https://github.com/lxqt/qtermwidget"
+arch="all"
+license="LGPL-2.0-or-later"
+makedepends="cmake lxqt-build-tools qt5-qtbase-dev qt5-qttools-dev"
+subpackages="$pkgname-dev"
+options="!check" # No testsuite
+source="https://github.com/lxqt/qtermwidget/releases/download/$pkgver/qtermwidget-$pkgver.tar.xz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+sha512sums="
+808034e372c619357a931c2831233b6e3db01917ca7fc709ddb02af4d26520c247ba1da329445792efeddb0409f596df10e31c7cc78e0386ac1ec64b4d23dc5b  qtermwidget-1.1.0.tar.xz
+"

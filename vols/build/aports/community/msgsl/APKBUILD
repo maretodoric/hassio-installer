@@ -1,0 +1,33 @@
+# Contributor: Zeyi Shen <qazxdrcssc2006@163.com>
+# Maintainer: Zeyi Shen <qazxdrcssc2006@163.com>
+pkgname=msgsl
+pkgver=4.0.0
+pkgrel=0
+pkgdesc="C++ Guideline Support Library implementation by Microsoft"
+url="https://github.com/microsoft/GSL"
+arch="noarch"
+license="MIT"
+makedepends="cmake gtest"
+source="$pkgname-$pkgver.tar.gz::https://github.com/microsoft/GSL/archive/v$pkgver.tar.gz"
+builddir="$srcdir/GSL-$pkgver"
+
+build() {
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+7fa7446796c6bf82fb3bff09f86a69c446a27be528bef3b17c8bc5ad2f24d5cf86bdb3d3813ecb44726e8f395020180e97e41027330d1fbf545cc0f0b44aac29  msgsl-4.0.0.tar.gz
+"

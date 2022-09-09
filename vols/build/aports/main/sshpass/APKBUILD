@@ -1,0 +1,29 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=sshpass
+pkgver=1.09
+pkgrel=0
+pkgdesc="Non-interactive SSH authentication utility"
+url="https://sourceforge.net/projects/sshpass/"
+arch="all"
+license="GPL-2.0-or-later"
+subpackages="$pkgname-doc"
+source="https://downloads.sourceforge.net/sshpass/sshpass-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="9b4ba83ca4d34364e7c43e29f98493dc3d595d24dc68c2fe3c244600d92a0f8bc0a6a7f8f43d64c0b4d714eb196516f297d904fa66035a76dae89a3726c0f2ff  sshpass-1.09.tar.gz"

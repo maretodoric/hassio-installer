@@ -1,0 +1,49 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=sonnet
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Spelling framework for Qt5"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-only"
+depends="hunspell"
+depends_dev="
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	hunspell-dev
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/sonnet-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# sonnet-test_autodetect fails to detect a speller backend
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "sonnet-test_autodetect"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cbdd03307e6325a1bd08cb967b04e0f498c72eaccf179d1c39968a69f90903bc95f16e95ce3eef16789404ce84ad49194d53d18eecec3da8f8f9cf0948c2e5ac  sonnet-5.95.0.tar.xz
+"

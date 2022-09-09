@@ -1,0 +1,28 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=micro-tetris
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="Micro Tetris, based on 1989 IOCCC Obfuscated Tetris"
+url="https://github.com/troglobit/tetris"
+arch="all"
+license="ISC"
+source="$pkgname-$pkgver.tar.gz::https://github.com/troglobit/tetris/archive/$pkgver.tar.gz"
+
+builddir="$srcdir"/tetris-$pkgver
+
+prepare() {
+	default_prepare
+	sed -i -e "/install/s:bin/tetris:usr/bin/tetris:" Makefile
+}
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+034e85028ab71e050de14775da2538ed6f2e27db9ae095c32982d5d32effdf17643f68cb43d72ef176855c909f264e45b9b6ae05c39bfd240ae08277f4523c78  micro-tetris-1.4.0.tar.gz
+"

@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-gme
+pkgver=0_git20220410
+pkgrel=0
+_commit="5fb30ebb8871624cecc07813212fb643fa8449f4"
+pkgdesc="port of blargg's Game_Music_Emu library"
+url="https://github.com/libretro/libretro-gme"
+arch="all !ppc64le"
+license="GPL-3.0-only"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/libretro-gme/archive/$_commit.tar.gz"
+builddir="$srcdir/libretro-gme-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 gme_libretro.so "$pkgdir"/usr/lib/libretro/gme_libretro.so
+}
+
+sha512sums="
+f3a1156ac716eab3e95b0398ce90f8283f51b697e9a7077c46116dcd229bf89a65a2b20b741f59a64d440246076127f496a75da0a39747a2b926bc4b0d6a2f44  libretro-gme-5fb30ebb8871624cecc07813212fb643fa8449f4.tar.gz
+"

@@ -1,0 +1,27 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=py3-django-tables2
+pkgver=2.3.4
+pkgrel=1
+pkgdesc="Table/data-grid framework for Django"
+url="https://github.com/bradleyayers/django-tables2/"
+arch="noarch"
+license="BSD-2-Clause"
+depends="python3 py3-django"
+makedepends="py3-setuptools"
+options="!check" #no testsuite
+source="https://files.pythonhosted.org/packages/source/d/django-tables2/django-tables2-$pkgver.tar.gz"
+builddir="$srcdir"/django-tables2-$pkgver
+
+build() {
+	python3 setup.py --quiet build
+}
+
+package() {
+	python3 setup.py --quiet install --prefix=/usr --root="$pkgdir"
+}
+
+
+sha512sums="
+d10144b79850847d2787e4a97f450eb3709a419a5dcd330667e3746c16f3be7472c6c26dbf7d765356130b79b8c915c46fd3201c83e66806753f1bb95911895f  django-tables2-2.3.4.tar.gz
+"

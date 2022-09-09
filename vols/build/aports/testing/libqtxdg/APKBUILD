@@ -1,0 +1,46 @@
+# Maintainer: Antoni Aloy <aaloytorrens@gmail.com>
+pkgname=libqtxdg
+pkgver=3.9.0
+pkgrel=0
+pkgdesc="Qt implementation of freedesktop.org xdg specifications"
+url="https://github.com/lxqt/libqtxdg"
+arch="all"
+license="LGPL-2.0-or-later"
+depends="gtk+3.0"
+makedepends="
+	cmake lxqt-build-tools qt5-qtbase-dev
+	qt5-qtsvg-dev glib-dev
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dev"
+source="https://github.com/lxqt/libqtxdg/releases/download/$pkgver/libqtxdg-$pkgver.tar.xz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DBUILD_TESTS=Yes \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run cmake --build build --target test
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+
+	mkdir -p "$pkgdir"/usr/lib
+	mv "$pkgdir"/usr/share/cmake "$pkgdir"/usr/lib
+}
+
+sha512sums="
+ec2763f148125fc62518eedbc28d1c1bed9337c15da566342749cbb3659ed7d5b8771785df116fe3d707f613c5d79337e440993bfa713fbc5b280acc3d687cfa  libqtxdg-3.9.0.tar.xz
+"

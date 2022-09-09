@@ -1,0 +1,47 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer:
+pkgname=thin-provisioning-tools
+pkgver=0.9.0
+pkgrel=3
+pkgdesc="suite of tools for manipulating the metadata of the dm-thin device-mapper target"
+url="https://github.com/jthornber/thin-provisioning-tools"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="expat-dev boost-dev libaio-dev linux-headers autoconf automake libtool gtest-dev"
+subpackages="$pkgname-doc"
+_realpkgver=${pkgver/_/-}
+source="thin-provisioning-tools-$_realpkgver.tar.gz::https://github.com/jthornber/thin-provisioning-tools/archive/v$_realpkgver.tar.gz
+	paths.patch
+"
+options="!check" # various test failures
+
+prepare() {
+	default_prepare
+	autoreconf -fi
+}
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--sbindir=/sbin \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--with-optimisation='' \
+		--enable-testing
+	make
+}
+
+check() {
+	make unit-test
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+e1796fb3948847d72ca8247cae58017507c0a847a00201b93668eeb8fbfea4107c4c2affa5c211c149798a89b10474e83d2bd61a5545a668299be97aed591e0f  thin-provisioning-tools-0.9.0.tar.gz
+ec7a752ab58bc4c30968ed4198bc6419120e3a811805647cc121a036b3ed084e7ce768c479ac5c5099ecf8c95835d40cfc24bff45834e72814f895517cb12c26  paths.patch
+"

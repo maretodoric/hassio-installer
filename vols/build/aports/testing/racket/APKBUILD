@@ -1,0 +1,61 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+#
+# TODO: Separate packages into subpackages?
+# TODO: Install even packages from the full tarball?
+# TODO: Figure out how to run tests.
+pkgname=racket
+pkgver=8.5
+pkgrel=0
+pkgdesc="A general purpose programming language in the Lisp-Scheme family"
+url="https://racket-lang.org/"
+# Racket BC does not seem to support riscv64.
+arch="all !riscv64"
+license="LGPL-3.0-or-later MIT"
+depends="ca-certificates libcrypto1.1 libssl1.1"
+makedepends="chrpath libffi-dev libucontext-dev"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://download.racket-lang.org/releases/$pkgver/installers/racket-minimal-$pkgver-src.tgz"
+builddir="$srcdir/$pkgname-$pkgver/src"
+
+# XXX: Racket CS (which is the default nowadays) uses
+# a bundled version of chez-scheme. However, without
+# our patches applied in only works on x86_64. For this
+# reason, we use Racket BC for now.
+
+prepare() {
+	default_prepare
+	# Remove bundled libffi to be sure that system-provided is used.
+	rm -Rf bc/foreign/libffi
+}
+
+build() {
+	export CFLAGS="$CFLAGS -D_GNU_SOURCE"
+	export LDFLAGS="$LDFLAGS -lucontext"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--target=$CTARGET \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--enable-shared \
+		--disable-docs \
+		--enable-sharezo \
+		--enable-bc
+	make bc
+}
+
+package() {
+	make install-bc DESTDIR="$pkgdir"
+
+	# Remove redundant RPATH.
+	chrpath -d "$pkgdir"/usr/bin/racketbc "$pkgdir"/usr/lib/racket/gracketbc
+	ln -sf /usr/bin/racketbc "$pkgdir"/usr/bin/racket
+	ln -sf /usr/bin/racobc "$pkgdir"/usr/bin/raco
+
+	rm -Rf "$pkgdir"/usr/share/applications
+}
+
+sha512sums="
+9eec6c8d4a210c6d36c02ac26f360663731ba3240da45b75f98fcc1deef4bc6bed4566ce454430324fa69676c7b9561940c21d27b806b0a6513584b832af12d6  racket-minimal-8.5-src.tgz
+"

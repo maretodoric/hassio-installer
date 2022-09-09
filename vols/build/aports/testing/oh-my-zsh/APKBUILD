@@ -1,0 +1,32 @@
+# Contributor: Orson Teodoro <orsonteodoro@hotmail.com>
+# Maintainer: Jacek Pruciak <alpine@juniorjpdj.pl>
+pkgname=oh-my-zsh
+pkgver=0_git20220104
+pkgrel=0
+pkgdesc="A delightful community-driven framework for managing your zsh \
+configuration that includes plugins and themes."
+url="https://ohmyz.sh/"
+arch="noarch"
+license="MIT"
+depends="zsh powerline-extra-symbols"
+subpackages="$pkgname-doc"
+options="!check" # no upstream tests
+_gitrev="31d63ea884e8ef56a40bed8771cdd8d3aec131f9"
+install="$pkgname.post-install $pkgname.post-upgrade"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ohmyzsh/ohmyzsh/archive/$_gitrev.tar.gz
+	install-path.patch"
+builddir="$srcdir/"ohmyzsh-$_gitrev
+
+package() {
+	install -d "$pkgdir"/usr/share/oh-my-zsh/ \
+		"$pkgdir"/usr/share/doc/$pkgname/
+	find . -type d -exec chmod 755 {} \;
+	mv ./* "$pkgdir"/usr/share/oh-my-zsh/
+	install -t "$pkgdir"/usr/share/doc/$pkgname/ \
+		"$pkgdir"/usr/share/oh-my-zsh/README.md
+}
+
+sha512sums="
+1e6dae9ea56e1644001a65b3aeebcd2a5e4bd4ef6fb2869c2626c582ffeca7dbd63d2d271854ac59c2753cdf36ef3a0f7d7bcc0ffdf10bdacb2d3039b0e40b84  oh-my-zsh-0_git20220104.tar.gz
+1fa69780fdda6103ff70bf46458985d261309673b7d554b0443344e611671d2de640ced887335a9b9cadb1225f88ddca3c8386cb65eb0c92ba6e0b08d8729a6e  install-path.patch
+"

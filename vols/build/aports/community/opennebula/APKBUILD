@@ -1,0 +1,81 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+# TODO: Add server components.
+pkgname=opennebula
+pkgver=5.12.12
+pkgrel=0
+pkgdesc="OpenNebula (currenty empty, install opennebula-tools instead)"
+url="https://opennebula.io"
+arch="noarch !s390x"  # blocked by ruby-rbvmomi
+license="Apache-2.0"
+_depends_ruby="
+	ruby
+	ruby-nokogiri
+	ruby-rbvmomi
+	ruby-rexml
+	ruby-xmlrpc
+	"
+_depends_tools="
+	ruby
+	ruby-nokogiri
+	"
+makedepends="$_depends_ruby $_depends_tools bash"
+# The subpackages reflect names of the official Debian/Ubuntu packages.
+subpackages="
+	ruby-$pkgname:rubylibs:noarch
+	$pkgname-tools::noarch
+	"
+source="https://github.com/OpenNebula/one/archive/release-$pkgver/$pkgname-$pkgver.tar.gz"
+builddir="$srcdir/one-release-$pkgver"
+options="!check"  # no tests provided
+
+build() {
+	./share/rubygems/generate
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+rubylibs() {
+	pkgdesc="Ruby libraries needed to talk to OpenNebula"
+	depends="$_depends_ruby"
+
+	cd "$builddir"
+	_gem_install opennebula
+}
+
+tools() {
+	pkgdesc="Command Line interface for OpenNebula"
+	depends="$_depends_tools ruby-opennebula=$pkgver-r$pkgrel"
+
+	cd "$builddir"
+	_gem_install opennebula-cli
+
+	mkdir -p "$subpkgdir"/etc/one/cli
+	install -m 644 -t "$subpkgdir"/etc/one/cli src/cli/etc/*.yaml
+}
+
+_gem_install() {
+	local gemname=$1
+	local gemdir="$subpkgdir/$(ruby -e 'puts Gem.default_dir')"
+	local geminstdir="$gemdir/gems/$gemname-$pkgver"
+
+	gem install \
+		--local \
+		--install-dir "$gemdir" \
+		--bindir "$subpkgdir/usr/bin" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		./$gemname-$pkgver.gem
+
+	rm -rf "$gemdir"/cache \
+		"$gemdir"/doc \
+		"$geminstdir"/LICENSE \
+		"$geminstdir"/NOTICE
+}
+
+sha512sums="
+7888c4acd994707ccaece464f9bd3d93dd668da73a1d0656b0440b7f46f53ea016555dca8f940d2d3afa88ac3361a0149f0a8529a6c9d0f04ad9baa029f5a9ae  opennebula-5.12.12.tar.gz
+"

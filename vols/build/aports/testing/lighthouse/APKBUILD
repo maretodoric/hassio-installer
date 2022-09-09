@@ -1,0 +1,42 @@
+# Contributor: Oleg Titov <oleg.titov@gmail.com>
+# Maintainer: Oleg Titov <oleg.titov@gmail.com>
+pkgname=lighthouse
+pkgver=2.3.1
+pkgrel=0
+pkgdesc="Ethereum 2.0 Client"
+url="https://lighthouse.sigmaprime.io/"
+arch="x86_64 aarch64"  # limited by upstream
+license="Apache-2.0"
+makedepends="cargo clang-dev cmake openssl-dev protoc"
+options="!check" # disable check as it takes too long
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sigp/lighthouse/archive/v$pkgver/lighthouse-$pkgver.tar.gz"
+
+# secfixes:
+#   2.2.0-r0:
+#     - CVE-2022-0778
+
+export OPENSSL_NO_VENDOR=true
+export RUSTFLAGS="$RUSTFLAGS -L /usr/lib/"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked \
+		--workspace \
+			--exclude ef_tests \
+			--exclude eth1 \
+			--exclude genesis
+}
+
+package() {
+	install -D -m755 "target/release/lighthouse" "$pkgdir/usr/bin/lighthouse"
+
+	install -Dm 644 -t "$pkgdir/usr/share/doc/lighthouse" README.md
+}
+
+sha512sums="
+8490ca629762aa4e9cc0b06f00cf94bad1a9fa2dec3f9944bf128bc2f25dbb9ea450614563bb511f9b0b3ceff63efe71ad1fc004c9c583e6f73ab225bcc0b7ae  lighthouse-2.3.1.tar.gz
+"

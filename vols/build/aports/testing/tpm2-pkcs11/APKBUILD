@@ -1,0 +1,57 @@
+# Contributor: Henrik Riomar <henrik.riomar@gmail.com>
+# Maintainer:
+pkgname=tpm2-pkcs11
+pkgver=1.5.0
+pkgrel=2
+pkgdesc="A PKCS#11 interface for TPM2 hardware"
+url="https://github.com/tpm2-software/tpm2-pkcs11"
+arch="all"
+license="BSD-2-Clause"
+depends="
+	bash
+	py3-asn1-modules
+	py3-cryptography
+	py3-yaml
+	python3
+	tpm2-tools
+	"
+makedepends="
+	autoconf
+	autoconf-archive
+	automake
+	libtool
+	linux-headers
+	openssl-dev
+	py3-setuptools
+	python3-dev
+	sqlite-dev
+	tpm2-abrmd-dev
+	tpm2-tss-dev
+	yaml-dev
+	"
+options="!check"  # Requires IBM TPM simulator
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/tpm2-software/tpm2-pkcs11/archive/$pkgver.tar.gz"
+
+prepare() {
+	sed -i "s|m4_esyscmd_s(\[git describe .*\])|[$pkgver]|" configure.ac
+	default_prepare
+	./bootstrap
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--target="$CTARGET" \
+		--prefix=/usr \
+	make
+	cd tools && python3 setup.py build
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	cd tools && python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="b9b39d3a689312cf8e0b2fa1bff55f7aab2d6f0af817e8b99ecd0bc46d9954e1ce12f8375b220519fef418af6c086b00bb85a12b7425883df5304ecb9911d7ce  tpm2-pkcs11-1.5.0.tar.gz"

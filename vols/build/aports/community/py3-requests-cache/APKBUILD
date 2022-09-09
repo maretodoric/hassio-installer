@@ -1,0 +1,51 @@
+# Contributor: Philipp Glaum <p@pglaum.de>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-requests-cache
+pkgver=0.9.1
+pkgrel=0
+pkgdesc="Persistent cache for requests library"
+url="https://github.com/reclosedev/requests-cache"
+arch="noarch"
+license="BSD-3-Clause"
+depends="
+	py3-requests
+	py3-responses
+	py3-url-normalize
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-cattrs
+	py3-ujson
+	py3-itsdangerous
+	py3-mock
+	py3-pytest
+	py3-requests-mock
+	py3-timeout-decorator
+	"
+source="https://pypi.python.org/packages/source/r/requests-cache/requests-cache-$pkgver.tar.gz"
+builddir="$srcdir/requests-cache-$pkgver"
+
+prepare() {
+	default_prepare
+
+	# Invoke python3
+	sed -i "s|os.system('python %s' % test)|os.system('python3 %s' % test)|" setup.py
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# integration tests skipped as they require running databases
+	pytest --ignore tests/integration
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1fc33a26b109b43a4f9d273e66b591ff7c40cc7564a6cb664d446c6717d04ef9004d5dc7ec6800d77dec243c1fb6004b4d3b3bca3f031a0b7fa28a0bc6d6bacd  requests-cache-0.9.1.tar.gz
+"

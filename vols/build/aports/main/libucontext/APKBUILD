@@ -1,0 +1,34 @@
+# Maintainer: Ariadne Conill <ariadne@dereferenced.org>
+pkgname=libucontext
+pkgver=1.2
+pkgrel=0
+pkgdesc="ucontext function implementations"
+url="https://github.com/kaniini/libucontext"
+arch="all"
+license="ISC"
+subpackages="$pkgname-dev $pkgname-doc"
+makedepends="scdoc"
+source="https://distfiles.dereferenced.org/libucontext/libucontext-$pkgver.tar.xz"
+
+case "$CTARGET_ARCH" in
+	arm*)		LIBUCONTEXT_ARCH="arm" ;;
+	ppc64le)	LIBUCONTEXT_ARCH="ppc64" ;;
+	*)		LIBUCONTEXT_ARCH="$CTARGET_ARCH" ;;
+esac
+
+build() {
+	make ARCH="$LIBUCONTEXT_ARCH"
+	make ARCH="$LIBUCONTEXT_ARCH" docs
+}
+
+check() {
+	make ARCH="$LIBUCONTEXT_ARCH" check
+}
+
+package() {
+	make ARCH="$LIBUCONTEXT_ARCH" DESTDIR="$pkgdir" install install_docs
+}
+
+sha512sums="
+6603f2dcd87c4d9919c1726f2964632483e1a647733ff543d5935e3e2dac548adf320f1f9fb4c494691fe99fb393d64b15369f04d3783b2ca4c40b68c3d87865  libucontext-1.2.tar.xz
+"

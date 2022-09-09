@@ -1,0 +1,25 @@
+# Contributor: psykose <alice@ayaya.dev>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=py3-gpep517
+_pkgname=gpep517
+pkgver=6
+pkgrel=0
+pkgdesc="Minimal backend script to aid installing Python packages through PEP 517-compliant build systems"
+url="https://github.com/mgorny/gpep517/"
+arch="noarch"
+license="MIT"
+# python 3.11: remove py3-tomli
+depends="py3-installer py3-tomli python3"
+source="https://github.com/mgorny/gpep517/archive/v$pkgver/gpep517-v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+options="!check" # skip check since intended to be a low-level bootstrap package
+
+package() {
+	local sitedir="$(python3 -c 'import site;print(site.getsitepackages()[0])')"
+	mkdir -p "$pkgdir/$sitedir"
+	cp -a gpep517 "$pkgdir/$sitedir"
+}
+
+sha512sums="
+681108dab418d0d2d5b017f19bf8802479655f22eb6b72e9d78c6bbd2d08583751a465377c2006c507f0ea258d2d46bf9300865896af4458a763b56a86abe329  gpep517-v6.tar.gz
+"

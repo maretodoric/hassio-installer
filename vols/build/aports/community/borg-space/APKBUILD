@@ -1,0 +1,36 @@
+# Contributor: Andy Hawkins <andy@gently.org.uk>
+# Maintainer: Andy Hawkins <andy@gently.org.uk>
+pkgname=borg-space
+pkgver=0.3
+pkgrel=0
+pkgdesc="Report and track the size of your Borg repositories"
+url="https://pypi.org/project/borg-space/"
+license="GPL-3.0-or-later"
+# riscv64: py3-matplotlib missing
+arch="noarch !riscv64"
+depends="
+	emborg>=1.27
+	python3
+	py3-appdirs
+	py3-arrow
+	py3-docopt
+	py3-inform
+	py3-matplotlib
+	py3-nestedtext
+	py3-quantiphy
+	"
+makedepends="py3-setuptools"
+source="https://github.com/KenKundert/borg-space/archive/v$pkgver/borg-space-$pkgver.tar.gz"
+options="!check" # no test suite
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6ee2dd6132ad8e1c9015c27d3845500ae0407b9701d94abb53f5716be7056a892d84cfd0b22bd8f03b6cef95bfe3b99a90ed73e1413d87214b6e956b205a3eae  borg-space-0.3.tar.gz
+"

@@ -1,0 +1,41 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=py3-rich
+_pkgname=rich
+pkgver=12.4.4
+pkgrel=0
+pkgdesc="Python library for rich text formatting and terminal formatting"
+url="https://rich.readthedocs.io/en/latest/"
+arch="noarch"
+license="MIT"
+depends="
+	py3-colorama
+	py3-commonmark
+	py3-pygments
+	py3-typing-extensions
+	python3
+	"
+makedepends="py3-build py3-installer py3-poetry-core py3-wheel"
+checkdepends="py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://github.com/willmcgugan/rich/archive/refs/tags/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	# XXX: hack for poetry to not ignore files
+	GIT_DIR=. python3 -m build --no-isolation --wheel
+}
+
+check() {
+	python3 -m installer -d testenv dist/rich-$pkgver-py3-none-any.whl
+	local sitedir="$(python3 -c 'import site;print(site.getsitepackages()[0])')"
+
+	PYTHONPATH="$PWD/testenv/$sitedir" python3 -m pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" dist/rich-$pkgver-py3-none-any.whl
+}
+
+sha512sums="
+c1d077bb1448fd436fea87697d31b484615f787c9259418d6ebd12da45bf14f25f192198e4522653c5bd4e5ba218da7d72597e20d04dbffce4a3ea8bd82ce27c  py3-rich-12.4.4.tar.gz
+"

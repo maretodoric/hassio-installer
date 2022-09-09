@@ -1,0 +1,32 @@
+# Contributor: Kevin Daudt <kdaudt@alpinelinux.org>
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=py3-pyzabbix
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Library to interact with the Zabbix API"
+url="https://github.com/lukecyca/pyzabbix"
+arch="noarch"
+license="LGPL-2.1-or-later"
+depends="python3 py3-requests py3-semantic-version"
+makedepends="python3-dev py3-setuptools"
+checkdepends="py3-httpretty"
+source="$pkgname-$pkgver.tar.gz::https://github.com/lukecyca/pyzabbix/archive/$pkgver.tar.gz
+	httpretty-version.patch"
+builddir="$srcdir/${pkgname#py3-}-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+f97eac7424d3015addf39a9dd9f0810e336896fe34b97e13cf088ca6a607514ccdccf9f8e0f624b32666c0453980e2f8e448af5f16b1e80ca3dbd86d0a8279ac  py3-pyzabbix-1.0.0.tar.gz
+a827ec41034861f41db03b835c2244ce920fa06126455079d17538651580622bd92a34940b10e2b6066f2b237f2ff49e96a7099ad7721bc0d39c6424ac11af03  httpretty-version.patch
+"

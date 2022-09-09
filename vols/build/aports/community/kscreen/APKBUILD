@@ -1,0 +1,61 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kscreen
+pkgver=5.25.1
+pkgrel=0
+pkgdesc="KDE's screen management software"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> kconfigwidgets
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/plasma-desktop/"
+license="GPL-2.0-or-later AND LGPL-2.1-or-later"
+depends="hicolor-icon-theme"
+makedepends="
+	extra-cmake-modules
+	kcmutils-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	kglobalaccel-dev
+	ki18n-dev
+	kiconthemes-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libkscreen-dev
+	plasma-framework-dev
+	qt5-qtbase-dev
+	qt5-qtsensors-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+
+case "$pkgver" in
+	*.90*) _rel=unstable;;
+	*) _rel=stable;;
+esac
+source="https://download.kde.org/$_rel/plasma/$pkgver/kscreen-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# kscreen-kded-configtest is broken
+	# kscreen-kded-osdtest hangs
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "kscreen-kded-(config|osd)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+6c31e3a5570639b16b6bd40f9ddd6e32182df31773db87d8148577422d5fa4d00efa4bc936444e83bfaa796f7229c4e6f46034872e13f13dc4726885984010df  kscreen-5.25.1.tar.xz
+"

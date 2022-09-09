@@ -1,0 +1,48 @@
+# Contributor: Newbyte <newbie13xd@gmail.com>
+# Maintainer: Newbyte <newbie13xd@gmail.com>
+pkgname=karlender
+pkgver=0.4.4
+pkgrel=0
+pkgdesc="Mobile friendly GTK based calendar app written in Rust"
+url="https://gitlab.com/loers/karlender"
+# ppc64le: build script for dependency ring 0.16.20 fails
+# s390x, riscv64: blocked by rust/cargo
+arch="all !ppc64le !riscv64 !s390x"
+license="GPL-3.0-or-later"
+makedepends="
+	cargo
+	cargo-gra
+	libadwaita-dev
+	"
+source="https://gitlab.com/loers/karlender/-/archive/v$pkgver/karlender-v$pkgver.tar.gz
+	"
+options="!check"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo gra gen
+	cargo build --release --frozen
+}
+
+package() {
+	cargo install --locked --root "$pkgdir/usr" --path .
+	make -C target/gra-gen install ROOT="$pkgdir/usr"
+
+	rm "$pkgdir"/usr/.crates.toml
+	rm "$pkgdir"/usr/.crates2.json
+}
+
+sha512sums="
+7a5743086f9003533d5de608a103d9716b5459c6a5b5b761050035ab58f72f2d95e00c3686e03e7934bf79c109f116fe4cd574f0f3111871a31ae93015ef0f3a  karlender-v0.4.4.tar.gz
+"

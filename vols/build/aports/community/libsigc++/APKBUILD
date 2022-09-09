@@ -1,0 +1,36 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libsigc++
+pkgver=2.10.6
+pkgrel=0
+pkgdesc="type-safe Signal Framework for C++"
+url="https://github.com/libsigcplusplus/libsigcplusplus"
+arch="all"
+license="LGPL-3.0-or-later"
+makedepends="meson perl doxygen graphviz libxslt"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://download.gnome.org/sources/libsigc++/${pkgver%.*}/libsigc++-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dbuild-documentation=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+doc() {
+	default_doc
+
+	mv "$pkgdir"/usr/share/devhelp "$subpkgdir"/usr/share
+	rmdir "$pkgdir"/usr/share
+}
+
+sha512sums="7dd57c061defe323de5721d187145dcf63346311d8993eb6346a33789f26c8509c1bf5a73d55776cc5ebe85fb14d54107553a652dd42f452aed6aed20047b549  libsigc++-2.10.6.tar.xz"

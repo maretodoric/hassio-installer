@@ -1,0 +1,147 @@
+# Contributor: Michael Mason <ms13sp@gmail.com>
+# Contributor: Gabriele Santomaggio <g.santomaggio@gmail.com>
+# Contributor: Marlus Saraiva <marlus.saraiva@gmail.com>
+# Maintainer: Daniel Isaksen <d@duniel.no>
+
+# NOTE: Please do NOT upgrade to X.0 releases of Erlang, as they tend
+# to have breaking changes which require the rest of the ecosystem to
+# catch up with.  If in doubt, do a test rebuild of community/elixir.
+
+pkgname=erlang
+pkgver=24.3.3
+pkgrel=0
+pkgdesc="General-purpose programming language and runtime environment"
+url="https://www.erlang.org/"
+license="Apache-2.0"
+arch="all"
+makedepends="perl-dev perl zlib-dev ncurses-dev openssl1.1-compat-dev
+	unixodbc-dev autoconf wxgtk-dev glu-dev"
+subpackages="$pkgname-dev
+	$pkgname-debugger:_mv_erlang_lib
+	$pkgname-dialyzer:_mv_erlang_lib
+	$pkgname-et:_mv_erlang_lib
+	$pkgname-megaco:_mv_erlang_lib
+	$pkgname-observer:_mv_erlang_lib
+	$pkgname-odbc:_mv_erlang_lib
+	$pkgname-reltool:_mv_erlang_lib
+	$pkgname-wx:_mv_erlang_lib
+	"
+source="https://github.com/erlang/otp/releases/download/OTP-$pkgver/otp_src_$pkgver.tar.gz"
+
+builddir="$srcdir/otp_src_$pkgver"
+
+# Disable Java support (jinterface) on architectures that lack OpenJDK
+case "$CTARGET_ARCH" in
+	x86|armhf|armv7|x86_64|aarch64|ppc64le|s390x)
+		makedepends="$makedepends openjdk8"
+		export PATH="/usr/lib/jvm/java-1.8-openjdk/bin:$PATH"
+		;;
+	*)
+		;;
+esac
+
+# secfixes:
+#   23.2.5-r0:
+#     - CVE-2020-35733
+
+build() {
+	export CPPFLAGS="-D_BSD_SOURCE $CPPFLAGS"
+
+	./otp_build autoconf
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--host="$CHOST" \
+		--build="$CBUILD" \
+		--enable-threads \
+		--enable-shared-zlib \
+		--enable-ssl=dynamic-ssl-lib
+	make
+}
+
+check() {
+	ERL_TOP="$builddir" make release_tests
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+_mv_erlang_lib() {
+	local lib=$(echo ${subpkgname#"$pkgname-"} | tr '-' '_')
+	depends="$pkgname=$pkgver-r$pkgrel"
+	case "$lib" in
+		debugger)	depends="$pkgname-wx=$pkgver-r$pkgrel";;
+		dialyzer)	depends="$pkgname-wx=$pkgver-r$pkgrel";;
+		et)		depends="$pkgname-wx=$pkgver-r$pkgrel";;
+		megaco)		depends="$pkgname-debugger=$pkgver-r$pkgrel $pkgname-et=$pkgver-r$pkgrel";;
+		observer)	depends="$pkgname-et=$pkgver-r$pkgrel $pkgname-wx=$pkgver-r$pkgrel";;
+		reltool)	depends="$pkgname-wx=$pkgver-r$pkgrel";;
+		wx)		depends="$pkgname=$pkgver-r$pkgrel xauth terminus-font";;
+	esac
+
+	mkdir -p "$subpkgdir"/usr/lib/erlang/lib
+	rm -f "$pkgdir"/usr/lib/erlang/lib/$lib-*/src/*.erl
+	mv "$pkgdir"/usr/lib/erlang/lib/$lib-* "$subpkgdir"/usr/lib/erlang/lib/
+}
+
+dev() {
+	set -x
+	local i=''
+	depends="$pkgname=$pkgver-r$pkgrel $depends_dev"
+	pkgdesc="$pkgdesc (development files)"
+
+	cd "$pkgdir"
+	local libdirs=usr/
+	[ -d lib/ ] && libdirs="lib/ $libdirs"
+	for i in usr/include usr/lib/pkgconfig usr/share/aclocal\
+			usr/share/gettext usr/bin/*-config		\
+			usr/share/vala/vapi usr/share/gir-[0-9]*	\
+			usr/share/qt*/mkspecs				\
+			usr/lib/qt*/mkspecs				\
+			usr/lib/cmake					\
+			$(find . -name include -type d)			\
+			$(find $libdirs -name '*.[acho]'		\
+			-o -name '*.prl' 2>/dev/null); do
+
+		if [ -e "$pkgdir/$i" ] || [ -L "$pkgdir/$i" ]; then
+			d="$subpkgdir/${i%/*}"  # dirname $i
+			mkdir -p "$d"
+			mv "$pkgdir/$i" "$d"
+			rmdir "$pkgdir/${i%/*}" 2>/dev/null || true
+		fi
+	done
+
+	# move *.so links needed when linking the apps to -dev packages
+	for i in lib/*.so usr/lib/*.so; do
+		if [ -L "$i" ]; then
+			mkdir -p "$subpkgdir"/"${i%/*}"
+			mv "$i" "$subpkgdir/$i"
+		fi
+	done
+}
+
+# helper script to manually check the dependencies of subpackages
+verifydeps() {
+	local _p
+	for _p in $subpackages; do
+		case $_p in
+			*:*) _p=${_p%:*};;
+			*) continue;;
+		esac
+		local _subdir="$pkgdir/../$_p"
+		local _pkginfo="$pkgdir/../.control.$_p"/.PKGINFO
+		msg "$_p"
+		grep '^depend ='  $_pkginfo || true
+		find "$_subdir" -name '*.app' | while read -r _f; do
+			echo "  $_f"
+			sed -n '/{runtime_dependencies/,/}/p' $_f
+		done
+	done
+}
+
+sha512sums="
+2bf7cdbdb9e6839c09a77c0adcc5f8337b0db379c579a2054fdaf0cfa571b7fc9ee0e4d8f03be4124d0af5d392c0c7f4856847338ac09dd9f406aa9d1ef11e4d  otp_src_24.3.3.tar.gz
+"

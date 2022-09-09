@@ -1,0 +1,28 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sqlalchemy-utils
+_pkgname=SQLAlchemy-Utils
+pkgver=0.38.2
+pkgrel=0
+pkgdesc="Various utility functions and custom data types for SQLAlchemy"
+url="https://sqlalchemy-utils.readthedocs.io/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-anyjson py3-arrow py3-babel py3-colour py3-cryptography
+	py3-dateutil py3-furl py3-intervals py3-passlib py3-phonenumbers
+	py3-sqlalchemy"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+2dc98549501e3b8fc3ad77aa14f31940e9aa73999d699bb1a2d4be424eb3bff38a3fc8cacf8774e42f816c1b31cc1ccc4e9955cf1dae2fd3a2b9e4e0f0b18cc7  SQLAlchemy-Utils-0.38.2.tar.gz
+"

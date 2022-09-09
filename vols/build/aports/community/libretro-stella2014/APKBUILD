@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-stella2014
+pkgver=0_git20220409
+pkgrel=0
+_commit="1351a4fe2ca6b1f3a66c7db0df2ec268ab002d41"
+pkgdesc="port of Stella to libretro"
+url="https://github.com/libretro/stella2014-libretro"
+arch="all"
+license="GPL-2.0-only"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/stella2014-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/stella2014-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 stella2014_libretro.so "$pkgdir"/usr/lib/libretro/stella2014_libretro.so
+}
+
+sha512sums="
+81b36fdbef1d12ef1af9c42654c9aafaa4ce5fc08246e9f9d497ec1f05445baf63735ac4320409ef24050446825e9783b32830f33220b6bb245fd5854aecbb4e  libretro-stella2014-1351a4fe2ca6b1f3a66c7db0df2ec268ab002d41.tar.gz
+"

@@ -1,0 +1,33 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=terraform-provider-libvirt
+pkgver=0.6.14
+pkgrel=3
+pkgdesc="Terraform provider using libvirt"
+url="https://github.com/dmacvicar/terraform-provider-libvirt"
+arch="all !s390x !riscv64" # blocked by libvirt
+license="Apache-2.0"
+depends="terraform"
+makedepends="go libvirt-dev"
+source="https://github.com/dmacvicar/terraform-provider-libvirt/archive/v$pkgver/terraform-provider-libvirt-$pkgver.tar.gz
+	version.patch
+	"
+options="!check" # testsuite takes too long to run and appears need a running libvirt
+
+build() {
+	unset LDFLAGS
+	make VERSION="$pkgver"
+}
+
+check() {
+	make test
+}
+
+package() {
+	install -Dm755 terraform-provider-libvirt \
+		"$pkgdir"/usr/bin/terraform-provider-libvirt
+}
+
+sha512sums="
+1a20e7af9001ac3f9a49f133d336f781727ddd01322746494f680cc348ec14f75664692ba0184aeb40a62d0b041791786d5ae155069ff79eee2c7829efcb2994  terraform-provider-libvirt-0.6.14.tar.gz
+898a0f65865e36d379c7ab02ee2ba0ef05fbd477db17f41b3adcfccb63f9b76f694927285fc9a6c03f16116502eabb3d1575f3c65bec58684fc81e925ebe4237  version.patch
+"

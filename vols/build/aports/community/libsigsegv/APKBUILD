@@ -1,0 +1,37 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Will Sinatra <wpsinatra@gmail.com>
+pkgname=libsigsegv
+pkgver=2.14
+pkgrel=0
+pkgdesc="Page fault detection library"
+url="https://www.gnu.org/software/libsigsegv/"
+arch="all"
+license="GPL-2.0-or-later"
+subpackages="$pkgname-dev"
+source="https://ftp.gnu.org/gnu/libsigsegv/libsigsegv-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-static \
+		--enable-shared
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+423dade56636fe38356f0976e1288178cb1c7c059615e9f70ad693a1e4194feba47a583b0804717e95a866da271b1ea5f80083c54a121577983dd23e5aa9f056  libsigsegv-2.14.tar.gz
+"

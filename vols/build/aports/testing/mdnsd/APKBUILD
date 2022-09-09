@@ -1,0 +1,50 @@
+# Contributor: Miguel Terron <miguel.a.terron@gmail.com>
+# Maintainer: Miguel Terron <miguel.a.terron@gmail.com>
+pkgname=mdnsd
+pkgver=0.11
+pkgrel=0
+pkgdesc="Embeddable Multicast DNS Daemon"
+url="https://github.com/troglobit/mdnsd"
+arch="all"
+license="BSD-3-Clause"
+subpackages="
+	$pkgname-doc
+	$pkgname-libs
+	$pkgname-static
+	$pkgname-openrc
+	"
+source="
+	mdnsd.confd
+	mdnsd.initd
+	https://github.com/troglobit/mdnsd/releases/download/v$pkgver/mdnsd-$pkgver.tar.xz
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--without-systemd
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -m755 -D "$srcdir"/$pkgname.initd \
+		"$pkgdir"/etc/init.d/$pkgname
+	install -m644 -D "$srcdir"/$pkgname.confd \
+		"$pkgdir"/etc/conf.d/$pkgname
+}
+sha512sums="
+417c394b24ee1ac87f83a6040df963e948191007ef9b27b28537ecdf7b01e126b0069f6ef96e579394d75b90194f1de975edb9e71486e16815372ea379006601  mdnsd.confd
+8a4fb736263ec05aa439f320091a43dfea64fb7e89fd0af5ada3981d0461009f55e1ac598a143a9458063eaf117e1b7b788463f0af316153fa6bfea864019a99  mdnsd.initd
+1d7c8641c9ee5cdc806c54bdf0aaa3d6043c0c83c79249ac9d952fe632991caebb9eb9c9ef9a7fc797e701ccf22517d2b0449716ea26683a7e2b476ecb8b24e7  mdnsd-0.11.tar.xz
+"

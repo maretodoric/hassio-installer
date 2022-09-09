@@ -1,0 +1,47 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=ki18n
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Advanced internationalization framework"
+# armhf blocked by qt5-qtdeclarative
+arch="all !armhf"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-or-later AND (LGPL-2.1-only OR LGPL-3.0-or-later)"
+depends_dev="
+	qt5-qtdeclarative-dev
+	qt5-qtscript-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	doxygen
+	graphviz
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/ki18n-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# ki18n-klocalizedstringtest, kcountrytest and kcountrysubdivisiontest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "(ki18n-klocalizedstring|kcountry|kcountrysubdivision)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+13cb83fb3d4171f3f51eefb65cad0b73380b2aa7936b0d7aea227a74f95c9e759efe3097ceadbe6f7a08ff8a9ae3bf8708ae3a57c4ef095f82b9e96740f37881  ki18n-5.95.0.tar.xz
+"

@@ -1,0 +1,29 @@
+# Contributor: Paul Bredbury <brebs@sent.com>
+pkgname=atari800
+pkgver=4.2.0
+pkgrel=1
+pkgdesc="Atari 8-bit computer emulator"
+url="https://atari800.github.io/"
+arch="x86_64"
+license="GPL-2.0-or-later"
+makedepends="autoconf automake sdl12-compat-dev mesa-dev unzip"
+options="!check" # No test suite
+subpackages="$pkgname-doc"
+source="https://github.com/atari800/atari800/archive/ATARI800_${pkgver//./_}.tar.gz"
+builddir="$srcdir/atari800-ATARI800_${pkgver//./_}"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure --prefix=/usr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="b27326182bacd8e1951d052f57fcd3ba4d25bb4db569bf1a1fa69556b454d3d02a1986c36141a5470249ef30c8b37e34a508deafde64d1b710712ff8fcfc8e55  ATARI800_4_2_0.tar.gz"

@@ -1,0 +1,41 @@
+# Contributor: Magnus Sandin <magnus.sandin@gmail.com>
+# Maintainer: Magnus Sandin <magnus.sandin@gmail.com>
+pkgname=carla
+pkgver=2.4.3
+pkgrel=0
+pkgdesc="Fully-featured audio plugin host"
+url="https://github.com/falkTX/Carla"
+options="!check" # No tests available
+arch="armv7 aarch64 x86 x86_64"
+license="GPL-2.0-or-later"
+depends="py3-qt5 python3 qt5-qtsvg"
+depends_dev="$pkgname"
+makedepends="
+	alsa-lib-dev
+	file-dev
+	fluidsynth-dev
+	liblo-dev
+	libsndfile-dev
+	libx11-dev
+	linux-headers
+	pulseaudio-dev
+	qt5-qtbase-dev
+	qt5-qtsvg-dev
+	"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/falkTX/Carla/archive/refs/tags/v$pkgver.tar.gz
+	"
+builddir="$srcdir/Carla-$pkgver"
+
+build() {
+	make features
+	make
+}
+
+package() {
+	make install PREFIX=/usr DESTDIR="$pkgdir"
+}
+
+sha512sums="
+1e062e2bd5c8791d5936dbaa30accf8165cfb8b487e4b7d90800b573f436a6415d7452000849ebdab60ff60f7162161a0f4f50645deaaf115d47a436807ea3b9  carla-2.4.3.tar.gz
+"

@@ -1,0 +1,61 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+# Contributor: Daniel Isaksen <d@duniel.no>
+# Contributor: Mickaël Schoentgen <mickael@apible.io>
+pkgname=httpie
+pkgver=3.2.1
+pkgrel=1
+pkgdesc="CLI, cURL-like tool"
+url="https://httpie.org/"
+arch="noarch"
+license="BSD-3-Clause"
+depends="
+	py3-defusedxml
+	py3-multidict
+	py3-pip
+	py3-pygments
+	py3-pysocks
+	py3-requests
+	py3-requests-toolbelt
+	py3-rich
+	py3-setuptools
+	py3-wheel
+	python3
+	"
+checkdepends="
+	py3-pytest
+	py3-pytest-httpbin
+	py3-pytest-lazy-fixture
+	py3-responses
+	py3-virtualenv
+	"
+source="https://files.pythonhosted.org/packages/source/h/httpie/httpie-$pkgver.tar.gz"
+subpackages="$pkgname-doc"
+
+# secfixes:
+#   1.0.3-r0:
+#     - CVE-2019-10751
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	virtualenv --system-site-packages .venv
+	# activate script gets created after running virtualenv
+	# shellcheck disable=SC1091
+	. .venv/bin/activate
+	pip install .
+
+	python3 -m pytest ./httpie ./tests -k "not TestQuietFlag and not test_fetch and not check_updates"
+
+	deactivate
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+eb61d60dd3a8e5bff3f84a51ec02521f06a0dc918a42e24d055294daf1a26abba55406d40d154380e91605d47754207b8678b52e63b855d5480de10b35944dda  httpie-3.2.1.tar.gz
+"

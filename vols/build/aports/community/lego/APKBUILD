@@ -1,0 +1,44 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=lego
+pkgver=4.7.0
+pkgrel=0
+pkgdesc="Let's Encrypt client and ACME library written in Go"
+url="https://github.com/go-acme/lego"
+license="MIT"
+arch="all !s390x" # tests fail due to network timeouts
+options="net chmod-clean" # tests need network access: https://github.com/go-acme/lego/issues/560
+depends="ca-certificates"
+makedepends="go libcap"
+source="https://github.com/go-acme/lego/archive/v$pkgver/lego-$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+export CGO_ENABLED=0
+
+case "$CARCH" in
+	aarch64)
+		# TestChallengeWithProxy/matching_X-Forwarded-Host_(multiple_fields)
+		options="$options !check"
+		;;
+	ppc64le)
+		# timeout on doing stuff with a server halfway across the world
+		options="$options !check"
+		;;
+esac
+
+build() {
+	go build -v -ldflags "-X main.version=$pkgver" -o ./bin/lego ./cmd/lego
+}
+
+check() {
+	go test -v ./...
+}
+
+package() {
+	install -Dm755 ./bin/lego "$pkgdir"/usr/bin/lego
+	setcap cap_net_bind_service=+ep "$pkgdir"/usr/bin/lego
+}
+
+sha512sums="
+66dfe451c39d39244dce80f4aa03c9ab593b39524c737b1748195d2a6eec85f3cc5202525bc6b678343923e898d1ab607521fbc14460844ef9b95cc317836ff0  lego-4.7.0.tar.gz
+"

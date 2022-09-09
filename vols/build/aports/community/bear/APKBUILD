@@ -1,0 +1,65 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=bear
+pkgver=3.0.19
+pkgrel=3
+pkgdesc="Tool which generates a compilation database for clang tooling"
+url="https://github.com/rizsotto/Bear"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="
+	c-ares-dev
+	cmake
+	fmt-dev
+	grpc-dev
+	gtest-dev
+	nlohmann-json
+	protobuf-dev
+	re2-dev
+	spdlog-dev
+	sqlite-dev
+	"
+checkdepends="llvm-test-utils"
+subpackages="$pkgname-doc"
+source="https://github.com/rizsotto/Bear/archive/$pkgver/bear-$pkgver.tar.gz"
+builddir="$srcdir/Bear-$pkgver"
+
+# XXX: Tests fail when ccache is enabled.
+
+#armv7 and armhf have some failing tests
+case "$CARCH" in
+	armhf|armv7) options="!check" ;;
+esac
+
+prepare() {
+	default_prepare
+	sed -i "s|/usr/bin/env python|/usr/bin/env python3|" \
+		test/bin/assert_compilation \
+		test/bin/assert_intercepted
+	case "$CARCH" in
+		x86) rm -f test/cases/intercept/preload/signal_outside_build.sh ;;
+	esac
+}
+
+build() {
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_INSTALL_LIBEXECDIR=libexec/bear \
+		-DCMAKE_BUILD_TYPE=MinSizeRel
+	cmake --build build
+}
+
+check() {
+	cd build
+	ctest --verbose --output-on-failure
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+688766a76cc3bee1dc82478d29d6e8754618f92633c842586fce95f2f1096764902ffd64a6f2f59101e58eba5472bf39ddb178c3dfcd48491fa4eb63d111585c  bear-3.0.19.tar.gz
+"

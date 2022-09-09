@@ -1,0 +1,28 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=pg_activity
+pkgver=2.1.5
+pkgrel=1
+pkgdesc="A top like application for PostgreSQL server activity monitoring"
+url="https://github.com/dalibo/pg_activity"
+arch="noarch"
+license="PostgreSQL"
+depends="python3 py3-attrs py3-blessed py3-humanize py3-psutil py3-psycopg2"
+checkdepends="py3-pytest"
+makedepends="py3-setuptools"
+source="https://github.com/dalibo/pg_activity/archive/v$pkgver/pg_activity-$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# FIXME: test_ui fails, probably missing dependency?
+	pytest --ignore=tests/test_ui.txt
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="78d6560ec15b435eeeeaa132851337f04822d42e4288425d85a78842f321ad2c426041cb953fabc8f3f406b9d68e4001a3df5ba2c9223bc0facc2a65619979e0  pg_activity-2.1.5.tar.gz"

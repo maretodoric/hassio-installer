@@ -1,0 +1,31 @@
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Damian Kurek <starfire24680@gmail.com>
+pkgname=kodi-peripheral-joystick
+pkgver=1.7.2
+_realname=Matrix
+pkgrel=0
+pkgdesc="Kodi joystick support (drivers and button maps)"
+options="!check" # no test suite
+url="https://github.com/xbmc/peripheral.joystick"
+arch="x86 x86_64 aarch64 armv7" # kodi is available only on those architectures
+license="GPL-2.0-only"
+makedepends="cmake kodi-dev tinyxml-dev"
+source="$pkgname-$pkgver-$_realname.tar.gz::https://github.com/xbmc/peripheral.joystick/archive/$pkgver-$_realname.tar.gz"
+builddir="$srcdir/peripheral.joystick-$pkgver-$_realname"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_MODULE_PATH=/usr/lib/cmake/kodi \
+		-DUSE_LTO=1
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+d838f44281704e2bc7f3280f05b93347dd2e7a10b8e2b31efdc34b8994723f6aa6ca643fce01f515003caf7d85abbd3eed6a3833e6adf88b9fb22184d2c2e1ae  kodi-peripheral-joystick-1.7.2-Matrix.tar.gz
+"

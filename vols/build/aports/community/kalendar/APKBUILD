@@ -1,0 +1,58 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kalendar
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="A calendar application using Akonadi to sync with external services (NextCloud, GMail, ...)"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> akonadi
+# ppc64le blocked by kaccounts-integration -> akonadi
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://invent.kde.org/pim/kalendar"
+license="GPL-3.0-or-later AND BSD-2-Clause"
+depends="
+	kdepim-runtime
+	kirigami2
+	qt5-qtlocation
+	"
+makedepends="
+	akonadi-contacts-dev
+	akonadi-dev
+	eventviews-dev
+	extra-cmake-modules
+	kcalendarcore-dev
+	kconfigwidgets-dev
+	kcontacts-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kirigami2-dev
+	kitemmodels-dev
+	kpackage-dev
+	kpeople-dev
+	kwindowsystem-dev
+	qqc2-desktop-style-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtlocation-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtsvg-dev
+	samurai
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kalendar-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+641636f97d7c6d3aa5ac9526e5fc6ac844b2ab4eee41fecc919150553c91e5a352da0b494d074f686850ee85512644b78b17e603bc3f914c005d576f571d7d61  kalendar-22.04.2.tar.xz
+"

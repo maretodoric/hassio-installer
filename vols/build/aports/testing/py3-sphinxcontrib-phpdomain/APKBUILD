@@ -1,0 +1,29 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-phpdomain
+_pkgname=sphinxcontrib-phpdomain
+pkgver=0.7.3
+pkgrel=1
+pkgdesc="Sphinx phpdomain extension"
+url="https://pypi.python.org/pypi/sphinxcontrib-phpdomain"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-sphinx"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-sphinxcontrib-phpdomain" # for backwards compatibility
+provides="py-sphinxcontrib-phpdomain=$pkgver-r$pkgrel" # for backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+d02a9a11ab23c6c272ab16760cd9cc808adbf31be963cb99fd5da5e3d34e160c5fceacefb2c6ce052c58c294ddc65992fa983dad559fbb09eddf95b4cf4c7a46  sphinxcontrib-phpdomain-0.7.3.tar.gz
+"

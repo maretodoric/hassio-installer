@@ -1,0 +1,36 @@
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Damian Kurek <starfire24680@gmail.com>
+pkgname=kodi-game-libretro-dosbox
+pkgver=0.74.0.9
+_realname=Matrix
+pkgrel=0
+pkgdesc="DosBox GameClient for XBMC"
+options="!check" # no test suite
+url="https://github.com/kodi-game/game.libretro.dosbox"
+arch="x86 x86_64 aarch64 armv7" # kodi is available only on those arches
+license="GPL-2.0-only"
+makedepends="cmake kodi-dev"
+depends="kodi-game-libretro libretro-dosbox"
+source="$pkgname-$pkgver-$_realname.tar.gz::https://github.com/kodi-game/game.libretro.dosbox/archive/$pkgver-$_realname.tar.gz"
+builddir="$srcdir/game.libretro.dosbox-$pkgver-$_realname"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_MODULE_PATH=/usr/lib/cmake/kodi \
+		-DUSE_LTO=1
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+	rm -r "$pkgdir"/usr/share/kodi/addons/game.libretro.dosbox/changelog.txt \
+		"$pkgdir"/usr/lib/kodi/addons/game.libretro.dosbox/game.libretro.dosbox.so
+	ln -s /usr/lib/libretro/dosbox_libretro.so \
+		"$pkgdir"/usr/lib/kodi/addons/game.libretro.dosbox/game.libretro.dosbox.so
+}
+
+sha512sums="
+1915f3156acfdf525d974b290af5204902e18a2d9505b1391b4fc95dd59d5e2c729610ff5024c6bf56af79d822ad0aba0b9680da8ba932d7357dbcd847414a07  kodi-game-libretro-dosbox-0.74.0.9-Matrix.tar.gz
+"

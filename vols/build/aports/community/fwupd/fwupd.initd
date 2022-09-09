@@ -1,0 +1,12 @@
+#!/sbin/openrc-run
+supervisor=supervise-daemon
+# Copyright 1999-2018 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+description="Firmware update daemon"
+command="/usr/libexec/fwupd/fwupd"
+
+depend() {
+	need dbus
+	before xdm
+}

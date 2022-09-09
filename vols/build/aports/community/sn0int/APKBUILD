@@ -1,0 +1,62 @@
+# Contributor: kpcyrd <git@rxv.cc>
+# Maintainer: kpcyrd <git@rxv.cc>
+pkgname=sn0int
+pkgver=0.24.2
+pkgrel=0
+pkgdesc="Semi-automatic OSINT framework and package manager"
+url="https://github.com/kpcyrd/sn0int"
+# s390x and riscv64 blocked by cargo
+# ppc64le blocked by ring crate
+arch="all !s390x !ppc64le !riscv64"
+license="GPL-3.0-or-later"
+makedepends="
+	cargo
+	lua5.2-dev
+	sqlite-dev
+	libseccomp-dev
+	libsodium-dev
+	py3-sphinx
+	libcap
+	"
+subpackages="$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	$pkgname-fish-completion
+	"
+options="net"
+source="$pkgname-$pkgver.tar.gz::https://github.com/kpcyrd/sn0int/archive/v$pkgver.tar.gz"
+
+build() {
+	cargo build --release --locked
+
+	mkdir -p completions
+	"target/release/sn0int" completions bash > completions/sn0int.bash
+	"target/release/sn0int" completions zsh > completions/_sn0int
+	"target/release/sn0int" completions fish > completions/sn0int.fish
+
+	make -C docs man
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	install -Dm755 "$builddir/target/release/sn0int" "$pkgdir/usr/bin/sn0int"
+	setcap cap_sys_chroot=ep \
+		"$pkgdir/usr/bin/sn0int"
+
+	install -Dm 644 "$builddir/docs/_build/man/sn0int.1" \
+		"$pkgdir/usr/share/man/man1/sn0int.1"
+
+	install -Dm644 "$builddir/completions/sn0int.bash" \
+		"$pkgdir/usr/share/bash-completion/completions/sn0int"
+	install -Dm644 "$builddir/completions/_sn0int" \
+	    "$pkgdir/usr/share/zsh/site-functions/_sn0int"
+	install -Dm644 "$builddir/completions/sn0int.fish" \
+		"$pkgdir/usr/share/fish/completions/sn0int.fish"
+}
+
+sha512sums="
+d932a55cbacb5da45d62f08df81179d49d1c974cd213fb629aa080cd9c8ca67c42ea8db63cfdaea62b49eaa1980711533844f1f744a8cd6177e4df1f19b118c4  sn0int-0.24.2.tar.gz
+"

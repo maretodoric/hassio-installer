@@ -1,0 +1,27 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Justin Berthault <justin.berthault@zaclys.net>
+pkgname=py3-zope-testrunner
+_pkgname=zope.testrunner
+pkgver=5.4.0
+pkgrel=0
+pkgdesc="Zope testrunner script"
+options="!check" # Fails to run
+url="https://github.com/zopefoundation/zope.testrunner"
+arch="noarch"
+license="ZPL-2.1"
+depends="python3 py3-setuptools py3-six py3-zope-exceptions py3-zope-interface"
+checkdepends="py3-zope-testing"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+c8c6cbbd2cc352f52068ada3c23305cc270736aaa20c14f7c218bc40d6873cb8e8ecb4e2e1601b8833d32e91ac87e0067515458b96194cfc23b6d02cb71613f2  zope.testrunner-5.4.0.tar.gz
+"

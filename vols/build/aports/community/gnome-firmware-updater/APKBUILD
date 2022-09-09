@@ -1,0 +1,30 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gnome-firmware-updater
+pkgver=42.1
+pkgrel=0
+pkgdesc="Install firmware on devices"
+url="https://gitlab.gnome.org/hughsie/gnome-firmware-updater"
+arch="all !armhf !ppc64le !s390x !riscv64" # limited by fwupd
+license="GPL-2.0-only"
+makedepends="meson gtk4.0-dev fwupd-dev libsoup-dev elogind-dev libxmlb-dev libadwaita-dev"
+options="!check" # no tests
+subpackages="$pkgname-lang"
+source="https://gitlab.gnome.org/World/gnome-firmware/-/archive/$pkgver/gnome-firmware-$pkgver.tar.gz"
+builddir="$srcdir/gnome-firmware-$pkgver"
+
+build() {
+	# man pages fail to build
+	abuild-meson \
+		-Dsystemd=false \
+		-Delogind=true \
+		-Dman=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="fa8e03eb0a25418dfbb44c682861a4d7b92bf29f4cc7a1f6331156fc07ce4ef1da6ceb8bfb47c4c94dd6ec66b23da054f2d947466cbcf8690e675724631e1e09  gnome-firmware-42.1.tar.gz"

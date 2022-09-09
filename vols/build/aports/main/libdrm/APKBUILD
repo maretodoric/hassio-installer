@@ -1,0 +1,42 @@
+# Contributor: Will Sinatra <wpsinatra@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libdrm
+pkgver=2.4.111
+pkgrel=0
+pkgdesc="Userspace interface to kernel DRM services"
+url="https://dri.freedesktop.org/"
+arch="all"
+# Requires a computer with gfx, no X running, build user in 'video' group..
+options="!check"
+license="MIT"
+depends_dev="linux-headers"
+makedepends="$depends_dev meson libpthread-stubs eudev-dev libpciaccess-dev xmlto"
+checkdepends="cunit-dev bash"
+subpackages="$pkgname-dev"
+source="https://gitlab.freedesktop.org/mesa/drm/-/archive/libdrm-$pkgver/drm-libdrm-$pkgver.tar.gz"
+builddir="$srcdir/drm-libdrm-$pkgver"
+
+build() {
+	abuild-meson \
+		-Dfreedreno=true \
+		-Dtegra=true \
+		-Domap=true \
+		-Dexynos=true \
+		-Dvc4=true \
+		-Detnaviv=true \
+		-Dudev=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+6d1a9688adcfedf71b14c08d04cee0df568a18be26f5d547354676d552fd1b17f41d142e098e649d0ca952baf95ac773af001be6c1dec25027bdc7a27813ced9  drm-libdrm-2.4.111.tar.gz
+"

@@ -1,0 +1,139 @@
+# Contributor: Dennis Przytarski <dennis@przytarski.com>
+# Contributor: ScrumpyJack <scrumpyjack@st.ilet.to>
+# Contributor: Dermot Bradley <dermot_bradley@yahoo.com>
+# Maintainer: Dermot Bradley <dermot_bradley@yahoo.com>
+pkgname=rng-tools
+#
+# NOTE: Please check with the maintainer *before* deciding to submit any
+# MR to update the package - in particular the package depends on
+# jitterentropy-library and care needs to be taken that both are aligned
+# (i.e. some necessary changes in *both* packages may not be released at
+# the same time and potentially upgrading rng-tools alone could break
+# the rngd jitter functionality).
+#
+pkgver=6.15
+pkgrel=0
+pkgdesc="Random number generator daemon"
+url="https://github.com/nhorman/rng-tools"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	argp-standalone
+	autoconf
+	automake
+	curl-dev
+	jansson-dev
+	jitterentropy-library-dev
+	librtlsdr-dev
+	libtool
+	libxml2-dev
+	linux-headers
+	openssl1.1-compat-dev
+	"
+options="!check"  # No useful tests to be performed.
+subpackages="
+	$pkgname-doc
+	$pkgname-openrc
+	rng-tools-extra:extra
+	rng-tools-extra-openrc:extra_openrc
+	"
+source="rng-tools-$pkgver.tar.gz::https://github.com/nhorman/rng-tools/archive/v$pkgver.tar.gz
+	rngd.confd
+	rngd.confd-arm
+	rngd.initd
+	rngd-extra.confd
+	rngd-extra.confd-arm
+	rngd-extra.initd
+	"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	export LIBS="-largp"
+
+	# Build rng-tools-extra version which has NIST and RTLSDR entropy
+	# sources enabled in addition to the "normal" set.
+	cp -r "$builddir" "$builddir"-extra
+	cd "$builddir"-extra
+	msg "Building $pkgname-extra"
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib/rng-tools \
+		--sysconfdir=/etc \
+		--disable-silent-rules \
+		--with-nistbeacon \
+		--without-pkcs11 \
+		--with-rtlsdr
+	make rngd rngtest
+
+	# Build rng-tools normal version which has only a small
+	# set of entropy sources included.
+	cd "$builddir"
+	msg "Building $pkgname"
+	./configure \
+		--prefix=/usr \
+		--libexecdir=/usr/lib/rng-tools \
+		--sysconfdir=/etc \
+		--disable-silent-rules \
+		--without-nistbeacon \
+		--without-pkcs11 \
+		--without-rtlsdr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	case "$CARCH" in
+		aarch64 | armhf | armv7 )
+			_confd_file="rngd.confd-arm"
+			;;
+		* )
+			_confd_file="rngd.confd"
+			;;
+	esac
+	install -m 644 -D "$srcdir"/"$_confd_file" "$pkgdir"/etc/conf.d/rngd
+	install -m 755 -D "$srcdir"/rngd.initd "$pkgdir"/etc/init.d/rngd
+}
+
+extra() {
+	pkgdesc="Random number generator daemon with extra entropy sources"
+	provides="rng-tools"
+
+	cd "$builddir-extra"
+	mkdir -p "$subpkgdir"
+	make DESTDIR="$subpkgdir" install-binPROGRAMS install-sbinPROGRAMS
+}
+
+extra_openrc() {
+	pkgdesc="Random number generator daemon with extra entropy sources (OpenRC init scripts)"
+	install_if="openrc $pkgname-extra=$pkgver-r$pkgrel"
+
+	mkdir -p \
+		"$subpkgdir"/etc/conf.d \
+		"$subpkgdir"/etc/init.d
+
+	case "$CARCH" in
+		aarch64 | armhf | armv7 )
+			_confd_file="rngd-extra.confd-arm"
+			;;
+		* )
+			_confd_file="rngd-extra.confd"
+			;;
+	esac
+	install -m 644 -D "$srcdir"/"$_confd_file" "$subpkgdir"/etc/conf.d/rngd
+	install -m 755 -D "$srcdir"/rngd-extra.initd "$subpkgdir"/etc/init.d/rngd
+}
+
+sha512sums="
+44146d891c4f46675a031f2e5ff7755cfaf1abe3252f241c16e042d3bb5e988b77ff840382caca49d8cb9854af1e49369398a506de5e819167739ad33b58d180  rng-tools-6.15.tar.gz
+b33e1608fc73ac14d01f0b555e4abf60be79a711f0e66555b63019843c30ea53eae24d6ee543ebdcbd186108870cf0f346983d50c088c7afeca0af5303b926cf  rngd.confd
+19b72997b4e981a1713e51b22bbf1974a49ea6eefbe3d69b32550041d9f8caed1ac494b448a406b609a23cc200fa9bf4e6d5833f06451ca6751889ffa834b915  rngd.confd-arm
+a7e69db8e6af7c319e278bb7d9825462c140884e6d08af6a2e6af465735e6a9328c540470dbdb7d6712546f2ddac42118bb3ef05326f7ed39411cd94896fb066  rngd.initd
+989ecd4c93575a3af4aa60c35ee037e873303116609d7d12bd49e557236cbe76820d63be2938c779c9baf23736f0913e6800d688a811323421f823b89d7949a6  rngd-extra.confd
+0e16b2a663cbfa17dbb559725b25f994a6d7ca82e975afb8a9f33678139ac0e0877f845ac41289d427300a233b0cd896cb35b1b64cc1ecdb9d78747844d4c577  rngd-extra.confd-arm
+15544d296e114c8d093187f3f743f5b7466b9df4e9f4351c78c4f9e7d4f92b9130dff2a1ff3cc228c643db2886a44e4abd3d767a785474a41f3dc1ff8684b181  rngd-extra.initd
+"

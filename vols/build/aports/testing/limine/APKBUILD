@@ -1,0 +1,78 @@
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=limine
+pkgver=3.7.3
+pkgrel=0
+pkgdesc="Advanced multiprotocol x86/x86_64 BIOS/UEFI Bootloader"
+url="https://limine-bootloader.org"
+# only x86/x86_64 supported, x86 needs a cross toolchain
+arch="x86_64"
+license="BSD-2-Clause"
+makedepends="
+	mtools
+	nasm
+	"
+subpackages="
+	$pkgname-dev
+	$pkgname-cd:_cd
+	$pkgname-deploy
+	$pkgname-pxe
+	$pkgname-sys
+	$pkgname-32:_32
+	$pkgname-64:_64
+	"
+source="https://github.com/limine-bootloader/limine/releases/download/v$pkgver/limine-$pkgver.tar.xz"
+options="!check" # no tests in tarball
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+deploy() {
+	pkgdesc="$pkgdesc (limine-deploy bios installer)"
+
+	amove usr/bin/limine-deploy
+}
+
+_cd() {
+	pkgdesc="$pkgdesc (cd/efi files)"
+	depends="$pkgname-sys"
+
+	amove usr/share/limine/limine-cd*.bin
+}
+
+pxe() {
+	pkgdesc="$pkgdesc (pxe executable)"
+	depends="$pkgname-sys"
+
+	amove usr/share/limine/limine-pxe.bin
+}
+
+sys() {
+	pkgdesc="$pkgdesc (sys file)"
+
+	amove usr/share/limine/limine.sys
+}
+
+_32() {
+	pkgdesc="$pkgdesc (32-bit uefi image)"
+
+	amove usr/share/limine/BOOTIA32.EFI
+}
+
+_64() {
+	pkgdesc="$pkgdesc (64-bit uefi image)"
+
+	amove usr/share/limine/BOOTX64.EFI
+}
+
+sha512sums="
+754a3418546ac7a3d8035ee286841f6ec16e09f09027ec06f65e9cfc5196a5d56cf2684ce98d53bc839e455d5553087fb63d9f7d0255a719ce93674d5bf0454c  limine-3.7.3.tar.xz
+"

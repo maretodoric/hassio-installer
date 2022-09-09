@@ -1,0 +1,61 @@
+# Contributor: Jonah Brüchert <jbb@kaidan.im>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=angelfish
+pkgver=22.06
+pkgrel=0
+pkgdesc="Small Webbrowser for Plasma Mobile"
+# armhf blocked by extra-cmake-modules
+# ppc64le and s390x blocked by qt5-qtwebengine
+# riscv64 disabled due to missing rust in recursive dependency
+arch="all !ppc64le !s390x !armhf !riscv64"
+url="https://phabricator.kde.org/source/plasma-angelfish/"
+license="GPL-3.0-or-later"
+depends="
+	kirigami2
+	plasma-framework
+	purpose
+	qt5-qtbase-sqlite
+	qt5-qtfeedback
+	qt5-qtquickcontrols2
+	"
+makedepends="
+	extra-cmake-modules
+	corrosion
+	kdeclarative-dev
+	ki18n-dev
+	kio-dev
+	kirigami2-dev
+	plasma-framework-dev
+	purpose-dev
+	qt5-qtfeedback-dev
+	qt5-qtwebengine-dev
+	samurai
+	"
+subpackages="$pkgname-lang"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/angelfish-$pkgver.tar.xz"
+options="net" # net required to download Rust dependencies
+
+provides="plasma-angelfish=$pkgver-r$pkgrel" # Backwards compatibility
+replaces="plasma-angelfish" # Backwards compatibility
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+55c7b29ded63fdb983c87b2d4bfa40035559cecfba42212ea061ee1004aa1bafdd5b36bb8b973a6ed9cdc528f9e7190de5a0ad673c4fc28946fc8bdca03dd504  angelfish-22.06.tar.xz
+"

@@ -1,0 +1,31 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=py3-django-debug-toolbar
+_pkgname=django-debug-toolbar
+pkgver=3.2.1
+pkgrel=1
+pkgdesc="Configurable set of panels that display various debug information about the current request/response"
+options="!check" # Requires unpackaged Selenium python3 module
+url="https://github.com/jazzband/django-debug-toolbar"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-django py3-sqlparse"
+makedepends="py3-setuptools"
+# options="!check" #no testsuite
+source="$pkgname-$pkgver.tar.gz::https://github.com/jazzband/$_pkgname/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-django-debug-toolbar" # Backwards compatibility
+provides="py-django-debug-toolbar=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py --quiet build
+}
+
+package() {
+	python3 setup.py --quiet install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+d28e13cc2e3bbb27e9c728037229adac444180e3831b88c9ac1aa0e139bd1e85f9190c7a324afe3292bde4ad0c919bd17fbde4998be266f81314b9b22c4a28e6  py3-django-debug-toolbar-3.2.1.tar.gz
+"

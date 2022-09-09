@@ -1,0 +1,51 @@
+# Contributor: Oleg Titov <oleg.titov@gmail.com>
+# Maintainer: Oleg Titov <oleg.titov@gmail.com>
+pkgname=libzim
+pkgver=7.2.2
+_testing_suite_ver=0.4
+pkgrel=0
+pkgdesc="Reference implementation of the ZIM file format"
+url="https://openzim.org/"
+arch="all"
+license="GPL-2.0-or-later"
+options="!check" #temporary disable tests
+makedepends="
+	icu-dev
+	libexecinfo-dev
+	meson
+	xapian-core-dev
+	xz-dev
+	zlib-dev
+	zstd-dev
+	"
+checkdepends="
+	cython
+	gtest-dev
+	python3-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/openzim/libzim/archive/$pkgver.tar.gz
+	https://github.com/openzim/zim-testing-suite/releases/download/v$_testing_suite_ver/zim-testing-suite-$_testing_suite_ver.tar.gz
+	"
+
+build() {
+	LDFLAGS="$LDFLAGS -lexecinfo"
+	abuild-meson . output \
+		-Dtest_data_dir="${srcdir}/zim-testing-suite/data"
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	SKIP_BIG_MEMORY_TEST=1 meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+
+	install -Dm 644 -t "$pkgdir/usr/share/doc/$pkgname/" README.md
+}
+
+sha512sums="
+e95838feec7381717c3dac39f19c7197eed10c953c8ba3e36afd52e037d7b50b6c56c4ddb0a48e85f707390cd45e2c7e8d1f059fe1bcceb331fd983fe4afc115  libzim-7.2.2.tar.gz
+be2143c5bfab0b247dfbfe3e5c2bb1b58d786e5802be4f4a62ce694e6467f7713c5ccc1e1d4a933227cfc07016fc9d6ae1249d2d3cb29237a28750922dc671cb  zim-testing-suite-0.4.tar.gz
+"

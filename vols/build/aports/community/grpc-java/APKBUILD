@@ -1,0 +1,33 @@
+# Contributor: wener <wenermail@gmail.com>
+# Maintainer: wener <wenermail@gmail.com>
+pkgname=grpc-java
+pkgver=1.42.1
+pkgrel=0
+pkgdesc="The Java gRPC implementation. HTTP/2 based RPC"
+url="https://github.com/grpc/grpc-java"
+# armhf and aarch64 are blocked by build failures
+# riscv64 blocked by java
+arch="all !aarch64 !armhf !armv7 !s390x !riscv64"
+license="Apache-2.0"
+depends="java-jre-headless"
+makedepends="java-jdk protobuf-dev nss"
+source="$pkgname-$pkgver.tar.gz::https://github.com/grpc/grpc-java/archive/v$pkgver.tar.gz
+	grandle-version.patch
+	"
+options="!check"
+
+build() {
+	export GRADLE_USER_HOME="$srcdir"/.gradle
+	cd compiler
+	# support Java 16
+	../gradlew --no-daemon --parallel --info java_pluginExecutable -PskipAndroid=true
+}
+
+package() {
+	install -D -m 755 compiler/build/exe/java_plugin/protoc-gen-grpc-java "$pkgdir"/usr/bin/protoc-gen-grpc-java
+}
+
+sha512sums="
+69861c9dcc06c975f36881f0ad0a735f1e6a9b3714b446ca69506349a7806b77b6b90d274e53b45180eeabae6c156f0a3925ae2d182a8622fcc456a8a56da545  grpc-java-1.42.1.tar.gz
+2d89b1894884c849736482ac5cc025583e6b1954554337d77df792d02031a2dd697d268171528a2d579e8e90402c6683d1f56e0e27664ef45081cc492911ee89  grandle-version.patch
+"

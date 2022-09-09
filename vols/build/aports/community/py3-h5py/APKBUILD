@@ -1,0 +1,57 @@
+# Contributor: James White <stegoxorus@gmail.com>
+# Maintainer: James White <stegoxorus@gmail.com>
+pkgname=py3-h5py
+pkgver=3.5.0
+pkgrel=1
+pkgdesc="Read and write HDF5 files from Python"
+url="https://www.h5py.org"
+arch="all"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="
+	cython
+	hdf5-dev
+	liblzf-dev
+	py3-numpy-dev
+	py3-pkgconfig
+	py3-setuptools
+	python3-dev
+	"
+checkdepends="
+	py3-pytest-mpi
+	py3-pytest
+	"
+source="https://files.pythonhosted.org/packages/source/h/h5py/h5py-$pkgver.tar.gz"
+case "$CARCH" in
+	x86|armv7|ppc64le) options="!check" ;; # Failing
+esac
+
+builddir="$srcdir/h5py-$pkgver"
+
+replaces="py-h5py" # Backwards compatibility
+provides="py-h5py=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+	sed -i "s/settings\\['runtime_library_dirs'\\] = settings\\['library_dirs'\\]/pass/" setup_build.py
+
+	export H5PY_SYSTEM_LZF=1
+	# Stop requiring a specific version of numpy
+	export H5PY_SETUP_REQUIRES=0
+}
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+97b8dfd701b3eaf9b8461bd0d6b262e592f6850b53fe02069f083ef7d709f952389b9be5c06fe5d25c968bae2a2db957c78005f395756911e546b3a015ec69a1  h5py-3.5.0.tar.gz
+"

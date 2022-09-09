@@ -1,0 +1,42 @@
+# Contributor: Oleg Titov <oleg.titov@gmail.com>
+# Maintainer: Oleg Titov <oleg.titov@gmail.com>
+pkgname=gumbo-parser
+pkgver=0.10.1
+pkgrel=0
+pkgdesc="An HTML5 parsing library in pure C99"
+url="https://github.com/google/gumbo-parser"
+arch="all"
+license="Apache-2.0"
+makedepends="libtool m4 automake autoconf gtest-dev"
+checkdepends="gtest"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/google/gumbo-parser/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make
+}
+
+check() {
+	make -k check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -Dm 644 -t "$pkgdir/usr/share/licenses/$pkgname/" COPYING
+	install -Dm 644 -t "$pkgdir/usr/share/doc/$pkgname/" README.md
+}
+
+sha512sums="bb1fb55cd07076ab6a9f38dc14db50397dbdca9a04ace4895dfba8b8cbc09038a96e26070c09c75fa929ada2e815affe233c1e2ecd8afe2aba6201647cf277d1  gumbo-parser-0.10.1.tar.gz"

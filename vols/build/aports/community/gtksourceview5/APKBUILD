@@ -1,0 +1,37 @@
+# Contributor:Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=gtksourceview5
+pkgver=5.4.1
+pkgrel=0
+pkgdesc="A text widget adding syntax highlighting and more to GNOME"
+url="https://wiki.gnome.org/Projects/GtkSourceView"
+# s390x and riscv64 blocked by librsvg -> glade
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends_dev="gtk4.0-dev libxml2-dev"
+makedepends="$depends_dev gobject-introspection-dev vala libxslt meson glade-dev
+	pcre2-dev"
+checkdepends="xvfb-run ibus dbus"
+subpackages="$pkgname-dev $pkgname-lang"
+source="https://download.gnome.org/sources/gtksourceview/${pkgver%.*}/gtksourceview-$pkgver.tar.xz
+	skip-test.patch
+	"
+options="!check" # regex test fails
+builddir="$srcdir/gtksourceview-$pkgver"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="
+5270db969455ad29498a02a851802228575c9b4b6cf6d4f9736bff95f869f1052550034fe6cc4f0c8d29174559d147068dcd088ab09b2008399f7a717aced298  gtksourceview-5.4.1.tar.xz
+e0b1d13dac82715f086ca5d53ef03cfdde4520738a0d011e583752b42b4c5ddbfe320626cb35f1f395a06e9d5bd4122f1f122f043941d42f4efb5c29c331abc4  skip-test.patch
+"

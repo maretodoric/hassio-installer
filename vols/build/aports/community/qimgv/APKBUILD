@@ -1,0 +1,41 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=qimgv
+pkgver=1.0.2
+pkgrel=0
+pkgdesc="Cross-platform image viewer with webm support"
+url="https://github.com/easymodo/qimgv"
+options="!check"
+arch="all"
+license="GPL-3.0-or-later"
+depends="hicolor-icon-theme"
+makedepends="cmake qt5-qtbase-dev qt5-qtsvg-dev exiv2-dev mpv-dev"
+subpackages="$pkgname-mpv"
+source="$pkgname-$pkgver.tar.gz::https://github.com/easymodo/qimgv/archive/v$pkgver.tar.gz"
+
+build() {
+	cmake -B build . \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DEXIV2=ON \
+		-DVIDEO_SUPPORT=ON \
+		-DOPENCV_SUPPORT=OFF \
+		-DKDE_SUPPORT=OFF
+	make -C build
+}
+
+package() {
+	make -C build DESTDIR="$pkgdir" install
+}
+
+mpv() {
+	pkgdesc="$pkgdesc (mpv support)"
+	install_if="$pkgname=$pkgver-r$pkgrel mpv-libs"
+
+	amove usr/lib/qimgv/player_mpv.so
+}
+
+sha512sums="
+3e10a87f28f7187251c93c92b418ee34e4c2b373b0dd957604fd46305237dc52fd7e17880507b3a0d757c0c3800e8185b6085f15f6f05db6d29cae1e67044b58  qimgv-1.0.2.tar.gz
+"

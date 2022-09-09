@@ -1,0 +1,31 @@
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-kombu
+pkgver=4.6.11
+pkgrel=2
+pkgdesc="a message queue abstraction layer"
+options="!check" # 3 Redis tests fail
+url="https://pypi.python.org/pypi/kombu/"
+arch="noarch !s390x" # Limited by py3-dill
+license="BSD-3-Clause"
+depends="py3-amqp py3-vine"
+makedepends="py3-setuptools"
+checkdepends="py3-pyro4 py3-case py3-nose py3-mock py3-tz py3-pytest py3-sqlalchemy py3-fakeredis"
+source="https://files.pythonhosted.org/packages/source/k/kombu/kombu-$pkgver.tar.gz"
+builddir="$srcdir/kombu-$pkgver"
+
+replaces="py-kombu" # Backwards compatibility
+provides="py-kombu=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="a69d380238da08a446b1d49facd16ab881ecf3b24bdca686e656b8a8974544e99e718e21cccd7ebb890764d6d6db3a58924917492b5a43189782ebaf482b039f  kombu-4.6.11.tar.gz"

@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kemoticons
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Support for emoticons and emoticons themes"
+arch="all !armhf"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-or-later AND (LGPL-2.1-only OR LGPL-3.0-only)"
+depends_dev="
+	karchive-dev
+	kconfig-dev
+	kcoreaddons-dev
+	kservice-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kemoticons-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# kemoticons-kemoticontest and kemoticons-ktexttohtmlplugintest are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "kemoticons-(kemoticon|ktexttohtmlplugin)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+e8e17cccc858217caf02141208dbca31b85ebfd463590c5a00612b7e508524491d9c8f5282f4383a6a9b7551f6c77f7c3d97a3d94a718792966e3f9d01fbcfdc  kemoticons-5.95.0.tar.xz
+"

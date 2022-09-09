@@ -1,0 +1,49 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdenetwork-filesharing
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# armhf, s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.kde.org/applications/internet/"
+pkgdesc="Properties dialog plugin to share a directory with the local network"
+license="GPL-2.0-only OR GPL-3.0-only"
+depends="samba"
+makedepends="
+	extra-cmake-modules
+	kcompletion-dev
+	kcoreaddons-dev
+	kdeclarative-dev
+	kdoctools-dev
+	ki18n-dev
+	kio-dev
+	kwidgetsaddons-dev
+	qt5-qtbase-dev
+	samurai
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdenetwork-filesharing-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DSAMBA_INSTALL=OFF
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+306961075bd449b1995052ac9b71ad50543f337a5f62200d6044d57f87fba4248e2aeb975e4dd13f0681636081f46e668b994ef0fa9556d56a862acbc219f9de  kdenetwork-filesharing-22.04.2.tar.xz
+"

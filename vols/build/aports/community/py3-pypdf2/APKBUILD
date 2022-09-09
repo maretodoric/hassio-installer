@@ -1,0 +1,31 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-pypdf2
+_pkgname=PyPDF2
+pkgver=1.27.9
+pkgrel=0
+pkgdesc="Pure-Python library built as a PDF toolkit"
+url="https://github.com/mstamy2/PyPDF2"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pillow py3-pytest"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+58c3f362d083d670b113b3311e5140a6d180f9da1314efb96f0352d3853e857607df2e3f448642a5c7e96a21603ffdb0f7462d92867c6ca729a2b7abebd5bb3c  PyPDF2-1.27.9.tar.gz
+"

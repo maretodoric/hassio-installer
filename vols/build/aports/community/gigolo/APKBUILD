@@ -1,0 +1,28 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=gigolo
+pkgver=0.5.2
+pkgrel=0
+pkgdesc="GIO management application"
+options="!check" # No testsuite
+url="https://www.uvena.de/gigolo/"
+license="GPL-2.0-only"
+arch="all"
+makedepends="gtk+3.0-dev python3 intltool"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://archive.xfce.org/src/apps/gigolo/${pkgver%.*}/gigolo-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="2277186495a5ae5f4b4a30ca738b6c35287d6fa51d0df11d31ac627811a67ad31202c3c78225e3035b92c3bf111e6ff098bc7ba83482e0bea0e5e2edcfaec0c7  gigolo-0.5.2.tar.bz2"

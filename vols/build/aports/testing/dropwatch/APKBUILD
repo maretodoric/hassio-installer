@@ -1,0 +1,36 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=dropwatch
+pkgver=1.5.4
+pkgrel=0
+pkgdesc="Project to detect packet drops in the Linux kernel"
+url="https://github.com/nhorman/dropwatch"
+arch="all"
+license="GPL-2.0"
+makedepends="autoconf automake libtool 
+libnl3-dev libpcap-dev binutils-dev readline-dev
+linux-headers bsd-compat-headers"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/nhorman/dropwatch/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure --prefix=/usr
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+4af06c05c694d4a044a5e92ba9869a865730bb2caa28cddc33160481f490ed77a7300ef57c9f76722d7bc8d4ac47cdfd5f13daf4f764500f3c90a72b5ee58d61  dropwatch-1.5.4.tar.gz
+"

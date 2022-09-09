@@ -1,0 +1,48 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=i2c-tools
+pkgver=4.3
+pkgrel=1
+pkgdesc="Tools for monitoring I2C devices"
+url="https://i2c.wiki.kernel.org/index.php/I2C_Tools"
+arch="all"
+license="GPL-2.0-or-later AND LGPL-2.1-or-later"
+options="!check" #no test/check provided by upstream
+makedepends="linux-headers python3-dev"
+subpackages="$pkgname-dev $pkgname-doc py3-smbus:py"
+source="https://fossies.org/linux/misc/i2c-tools-$pkgver.tar.gz"
+
+
+prepare() {
+	default_prepare
+	sed -e "s|^DESTDIR.*|DESTDIR = \"$pkgdir\"|" \
+			-e "s|^prefix.*|prefix = /usr|" \
+		 	-e "s|^PREFIX.*|PREFIX = /usr|" \
+			-i Makefile
+}
+
+build() {
+	make
+
+	cd "$builddir"/py-smbus
+	CFLAGS="$CFLAGS -I$builddir/include" python3 setup.py build
+}
+
+py() {
+	pkgdesc="$pkgname python bindings"
+	provides="py-smbus=$pkgver-r$pkgrel"
+	replaces="py-smbus"
+	install -d "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/python3* "$subpkgdir"/usr/lib
+}
+
+package() {
+	make install
+
+	cd "$builddir"/py-smbus
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6cf259cca8f0cd1a7560289346fb62dfe29058f447fec59dfc821b44bdb41a90958f505363d25e3f5569447f36ac0a67d64781b80a4f6e5c22ec78ba750082bd  i2c-tools-4.3.tar.gz
+"

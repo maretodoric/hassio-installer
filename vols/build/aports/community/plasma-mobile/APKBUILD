@@ -1,0 +1,92 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-mobile
+pkgver=5.25.1
+pkgrel=0
+pkgdesc="Modules providing phone functionality for Plasma"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+arch="all !armhf !s390x !riscv64"
+url="https://www.plasma-mobile.org/"
+license="GPL-2.0-or-later AND LGPL-2.1-or-later"
+depends="
+	breeze-icons
+	dbus-x11
+	kactivities
+	maliit-keyboard
+	plasma-nano
+	plasma-nm-mobile
+	plasma-pa
+	plasma-settings
+	plasma-workspace
+	qqc2-breeze-style
+	qt5-qtquickcontrols2
+	"
+makedepends="
+	extra-cmake-modules
+	kactivities-dev
+	kauth-dev
+	kbookmarks-dev
+	kcodecs-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	ki18n-dev
+	kio-dev
+	kitemviews-dev
+	kjobwidgets-dev
+	knotifications-dev
+	kpackage-dev
+	kpeople-dev
+	kservice-dev
+	kwayland-dev
+	kwidgetsaddons-dev
+	kwin-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libphonenumber-dev
+	modemmanager-qt-dev
+	networkmanager-qt-dev
+	plasma-framework-dev
+	plasma-workspace-dev
+	qt5-qtdeclarative-dev
+	samurai
+	solid-dev
+	telepathy-qt-dev
+	"
+# TODO: Translations are lost in 5.24.1, re-enable in 5.24.2
+# subpackages="$pkgname-lang"
+
+provides="plasma-phone-components=$pkgver-r$pkgrel" # For backwards compatibility
+replaces="plasma-phone-components" # For backwards compatibility
+
+case "$pkgver" in
+	*.90*) _rel=unstable;;
+	*) _rel=stable;;
+esac
+source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-mobile-$pkgver.tar.xz"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+2daf3be122bec4e936d4c6907bb15e9506a5e5d6b60f4b984c5a341009b3c232c40c89871984e03d6a4ca01180544d090e11408a11b37fbd3fb328ea40cca841  plasma-mobile-5.25.1.tar.xz
+"

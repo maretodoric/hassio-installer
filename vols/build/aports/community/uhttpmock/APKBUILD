@@ -1,0 +1,39 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=uhttpmock
+pkgver=0.5.3
+pkgrel=1
+pkgdesc="HTTP web service mocking library"
+url="https://gitlab.com/uhttpmock/uhttpmock"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="glib-dev libsoup-dev gobject-introspection-dev vala"
+checkdepends="gsettings-desktop-schemas"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc"
+source="https://tecnocode.co.uk/downloads/uhttpmock/uhttpmock-$pkgver.tar.xz
+	only-listen-on-ipv4.patch"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--enable-introspection \
+		--enable-vala
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="9fccdb58ce04c1615d47bafac275c632f161a8148f0af82447286d0017d6b3946145b8a289f9abb55842bf4610ca3e5f2484bf322fb7a33dce42b3ebed45b2ee  uhttpmock-0.5.3.tar.xz
+879f12d81b1e83c0e9ff52214b10737576ed4e81af021846d99a4751d00aee378f8af500591e706965f7c5923678eabed91208a1b100dab40d558a8c5ab2172a  only-listen-on-ipv4.patch"

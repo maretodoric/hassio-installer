@@ -1,0 +1,36 @@
+# Contributor: Adam Saponara <as@php.net>
+# Maintainer: Adam Saponara <as@php.net>
+pkgname=mle
+pkgver=1.5.0
+pkgrel=0
+pkgdesc="Flexible terminal-based text editor"
+url="https://github.com/adsr/mle"
+arch="all"
+license="Apache-2.0"
+makedepends="uthash-dev termbox-dev lua5.4-dev pcre-dev"
+checkdepends="bash grep"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/adsr/mle/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	sed -i 's/-llua5.4/-llua/g' Makefile
+}
+
+build() {
+	export CFLAGS="$CFLAGS -I/usr/include/lua5.4"
+	export LDFLAGS="$LDFLAGS -L/usr/lib/lua5.4"
+	make
+}
+
+check() {
+	make test
+}
+
+package() {
+	make DESTDIR="$pkgdir" prefix=/usr install
+	install -d "$pkgdir/usr/share/man/man1"
+	install -m644 mle.1 "$pkgdir"/usr/share/man/man1/
+}
+
+sha512sums="b96462dee4212a006a7e93c76954315bb0ead2f28be5e206e3918d9dae2cece6ebf76e6531468f178eb551cd23840ff4c8a77cbedde18808e1c8fd80f25fef49  mle-1.5.0.tar.gz"

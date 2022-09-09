@@ -1,0 +1,74 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=lapack
+pkgver=3.10.1
+pkgrel=0
+pkgdesc="Linear Algebra PACKage"
+url="https://www.netlib.org/lapack/"
+arch="all"
+license="BSD-3-Clause"
+options="!check" # Tests broken
+makedepends="gfortran cmake"
+subpackages="$pkgname-dev:_dev blas blas-dev"
+source="https://github.com/Reference-LAPACK/lapack/archive/v$pkgver/lapack-v$pkgver.tar.gz"
+
+build() {
+	cmake -B build \
+	    -DCMAKE_BUILD_TYPE=None \
+	    -DCMAKE_INSTALL_PREFIX=/usr \
+	    -DCMAKE_INSTALL_LIBDIR=lib \
+	    -DCMAKE_SKIP_RPATH=ON \
+	    -DBUILD_SHARED_LIBS=ON \
+	    -DBUILD_TESTING=ON \
+	    -DCMAKE_Fortran_COMPILER=gfortran \
+	    -DLAPACKE=ON \
+	    -DCBLAS=ON \
+	    -DBUILD_DEPRECATED=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+_dev() {
+	default_dev
+
+	mkdir -p "$pkgdir"/usr/lib \
+		"$pkgdir"/usr/include  \
+		"$pkgdir"/usr/lib/pkgconfig \
+		"$pkgdir"/usr/lib/cmake
+
+	# Move development files meant for blas-dev
+	mv "$subpkgdir"/usr/lib/libblas.so \
+		"$subpkgdir"/usr/lib/libcblas.so \
+		"$pkgdir"/usr/lib
+
+	mv "$subpkgdir"/usr/lib/pkgconfig/*blas* \
+		"$pkgdir"/usr/lib/pkgconfig
+
+	mv "$subpkgdir"/usr/lib/cmake/*blas-* \
+		"$pkgdir"/usr/lib/cmake
+
+	mv "$subpkgdir"/usr/include/*blas* \
+		"$pkgdir"/usr/include
+}
+
+blas() {
+	depends=""
+	pkgdesc="The Basic Linear Algebra Subprograms library"
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libblas.so.* \
+		"$pkgdir"/usr/lib/libcblas.so.* \
+		"$subpkgdir"/usr/lib
+}
+
+sha512sums="
+0500bbbb48483208c0a35b74972ff0059c389da6032824a2079637266a99fa980882eedf7f1fc490219ee4ff27812ac8c6afe118e25f40a9c2387e7b997762fb  lapack-v3.10.1.tar.gz
+"

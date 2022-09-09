@@ -1,0 +1,36 @@
+# Maintainer: Drew DeVault <sir@cmpwn.com>
+pkgname=py3-billiard
+pkgver=3.6.4.0
+pkgrel=1
+pkgdesc="a message queue abstraction layer"
+url="https://pypi.python.org/pypi/billiard/"
+arch="noarch"
+license="BSD-3-Clause"
+makedepends="py3-setuptools"
+checkdepends="py3-psutil py3-pytest py3-nose py3-case"
+source="https://files.pythonhosted.org/packages/source/b/billiard/billiard-$pkgver.tar.gz"
+builddir="$srcdir/billiard-$pkgver"
+
+replaces="py-billiard" # Backwards compatibility
+provides="py-billiard=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# Uses wrong name for 'queue' module.
+	# Uses internal 'test' and 'test.support' modules.
+	rm -f t/integration/tests/test_multiprocessing.py
+
+	# Windows only
+	rm -f t/unit/test_win32.py
+
+	py.test-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="9f2a44024e45c4e7667472a0a3ade7caae755ec7c163929433f818e4b87165218b9cc9545bdee2254e7159c206e525306e383d38906b00fd5428bd1616c39b8f  billiard-3.6.4.0.tar.gz"

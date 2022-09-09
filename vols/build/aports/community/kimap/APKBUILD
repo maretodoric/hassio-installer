@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kimap
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Job-based API for interacting with IMAP servers"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kio-dev
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later"
+depends_dev="
+	cyrus-sasl-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kio-dev
+	kmime-dev
+	qt5-qtbase-dev
+	samurai
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kimap-$pkgver.tar.xz"
+subpackages="$pkgname-dev"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# loginjobtest is broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "loginjobtest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+1491ee7f5483b6d24be38d311065c7d24ebf6752dfb7f7eed130352f030523276309778173a4537cae5cc0bfbf13ef0e89c84683560d974c9838d71c7502bc04  kimap-22.04.2.tar.xz
+"

@@ -1,0 +1,39 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kcalendarcore
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="The KDE calendar access library"
+options="!check" # RecursOn-ConnectDaily(2|3|6) make the builders stuck
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-or-later"
+depends_dev="qt5-qtbase-dev libical-dev"
+makedepends="$depends_dev extra-cmake-modules doxygen qt5-qttools-dev samurai"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kcalendarcore-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc"
+
+replaces="kcalcore"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# testrecurtodo, testreadrecurrenceid, testicaltimezones, testmemorycalendar and testtimesininterval are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "test(recurtodo|readrecurrenceid|icaltimezones|memorycalendar|timesininterval)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+}
+
+sha512sums="
+327e2cc9b5f41c38b5afad359c047e3a5c4151bf7be065641ff801abfc8fabd508ecdc1ddb1124484fefe2ad9e7196c7c8a90f5e3227e3d938be78f22bb014ba  kcalendarcore-5.95.0.tar.xz
+"

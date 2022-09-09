@@ -1,0 +1,33 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-feedgenerator
+_pkgname=feedgenerator
+pkgver=1.9.2
+pkgrel=1
+pkgdesc="A Python feed generator"
+url="https://github.com/getpelican/feedgenerator"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-six py3-tz"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-feedgenerator" # Backwards compatibility
+provides="py-feedgenerator=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+3f9799a8008cf456635bacce87699c3fa00ac990ed675a92dbdccf898fd189c8908109a27bb393e9f25bda7f880c66c40fc3d1179d09e579be8125c70bf1b7a9  feedgenerator-1.9.2.tar.gz
+"

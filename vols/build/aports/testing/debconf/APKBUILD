@@ -1,0 +1,48 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=debconf
+pkgver=1.5.79
+pkgrel=0
+pkgdesc="A configuration management system for Debian packages."
+url="https://packages.debian.org/debconf"
+arch="noarch"
+license="BSD-2-Clause"
+options="!check" # Test suite is broken. CopyDBTestSetup is missing new method
+depends="perl"
+makedepends="coreutils diffutils findutils po4a"
+checkdepends="perl-freezethaw perl-ldap perl-test-unit"
+subpackages="$pkgname-doc $pkgname-lang $pkgname-utils $pkgname-bash-completion"
+source="https://deb.debian.org/debian/pool/main/d/debconf/debconf_$pkgver.tar.xz
+	fix-makefile_destdir.patch
+	"
+builddir="$srcdir/work"
+
+build() {
+	make
+}
+
+check() {
+	./test_debconf.pl --all
+}
+
+package() {
+	make PREFIX=/usr DESTDIR="$pkgdir" install-i18n install-doc install-rest
+
+	install -Dm0644 "$builddir"/bash_completion \
+		"$pkgdir"/usr/share/bash-completion/completions/debconf
+	cd "$pkgdir"/usr/share/bash-completion/completions
+	ln -s debconf debconf-show
+}
+
+utils() {
+	depends="$pkgname"
+	pkgdesc="Small utilities for debconf developers."
+
+	cd "$builddir"
+	make PREFIX=/usr DESTDIR="$subpkgdir" install-utils
+}
+
+sha512sums="
+08a19a835422ff81d262e2a7212d42ce636e8fa4b58fb9fb220838f3d497e5c179202fcd3e79afca3b697d074749dbf6a81bfbaea54872f75a818d0cf49ab625  debconf_1.5.79.tar.xz
+df98c6d92675240691c2b68e36aa5c511887a21bef3a619c074b2c1814c228a39c488a9de03789c77cf67b1abd74521224451b4c2fe49331cd038986c006e74b  fix-makefile_destdir.patch
+"

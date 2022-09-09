@@ -1,0 +1,36 @@
+# Maintainer: Adam Jensen <acjensen@gmail.com>
+pkgname=ply
+pkgver=2.2.0
+pkgrel=0
+pkgdesc="A light-weight, dynamic tracer based on BPF"
+url="https://wkz.github.io/ply"
+arch="x86_64 aarch64"
+license="GPL-2.0-only"
+# ply's test suite requires privileged access to run BPF programs
+options="!check"
+subpackages="$pkgname-doc"
+makedepends="automake autoconf libtool bison linux-headers libbsd-dev flex ronn"
+source="$pkgname-$pkgver.tar.gz::https://github.com/iovisor/ply/archive/$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	# Use commit ref as version instead of invoking git
+	sed -i -e "s/AC_INIT(.*,/AC_INIT(ply, $pkgver,/" configure.ac
+
+	autoreconf -fi
+}
+
+build() {
+	./configure --prefix="/usr"
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+	make -C man install DESTDIR="$pkgdir"
+}
+
+sha512sums="
+e0c34893be8b461d0e633125d412957c89a854a0e63f598d62d0fc93c6942a35694eb2020e534fd5004296cc83dd3e159dcc4ac29a63f9441d03714776d25c3a  ply-2.2.0.tar.gz
+"

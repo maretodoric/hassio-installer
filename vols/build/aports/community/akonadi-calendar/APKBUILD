@@ -1,0 +1,56 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=akonadi-calendar
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Akonadi calendar integration"
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by kmailtransport -> libkgapi -> qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later"
+depends_dev="
+	akonadi-contacts-dev>=$pkgver
+	akonadi-dev>=$pkgver
+	kcalendarcore-dev
+	kcalutils-dev
+	kcodecs-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kidentitymanagement-dev
+	kio-dev
+	kmailtransport-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	samurai
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/akonadi-calendar-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+options="!check" # Broken
+
+replaces="kalendar>1.0.0"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+f1047bac5cbc324601712945c40d8f2e4577dab4a407ce9ae5ae7f3bd336f13dccc76d01e821da035c6c51506f0ded814be6e118967dfbfa8734798d5914b86d  akonadi-calendar-22.04.2.tar.xz
+"

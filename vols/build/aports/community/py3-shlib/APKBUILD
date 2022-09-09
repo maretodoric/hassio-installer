@@ -1,0 +1,35 @@
+# Contributor: Andy Hawkins <andy@gently.org.uk>
+# Maintainer: Andy Hawkins <andy@gently.org.uk>
+pkgname=py3-shlib
+pkgver=1.4
+pkgrel=1
+pkgdesc="Shell Library"
+url="https://nurdletech.com/linux-utilities/shlib/"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="
+	python3
+	py3-braceexpand
+	py3-inform
+	"
+makedepends="py3-setuptools py3-pytest-runner"
+checkdepends="py3-pytest"
+source="https://github.com/KenKundert/shlib/archive/v$pkgver/shlib-v$pkgver.tar.gz"
+builddir="$srcdir/shlib-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	sed -i 's|env python|env python3|g' tests/test_prog
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+06b2f465c52ceb35a89925a5e8ff0bc1bddabda9756013da9fe965e0e9d990ad882635b4b3bdcc4ebc8fdb01178c5543f40659dcc65ef45d47939954e17c958a  shlib-v1.4.tar.gz
+"

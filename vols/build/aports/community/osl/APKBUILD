@@ -1,0 +1,99 @@
+# Contributor: Damian Kurek <starfire24680@gmail.com>
+# Maintainer: Leon Marz <main@lmarz.org>
+pkgname=osl
+pkgver=1.11.17.0
+pkgrel=5
+pkgdesc="Advanced shading language for production GI renderers"
+options="!check" # All tests fail
+url="https://opensource.imageworks.com/osl.html"
+# armv7: https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/issues/1365
+# riscv64 and s390x blocked by openimageio
+arch="all !armv7 !riscv64 !s390x"
+license="BSD-3-Clause"
+_llvmver=14
+makedepends="cmake
+	bison
+	boost-dev
+	clang-dev
+	flex-dev
+	llvm$_llvmver-dev
+	llvm$_llvmver-libs
+	openexr-dev
+	openimageio-dev
+	openimageio-tools
+	pugixml-dev
+	python3-dev
+	py3-pybind11-dev
+	qt5-qtbase-dev
+	samurai
+	zlib-dev
+	"
+subpackages="
+	$pkgname-libs
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-python
+	openimageio-plugin-osl:_osl
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/imageworks/OpenShadingLanguage/archive/Release-$pkgver.tar.gz
+	llvm14.patch
+	"
+builddir="$srcdir/OpenShadingLanguage-Release-$pkgver"
+
+prepare() {
+	default_prepare
+	find . -iname CMakeLists.txt -exec sed -i -e "s/COMMAND python/COMMAND python3/" {} +
+}
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_CXX_STANDARD=14 \
+		-DCMAKE_SKIP_RPATH=ON \
+		-DLLVM_STATIC=OFF \
+		-DPYTHON_VERSION=3 \
+		-DOSL_BUILD_MATERIALX=ON \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	cd build
+	# Broken tests
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+python() {
+	pkgdesc="Python3 bindings for OSL"
+	depends=""
+	amove usr/lib/python3*
+}
+
+doc() {
+	default_doc
+	# Example shaders
+	amove usr/share/OSL/shaders/*.osl
+	amove usr/share/OSL/shaders/*.oso
+	amove usr/share/OSL/shaders/MaterialX/*.osl
+	amove usr/share/OSL/shaders/MaterialX/*.oso
+}
+
+_osl() {
+	pkgdesc="Plugin to access OSL from OpenImageIO"
+	depends=""
+	amove usr/lib/osl.imageio.so
+}
+
+sha512sums="
+14cb25b10f4644551b906344a289e2a4c421f4c85beaa120bb1a1e532c9be3ec235622516c4700fb23d258c5dcd1ece18b84491b0973b3162098843a9059b1d2  osl-1.11.17.0.tar.gz
+c18cef08267027e90162c1a548dca9a855c0b6326f6216c8a94341d87637878a21246d199ee1616463cb9ae34ff8f05c219faddb6a54afb1f40e07d8f9730778  llvm14.patch
+"

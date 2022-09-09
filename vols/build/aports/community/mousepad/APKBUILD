@@ -1,0 +1,36 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=mousepad
+pkgver=0.5.8
+pkgrel=0
+pkgdesc="Simple Text Editor for Xfce4"
+url="https://git.xfce.org/apps/mousepad/"
+arch="all !s390x" # Limited by gtksourceview
+license="GPL-2.0-or-later"
+makedepends="gtk+3.0-dev gtksourceview-dev intltool xfconf-dev"
+depends="desktop-file-utils"
+subpackages="$pkgname-lang"
+source="https://archive.xfce.org/src/apps/mousepad/${pkgver%.*}/mousepad-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir=/usr/lib/xfce4 \
+		--localstatedir=/var \
+		--disable-static
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+6446927b564fe18c3127835e592d0248efa690c7b8fc2a7da92f237eb16184bd502c446a5b50aed8acd1d8233c22ee7e91c0b9ee512232f7d7a69c72f1dea9e9  mousepad-0.5.8.tar.bz2
+"

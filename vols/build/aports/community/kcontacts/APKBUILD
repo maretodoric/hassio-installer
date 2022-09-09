@@ -1,0 +1,55 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kcontacts
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Address book API for KDE"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.0-or-later"
+# TODO: Replace gnupg with specific gnupg subpackages that kcontacts really needs.
+depends="
+	gnupg
+	iso-codes
+	"
+depends_dev="
+	kcodecs-dev
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	qt5-qtbase-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	graphviz
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kcontacts-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# kcontacts-addresstest requires Wayland display
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "kcontacts-addresstest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+da0a95270f8c0804526cc396e16aade6408fb41aee2831c57cc5a30d5c6a6eb6f9dea191617001a306984955a581c3dc87d65842ff2ec69d2f1a835b09c37fbb  kcontacts-5.95.0.tar.xz
+"

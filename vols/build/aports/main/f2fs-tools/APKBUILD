@@ -1,0 +1,43 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=f2fs-tools
+pkgver=1.15.0
+pkgrel=0
+pkgdesc="Tools for the Flash-Friendly File System (F2FS)"
+url="http://git.kernel.org/cgit/linux/kernel/git/jaegeuk/f2fs-tools.git"
+arch="all"
+license="GPL-2.0-or-later LGPL-2.1-or-later"
+makedepends="automake autoconf bsd-compat-headers
+	libtool util-linux-dev linux-headers"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-libs"
+source="https://git.kernel.org/cgit/linux/kernel/git/jaegeuk/f2fs-tools.git/snapshot/f2fs-tools-$pkgver.tar.gz
+	"
+
+# secfixes:
+#   1.14.0-r0:
+#     - CVE-2021-6104
+#     - CVE-2021-6105
+#     - CVE-2021-6106
+#     - CVE-2021-6107
+#     - CVE-2021-6108
+
+prepare() {
+	default_prepare
+	./autogen.sh
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr
+	make
+}
+
+package() {
+	make install DESTDIR="$pkgdir"
+	install -D -m644 mkfs/f2fs_format_utils.h "$pkgdir"/usr/include/
+}
+
+sha512sums="
+61e40f16296091b55cec2dbdc6306af6abc2d3f854f39ef03a741b7f6f47348f915498375789f017f8da27fa7d27c79c905dd047693518adde503ea7ebf89387  f2fs-tools-1.15.0.tar.gz
+"

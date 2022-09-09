@@ -1,0 +1,48 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-httpcore
+pkgver=0.14.7
+pkgrel=0
+pkgdesc="Minimal HTTP client"
+url="https://www.encode.io/httpcore/"
+license="BSD-3-Clause"
+arch="noarch !armhf !ppc64le" # limited by py3-anyio
+depends="
+	python3
+	py3-anyio
+	py3-certifi
+	py3-h11
+	py3-sniffio
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-h2
+	py3-hpack
+	py3-hyperframe
+	py3-pytest
+	py3-pytest-asyncio
+	py3-pytest-httpbin
+	py3-pytest-trio
+	py3-socksio
+	"
+subpackages="$pkgname-doc"
+source="https://github.com/encode/httpcore/archive/$pkgver/py3-httpcore-$pkgver.tar.gz"
+builddir="$srcdir/httpcore-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="$PWD/build/lib" pytest
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --skip-build
+
+	install -Dm644 LICENSE.md "$pkgdir"/usr/share/licenses/$pkgname/LICENSE.md
+}
+
+sha512sums="
+6865e97f9b84846bb4e9304ea358b0a28d66fd2d1e244e8a2a439ee446a294ecbc68ac07d5a718fd1c3eceaa44a391d7a8f7f2ca659f1674eb17a90f39987d48  py3-httpcore-0.14.7.tar.gz
+"

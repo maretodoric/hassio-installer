@@ -1,0 +1,28 @@
+# Contributor: omni <omni+alpine@hack.org>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=podman-tui
+pkgver=0.4.0
+pkgrel=0
+pkgdesc="Terminal user interface for Podman v4"
+url="https://github.com/containers/podman-tui"
+license="Apache-2.0"
+arch="all !riscv64 !s390x" # podman (netavark & aardvark-dns -> rust/cargo)
+makedepends="go gpgme-dev linux-headers btrfs-progs-dev lvm2-dev"
+depends="podman"
+options="!check"
+source="$pkgname-$pkgver.tar.gz::https://github.com/containers/podman-tui/archive/v$pkgver.tar.gz"
+
+export GOPATH="$srcdir"
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+
+build() {
+	go build -v .
+}
+
+package() {
+	install -Dm0755 "$pkgname" -t "$pkgdir"/usr/bin
+}
+
+sha512sums="
+7c00e72c398b2cac6120384ee142cfbabda0a0749be565abe0073242a98ab5dd10ec285101e1a5381f5f057bb81618cd0a9ce63566da233e7f95db12d4d5f686  podman-tui-0.4.0.tar.gz
+"

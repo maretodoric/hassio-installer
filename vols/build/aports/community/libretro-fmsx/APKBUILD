@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-fmsx
+pkgver=0_git20220409
+pkgrel=0
+_commit="11fa9f3c08cde567394c41320ca76798c2c64670"
+pkgdesc="port of fMSX to the libretro API"
+url="https://github.com/libretro/fmsx-libretro"
+arch="all"
+license="custom"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/fmsx-libretro/archive/$_commit.tar.gz"
+builddir="$srcdir/fmsx-libretro-$_commit"
+options="!check" # No tests
+
+build() {
+	make
+}
+
+package() {
+	install -Dm644 fmsx_libretro.so "$pkgdir"/usr/lib/libretro/fmsx_libretro.so
+}
+
+sha512sums="
+03d88907298ae1f7f463e057f0c8858d903b56e9cc53cd5286c57f5820a3c3e15afcc3bc83b284742388b8ccec3bafbd34ca1306046a1ab9d19e524938a58673  libretro-fmsx-11fa9f3c08cde567394c41320ca76798c2c64670.tar.gz
+"

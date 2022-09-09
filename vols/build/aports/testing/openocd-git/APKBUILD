@@ -1,0 +1,57 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+_pkgname=openocd
+_commit=2586fec922ae9ea9bea345f40598e0367934d22c
+pkgname=$_pkgname-git
+pkgver=20220305
+pkgrel=0
+pkgdesc="Free and Open On-Chip Debugging, In-System Programming and Boundary-Scan Testing"
+url="http://openocd.org/"
+arch="all"
+license="GPL-2.0-only AND GPL-2.0-or-later AND GPL-3.0-only"
+makedepends="libftdi1-dev libusb-dev hidapi-dev jimtcl-dev
+	libjaylink-dev libtool autoconf automake"
+provides="openocd"
+subpackages="$pkgname-dev $pkgname-doc"
+# Note: Using a github mirror here as sourceforge git snapshots have changing checksums
+source="
+	$_pkgname-$_commit.tar.gz::https://github.com/openocd-org/openocd/archive/$_commit.tar.gz
+
+	fix-jimtcl-link.patch
+	"
+builddir="$srcdir/$_pkgname-$_commit"
+
+prepare() {
+	default_prepare
+	./bootstrap nosubmodule
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--disable-werror \
+		--enable-cmsis-dap \
+		--enable-sysfsgpio \
+		--enable-bcm2835gpio \
+		--disable-internal-jimtcl \
+		--disable-internal-libjaylink
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+f89c1c8daca4cef4ca705f4dacd2671c5d4a5d5a82c4c4da04e33073af127af62c600dc2726ee445ddb88901f9323d4444c9885b8166e90a7308004116e196e3  openocd-2586fec922ae9ea9bea345f40598e0367934d22c.tar.gz
+6fd2fbe11917bb7f181ba67812f63e75d51bcd19e4df6a7e22e1abb8f36a4f4bdc9202e815f560476ec184d54d84df8ae4dceb17f2429b9dc1d9503804dacb03  fix-jimtcl-link.patch
+"

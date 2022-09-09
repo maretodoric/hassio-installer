@@ -1,0 +1,29 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=celluloid
+pkgver=0.21
+pkgrel=0
+pkgdesc="A simple GTK+ frontend for mpv (formerly gnome-mpv)"
+url="https://celluloid-player.github.io/"
+arch="all"
+license="GPL-3.0-or-later"
+depends="gsettings-desktop-schemas"
+makedepends="meson appstream-glib-dev glib-dev gtk+3.0-dev mpv-dev libepoxy-dev"
+checkdepends="desktop-file-utils"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://github.com/celluloid-player/celluloid/releases/download/v$pkgver/celluloid-$pkgver.tar.xz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="6e48d982be127c21cc6afeec8e94ae5c78c667f865690f8fad6db2f0b8290922682334c4d905827e99765dc2084c1b8a36927ff3de485a7a456f4a2fb7058ae6  celluloid-0.21.tar.xz"

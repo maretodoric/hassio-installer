@@ -1,0 +1,35 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=archiso
+pkgver=59
+pkgrel=0
+pkgdesc="tools for creating Arch Linux live and install iso images"
+url="https://gitlab.archlinux.org/archlinux/archiso"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="
+	arch-install-scripts
+	archlinux-keyring
+	bash
+	dosfstools
+	e2fsprogs
+	libarchive
+	libisoburn
+	openssl
+	pacman
+	pacman-makepkg
+	mtools
+	squashfs-tools
+	"
+subpackages="$pkgname-doc"
+options="!check"  # no tests
+source="https://gitlab.archlinux.org/archlinux/archiso/-/archive/v$pkgver/archiso-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="
+daf69ec778a5c4769cd46a23935dc50366a140667e1a97d097ad9b651a6c86845cde33c50915853849de3ebcb74e79c52ecdf803c99aa02866887c6ec3afc770  archiso-v59.tar.gz
+"

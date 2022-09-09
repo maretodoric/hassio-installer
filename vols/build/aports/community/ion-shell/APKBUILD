@@ -1,0 +1,31 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=ion-shell
+pkgver=1.0.5_git20210627
+pkgrel=0
+_commit=df993477678248a62745c9c0a56c880dfd06b515
+pkgdesc="modern system shell with simple, yet powerful, syntax"
+url="https://doc.redox-os.org/ion-manual/html/"
+# ppc64le: Rust SIGSEGVs when compiling
+arch="all !s390x !riscv64" # limited by cargo
+license="MIT"
+makedepends="cargo"
+install="$pkgname.post-install $pkgname.post-upgrade $pkgname.pre-deinstall"
+source="$pkgname-$_commit.tar.gz::https://gitlab.redox-os.org/redox-os/ion/-/archive/$_commit.tar.gz"
+builddir="$srcdir/ion-$_commit"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	install -Dm0755 target/release/ion -t "$pkgdir"/usr/bin
+}
+
+sha512sums="
+a68889e1d3cbf93b142ed995c998f1758fa1bcbbb825a0c5ce353b27d00550cbd719977990a4aff3202a16e3a5aed3d9b41c06f038ad145d2628e654acf58754  ion-shell-df993477678248a62745c9c0a56c880dfd06b515.tar.gz
+"

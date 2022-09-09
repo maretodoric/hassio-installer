@@ -1,0 +1,35 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=xfce4-sensors-plugin
+pkgver=1.4.1
+pkgrel=0
+pkgdesc="Reads your hardware sensor values and displays them in your panel"
+url="https://goodies.xfce.org/projects/panel-plugins/xfce4-sensors-plugin"
+arch="all"
+license="GPL-2.0-or-later"
+depends_dev="xfce4-panel-dev lm-sensors-dev"
+makedepends="$depends_dev bash libxfce4ui-dev"
+subpackages="$pkgname-dev $pkgname-lang $pkgname-doc"
+source="https://archive.xfce.org/src/panel-plugins/xfce4-sensors-plugin/${pkgver%.*}/xfce4-sensors-plugin-$pkgver.tar.bz2"
+
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-static
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+d3f335e1f18fe748648be07ace6a88eb9f95222dd4d8dd4f6e5cbb3b7c69bd93b02fdbe12b9f08e65fbf7ba8461d7a685467f9e62c0682c85b3699fae5b7ed33  xfce4-sensors-plugin-1.4.1.tar.bz2
+"

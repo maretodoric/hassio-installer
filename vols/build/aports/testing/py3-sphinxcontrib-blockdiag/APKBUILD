@@ -1,0 +1,28 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-blockdiag
+_pkgname=sphinxcontrib-blockdiag
+pkgver=2.0.0
+pkgrel=2
+pkgdesc="Sphinx blockdiag extension"
+url="https://pypi.python.org/pypi/sphinxcontrib-blockdiag"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-blockdiag py3-sphinx"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-sphinxcontrib-blockdiag" # for backwards compatibility
+provides="py-sphinxcontrib-blockdiag=$pkgver-r$pkgrel" # for backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+
+sha512sums="3968b75396129fa9337ccb7f5139944071fa81a247841142dd97a4ee6696c2b16dfcd1d944043e807a72e0b371e8a0b5ea85f42adfbc037842917cf78f38d2de  sphinxcontrib-blockdiag-2.0.0.tar.gz"

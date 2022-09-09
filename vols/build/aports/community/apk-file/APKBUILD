@@ -1,0 +1,37 @@
+# Contributor: Daniele Debernardi <drebrez@gmail.com>
+# Maintainer: Daniele Debernardi <drebrez@gmail.com>
+pkgname=apk-file
+pkgver=0.3.6
+pkgrel=7
+pkgdesc="Command line front end for pkgs.alpinelinux.org"
+options="chmod-clean"
+url="https://github.com/genuinetools/apk-file"
+arch="all"
+license="MIT"
+makedepends="go bash"
+source="$pkgname-$pkgver.tar.gz::https://github.com/genuinetools/apk-file/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	# fix build on riscv64
+	go mod edit -replace \
+		golang.org/x/sys=golang.org/x/sys@v0.0.0-20210630005230-0f9fa26af87c
+	go mod download golang.org/x/sys
+}
+
+build() {
+	export GOPATH="$srcdir/go"
+	make
+}
+
+check() {
+	export GOPATH="$srcdir/go"
+	make test
+}
+
+package() {
+	install -Dm755 "$builddir/apk-file" \
+		"$pkgdir/usr/bin/apk-file"
+}
+
+sha512sums="8da3f693ce85e1ab8a9cefb8b5baf83e096770703e5ccda89ec05161e8b4db54a973e54540e5f1737ce6d22cc5cdca10ab22553182de0c1c3cf824fe34d43318  apk-file-0.3.6.tar.gz"

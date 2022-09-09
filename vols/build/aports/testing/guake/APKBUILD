@@ -1,0 +1,32 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=guake
+pkgver=3.9.0
+pkgrel=0
+pkgdesc="Drop-down terminal for GNOME"
+url="http://guake-project.org/"
+arch="noarch"
+license="GPL-2.0-only"
+depends="py3-pbr"
+makedepends="python3-dev py3-setuptools py3-setuptools_scm"
+source="https://pypi.io/packages/source/g/guake/guake-$pkgver.tar.gz"
+
+# secfixes:
+#   3.8.5-r0:
+#     - CVE-2021-23556
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+d387c3e5efddef8d2a75da553a506273ea4a5972ebbab17b5e7f4e0dc74c334acebff09727df19311329dc768adf1c39cab402e6a81390eeac38eb6ebee62910  guake-3.9.0.tar.gz
+"

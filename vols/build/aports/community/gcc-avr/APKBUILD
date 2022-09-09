@@ -1,0 +1,66 @@
+# Contributor: Pedro Filipe <xpecex@outlook.com>
+# Contributor: Stefan Wagner <stw@bit-strickerei.de>
+# Maintainer: Stefan Wagner <stw@bit-strickerei.de>
+pkgname=gcc-avr
+pkgver=11.3.0
+pkgrel=0
+pkgdesc="The GNU Compiler Collection for AVR targets"
+url="https://gcc.gnu.org/"
+depends="binutils-avr"
+makedepends="bash linux-headers gmp-dev mpfr-dev mpc1-dev zlib-dev isl-dev"
+arch="all"
+license="GPL-3.0-or-later"
+subpackages="$pkgname-doc"
+source="
+	https://mirrors.kernel.org/gnu/gcc/gcc-$pkgver/gcc-$pkgver.tar.xz
+	fix-no-system-headers.patch
+	"
+
+builddir="$srcdir/gcc-$pkgver"
+_workingdir="$builddir/build"
+
+build() {
+	mkdir "$_workingdir"
+	cd "$_workingdir"
+
+	export CFLAGS_FOR_TARGET='-pipe'
+	export CXXFLAGS_FOR_TARGET='-pipe'
+
+	"$builddir"/configure \
+		--target=avr \
+		--prefix=/usr \
+		--with-sysroot=/usr/avr \
+		--with-native-system-header-dir=/include \
+		--with-headers=/usr/avr/include \
+		--with-python-dir=share/gcc-avr \
+		--libexecdir=/usr/lib \
+		--enable-languages=c,c++ \
+		--enable-__cxa_atexit \
+		--disable-install-libiberty \
+		--disable-libssp \
+		--disable-libstdcxx-pch \
+		--disable-libunwind-exceptions \
+		--disable-linker-build-id \
+		--disable-nls \
+		--disable-werror \
+		--with-gnu-as \
+		--with-gnu-ld \
+		--with-system-zlib \
+		--with-isl \
+		--with-avrlibc \
+		--with-pkgversion='Alpine Linux'
+	make
+}
+
+package() {
+	cd "$_workingdir"
+	make install DESTDIR="$pkgdir"
+	rm -rf "$pkgdir"/usr/share/man/man7
+	rm -f "$pkgdir"/usr/lib/libcc1.*
+	find "$pkgdir"/usr/lib -type f -name "*.a" -exec /usr/bin/avr-strip --strip-debug '{}' \;
+}
+
+sha512sums="
+f0be5ad705c73b84477128a69c047f57dd47002f375eb60e1e842e08cf2009a509e92152bca345823926d550b7395ae6d4de7db51d1ee371c2dc37313881fca7  gcc-11.3.0.tar.xz
+358cb41e6a8612f5c96f27ed573354a909253565caa200af8959d90cf21e0ddbee219f6281fc3917ead1f85c5ec7111162f9b075c3e478df56a2fad505bce5f1  fix-no-system-headers.patch
+"

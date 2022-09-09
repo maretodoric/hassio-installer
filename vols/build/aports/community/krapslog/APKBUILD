@@ -1,0 +1,28 @@
+# Contributor: Adam Jensen <adam@acj.sh>
+# Maintainer: Adam Jensen <adam@acj.sh>
+pkgname=krapslog
+pkgver=0.4.0
+pkgrel=0
+pkgdesc="Tool for visualizing log file volume as sparklines in your terminal"
+url="https://github.com/acj/krapslog-rs"
+arch="all !s390x !riscv64" # limited by rust/cargo
+license="MIT"
+makedepends="cargo"
+source="$pkgname-rs-$pkgver.tar.gz::https://github.com/acj/krapslog-rs/archive/$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-rs-$pkgver"
+
+build() {
+	cargo build --release --locked
+}
+
+check() {
+	cargo test --release --locked
+}
+
+package() {
+	install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+}
+
+sha512sums="
+91641548a4cf8dc86da44b2f6f267b1405f7e71479f68fe741dfdb1c68c5561ac06b6c3f7a55920b3b3fc04561657a871dc4c969b4c266857b804ce74a82d66c  krapslog-rs-0.4.0.tar.gz
+"

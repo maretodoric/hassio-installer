@@ -1,0 +1,31 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=libmanette
+pkgver=0.2.6
+pkgrel=1
+pkgdesc="Simple GObject game controller library"
+url="https://gnome.pages.gitlab.gnome.org/libmanette/"
+arch="all"
+license="LGPL-2.1-or-later"
+makedepends="meson glib-dev libgudev-dev libevdev-dev gobject-introspection-dev
+	vala"
+subpackages="$pkgname-dev"
+source="https://download.gnome.org/sources/libmanette/${pkgver%.*}/libmanette-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dvapi=true \
+		-Dintrospection=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="e10a1b3e493a6472b0cf7562e3dfbba839ee69bb878676b2e3521363e9ff7c5df7d379923a4781366797e889f3c8985397080ae606264dc9bd3a4459bce0513c  libmanette-0.2.6.tar.xz"

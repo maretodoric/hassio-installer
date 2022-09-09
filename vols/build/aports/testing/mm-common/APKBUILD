@@ -1,0 +1,46 @@
+# Contributor: Alex Yam <alex@alexyam.com>
+# Maintainer: Alex Yam <alex@alexyam.com>
+pkgname=mm-common
+pkgver=1.0.3
+pkgrel=0
+arch="noarch"
+pkgdesc="Build infrastructure and utilities for GNOME C++ binding libraries"
+options="!check" # No test suite
+url="https://gitlab.gnome.org/GNOME/mm-common"
+license="GPL-2.0-or-later"
+depends="
+	autoconf
+	automake
+	gtkmm3-dev
+	glibmm-dev
+	"
+subpackages="$pkgname-doc"
+source="
+	$pkgname-$pkgver.tar.gz::https://github.com/GNOME/mm-common/archive/$pkgver.tar.gz
+	http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/libstdc++.tag
+	"
+
+prepare() {
+	default_prepare
+	./autogen.sh
+
+	cp $srcdir/libstdc++.tag $builddir/doctags/
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--disable-network	# Download libstdc++.tag outside configure
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+a7d37ec74cae29e990ab1add4454eaded92ad929b9da19314879b408a43835bff5ee41d876c87aed3e6627b8f48f6dcd8f7afb84afa8f2521629a94590afc0b5  mm-common-1.0.3.tar.gz
+e47ca5e16e4b80bf5eedc7efb95c4d50200b1b7fc209021be330de35120aed1372e8106628819b0e8f4794b801320e1e87d3a266d2ba9ae98ab3842e1b202bb4  libstdc++.tag
+"

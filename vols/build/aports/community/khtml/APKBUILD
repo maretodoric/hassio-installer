@@ -1,0 +1,62 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=khtml
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="The KDE HTML library, ancestor of WebKit"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/Frameworks"
+license="LGPL-2.1-or-later AND LGPL-2.1-only"
+depends_dev="
+	giflib-dev
+	karchive-dev
+	kcodecs-dev
+	kglobalaccel-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kjs-dev
+	knotifications-dev
+	kparts-dev
+	ktextwidgets-dev
+	kwallet-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libjpeg-turbo-dev
+	perl-dev
+	qt5-qtbase-dev
+	samurai
+	sonnet-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	gperf
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/portingAids/khtml-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+749a9caee2d848100715f643c18e34e13bd544be71e7816bf769876232f1693c424cce0743ecbdc0218551207c9616df648d8ba9bb3524a56fa757928b0bb3a9  khtml-5.95.0.tar.xz
+"

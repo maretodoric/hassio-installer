@@ -1,0 +1,40 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Maintainer: omni <omni+alpine@hack.org>
+pkgname=pgcli
+pkgver=3.4.1
+pkgrel=0
+pkgdesc="Postgres CLI with autocompletion and syntax highlighting"
+options="!check" # Tests fail
+url="https://www.pgcli.com"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3
+	py3-pgspecial
+	py3-click
+	py3-pygments
+	py3-prompt_toolkit>2.0.0
+	py3-psycopg2
+	py3-sqlparse<0.5.0
+	py3-configobj
+	py3-humanize
+	py3-wcwidth
+	py3-cli_helpers>1.0.0"
+checkdepends="pytest py3-mock"
+makedepends="python3-dev py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/p/pgcli/pgcli-$pkgver.tar.gz"
+
+check() {
+	python3 -m pytest tests
+}
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+0c7d95109adcbedc3651baf33edb4f22ab3210817fb8968b191cf018369110e773287eb190ddb353695892dc5c00a89623e646e347e371830ef60276c3af2f3a  pgcli-3.4.1.tar.gz
+"

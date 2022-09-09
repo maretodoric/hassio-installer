@@ -1,0 +1,47 @@
+# Maintainer: Daniel Isaksen <d@duniel.no>
+pkgname=yara
+pkgver=4.2.0
+pkgrel=0
+pkgdesc="The pattern matching swiss knife for malware researchers"
+url="https://virustotal.github.io/yara/"
+arch="all !armhf !armv7"  # armhf: tests fail
+license="BSD-3-Clause"
+makedepends="automake file-dev openssl-dev autoconf libtool flex"
+source="$pkgname-$pkgver.tar.gz::https://github.com/VirusTotal/yara/archive/v$pkgver.tar.gz
+	remove-test-rules.patch"
+subpackages="$pkgname-dev $pkgname-doc"
+
+# secfixes:
+#   4.2.0-r0:
+#     - CVE-2021-45429
+
+prepare() {
+	default_prepare
+	autoreconf -fiv
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--with-crypto \
+		--enable-magic
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -Dm 644 COPYING "$pkgdir/usr/share/licenses/$pkgname"/COPYING
+	install -Dm 644 README.md "$pkgdir/usr/share/doc/$pkgname"/README.md
+	cp -r docs "$pkgdir/usr/share/doc/$pkgname"
+}
+
+sha512sums="
+24ca707015c77d87126bcaac0991997f6b09403024765d615a06db47191a3f0177e1c1eb4a917ec8412876b61d28f4a708f36999ddd9214c3967968c71ae3b7c  yara-4.2.0.tar.gz
+a725860d8e404326b61d633ae32a52e127b26c54dacad1f142ea20d760b926608f17d9ed0d0bd14c0f4987444211a868447e8c79d9d640053497f7f4974b6ee7  remove-test-rules.patch
+"

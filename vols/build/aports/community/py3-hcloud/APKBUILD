@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-hcloud
+pkgver=1.16.0
+pkgrel=1
+pkgdesc="Official Hetzner Cloud Python library"
+url="https://github.com/hetznercloud/hcloud-python"
+license="MIT"
+arch="noarch"
+depends="python3 py3-requests py3-dateutil"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest py3-mock"
+source="https://files.pythonhosted.org/packages/source/h/hcloud/hcloud-$pkgver.tar.gz"
+builddir="$srcdir/hcloud-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+de98582691637c1e6978c9056a4765cd0046462b0f38777564a71024b93b5265da40373cb4dc19161397bb2896391610744d5c92f4e3d1a0be88e88a3512c02f  hcloud-1.16.0.tar.gz
+"

@@ -1,0 +1,140 @@
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=zoneminder
+pkgver=1.36.19
+pkgrel=0
+_crud=14292374ccf1328f2d5db20897bd06f99ba4d938
+_enum=ea90c0cd7f6e24333a90885e563b5d30b793db29
+_rtsp=eab32851421ffe54fec0229c3efc44c642bc8d46
+pkgdesc="Video camera surveillance system"
+url="https://www.zoneminder.com/"
+arch="all !s390x !armhf !riscv64" # limited by vlc
+license="GPL-2.0-or-later"
+_php=php8
+depends="bash ffmpeg linux-headers perl perl-archive-zip
+	perl-crypt-eksblowfish perl-data-entropy perl-data-uuid
+	perl-date-manip perl-dbd-mysql perl-dbi
+	perl-device-serialport perl-libwww perl-lwp-protocol-https
+	perl-mailtools perl-mime-lite perl-mime-tools
+	perl-number-bytes-human perl-php-serialization
+	perl-sys-meminfo perl-sys-mmap perl-time-hires
+	$_php $_php-apcu $_php-ctype $_php-gd $_php-pdo_mysql
+	$_php-session $_php-sockets procps sudo zip"
+makedepends="bzip2-dev cmake curl-dev ffmpeg-dev gnutls-dev gzip
+	libexecinfo-dev libgcrypt-dev libjpeg-turbo-dev
+	mariadb-connector-c-dev pcre-dev perl-dev $_php-cli
+	polkit-dev v4l-utils-dev vlc-dev x264-dev samurai"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="zoneminder-$pkgver.tar.gz::https://github.com/ZoneMinder/zoneminder/archive/$pkgver.tar.gz
+	RtspServer-$_rtsp.tar.gz::https://github.com/ZoneMinder/RtspServer/archive/$_rtsp.tar.gz
+	CakePHP-Enum-Behavior-$_enum.tar.gz::https://github.com/ZoneMinder/CakePHP-Enum-Behavior/archive/$_enum.tar.gz
+	crud-$_crud.tar.gz::https://github.com/FriendsOfCake/crud/archive/$_crud.tar.gz
+	$pkgname.initd
+	musl-fix.patch
+	"
+
+# secfixes:
+#   1.30.2-r0:
+#     - CVE-2016-10140
+#     - CVE-2017-5595
+#   1.30.2-r3:
+#     - CVE-2017-5367
+#     - CVE-2017-5368
+#   1.36.7-r0:
+#     - CVE-2019-6777
+#     - CVE-2019-6990
+#     - CVE-2019-6991
+#     - CVE-2019-6992
+#     - CVE-2019-7325
+#     - CVE-2019-7326
+#     - CVE-2019-7327
+#     - CVE-2019-7328
+#     - CVE-2019-7329
+#     - CVE-2019-7330
+#     - CVE-2019-7331
+#     - CVE-2019-7332
+#     - CVE-2019-7333
+#     - CVE-2019-7334
+#     - CVE-2019-7335
+#     - CVE-2019-7336
+#     - CVE-2019-7337
+#     - CVE-2019-7338
+#     - CVE-2019-7339
+#     - CVE-2019-7340
+#     - CVE-2019-7341
+#     - CVE-2019-7342
+#     - CVE-2019-7343
+#     - CVE-2019-7344
+#     - CVE-2019-7345
+#     - CVE-2019-7346
+#     - CVE-2019-7347
+#     - CVE-2019-7348
+#     - CVE-2019-7349
+#     - CVE-2019-7350
+#     - CVE-2019-7351
+#     - CVE-2019-7352
+#     - CVE-2019-8423
+#     - CVE-2019-13072
+#     - CVE-2020-25729
+
+_copy_module() {
+	rmdir $2
+	cp -r $srcdir/$1 $2
+}
+
+prepare() {
+	_copy_module RtspServer-$_rtsp dep/RtspServer
+	_copy_module CakePHP-Enum-Behavior-$_enum web/api/app/Plugin/CakePHP-Enum-Behavior
+	_copy_module crud-$_crud web/api/app/Plugin/Crud
+
+	default_prepare
+
+	utils/zmeditconfigdata.sh ZM_CHECK_FOR_UPDATES no
+	utils/zmeditconfigdata.sh ZM_LOG_LEVEL_FILE 0
+	utils/zmeditconfigdata.sh ZM_LOG_LEVEL_SYSLOG -5
+}
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DZM_CGIDIR=/usr/share/webapps/$pkgname/cgi-bin \
+		-DZM_LOGDIR=/var/log/zoneminder \
+		-DZM_RUNDIR=/var/run/zoneminder \
+		-DZM_SOCKDIR=/var/run/zoneminder \
+		-DZM_TMPDIR=/var/lib/zoneminder/temp \
+		-DZM_WEBDIR=/usr/share/webapps/$pkgname/htdocs \
+		-DZM_CONFIG_DIR=/etc/zm
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	find "$pkgdir" -name perllocal.pod -delete
+	install -D build/zmlinkcontent.sh "$pkgdir"/usr/sbin/zmlinkcontent.sh
+
+	install -D -m 755 "$srcdir/$pkgname.initd" "$pkgdir/etc/init.d/$pkgname"
+	chmod 640 "$pkgdir/etc/zm/zm.conf"
+
+	ln -s /var/cache/zoneminder \
+		"$pkgdir"/usr/share/webapps/zoneminder/htdocs/cache
+	install -g wheel -m 2750 -d "$pkgdir"/var/log/$pkgname
+
+	# create symlinks from webapps to default http location
+	mkdir -p "$pkgdir"/var/www/localhost/htdocs \
+		"$pkgdir"/var/www/localhost/cgi-bin
+	ln -sf /usr/share/webapps/zoneminder/htdocs \
+		"$pkgdir"/var/www/localhost/htdocs/zm
+	ln -sf /usr/share/webapps/zoneminder/cgi-bin \
+		"$pkgdir"/var/www/localhost/cgi-bin/zm
+}
+
+sha512sums="
+50776c55d26cd63ec521faff64d84415b1c75cb7ed8c6317ddd9ce0c09327db8ac257fd39584b76e2e2f41644764837020d345edbe500e3524d7c9709ebea269  zoneminder-1.36.19.tar.gz
+245012f634b6039f819ac2fb512313797dd514e160a9d0dbfd7e03e8d957b73846746ce5b5575341628a3e7aac0085891f01bb1d0e709b804ffaf27541e76f53  RtspServer-eab32851421ffe54fec0229c3efc44c642bc8d46.tar.gz
+75f2188e548b98191c8df82fb76e918f3bda9788f541449df8fa92449ad19aa0b9c13420dd91c760e08a4d31956ad51602242ab97e3bd4460f01e99f49992453  CakePHP-Enum-Behavior-ea90c0cd7f6e24333a90885e563b5d30b793db29.tar.gz
+da58528686baf05385ad08079f965bce10eba6d599133ab773e9ab1f9e4b7d82cf5431b4b773317b90effb16e0b026a029bdfabe08a9ef1a5e9b94e7a1c2ea9e  crud-14292374ccf1328f2d5db20897bd06f99ba4d938.tar.gz
+ae02daacc41e2b32ca0da5cf407c05447a5ce8e0cf035421111856511dc1075da75d9da32f8f013940c631215a62f3133860b35225bda405230b94a6b097c865  zoneminder.initd
+b1ca1fd225092a092d3ec2903d02b66a5698b7c1106eeed8627d7c954cf4f7d91b8ca7db3eb351fb8c7b585678091c2fcf2f8adb8cbfceea9e0494f9a71cd30f  musl-fix.patch
+"

@@ -1,0 +1,39 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Alan Lacerda <alacerda@alpinelinux.org>
+pkgname=mate-control-center
+pkgver=1.26.0
+pkgrel=1
+pkgdesc="MATE's main interface for configuration of various aspects of your desktop"
+url="https://github.com/mate-desktop/mate-control-center"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="mate-common mate-menus mate-icon-theme desktop-file-utils"
+makedepends="dbus-glib-dev libtool intltool itstool gtk+3.0-dev polkit-dev
+	dconf-dev mate-menus-dev marco-dev mate-settings-daemon-dev
+	libmatekbd-dev libxklavier-dev mate-desktop-dev startup-notification-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/mate-control-center-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--prefix=/usr \
+		--enable-static=no \
+		--disable-update-mimedb
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+958c41200b6fecc5cfbebbe7112038468bb5e8a6a877e2b16a40af3b41c100e32052e176fc87029eba3d0ccc05767f9400b609ab413924a54222cb18748d746f  mate-control-center-1.26.0.tar.xz
+"

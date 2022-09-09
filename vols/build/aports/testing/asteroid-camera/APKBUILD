@@ -1,0 +1,37 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=asteroid-camera
+pkgver=0_git20210517
+pkgrel=0
+_commit="da9b1e4a2378aa4a423c0126be94def6c3174a29"
+pkgdesc="Default camerae app for AsteroidOS"
+url="https://github.com/AsteroidOS/asteroid-camera"
+# armhf blocked by extra-cmake-modules
+arch="all !armhf"
+license="GPL-3.0-or-later"
+depends="mapplauncherd"
+makedepends="
+	extra-cmake-modules
+	qml-asteroid-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtmultimedia-dev
+	"
+source="https://github.com/AsteroidOS/asteroid-camera/archive/$_commit/asteroid-camera-$_commit.tar.gz"
+options="!check" # No tests
+builddir="$srcdir/$pkgname-$_commit"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cbbfca8487694a26d555b169329f7aa7673cc3f2ca4025ac1954aad1c041f5215c82cfd38ff42805e57ba07bb697de02a3c70175754bd774e8160b505fc9b3ed  asteroid-camera-da9b1e4a2378aa4a423c0126be94def6c3174a29.tar.gz
+"

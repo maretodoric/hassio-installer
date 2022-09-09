@@ -1,0 +1,36 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-desmume
+_pkgname=desmume
+pkgver=0_git20220405
+pkgrel=0
+_commit="5d0ae2be2c9fb6362af528b3722e81323318eb9f"
+arch="x86 x86_64 armhf armv7 aarch64"
+url="https://github.com/libretro/desmume"
+pkgdesc="Nintendo DS core for libretro"
+license="GPL-2.0-or-later"
+makedepends="libpcap-dev mesa-dev"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/$_pkgname/archive/$_commit.tar.gz"
+builddir="$srcdir/$_pkgname-$_commit"
+options="!check" # No tests
+
+build() {
+	cd "$builddir"/desmume/src/frontend/libretro
+	case "$CARCH" in
+		x86|x86_64)
+			DESMUME_JIT=1 make
+			;;
+		armhf|armv7|aarch64)
+			DESMUME_JIT=0 DESMUME_JIT_ARM=1 make
+			;;
+	esac
+}
+
+package() {
+	install -Dm644 "$builddir"/desmume/src/frontend/libretro/desmume_libretro.so \
+		"$pkgdir"/usr/lib/libretro/desmume_libretro.so
+}
+
+sha512sums="
+2453fd37746e1640678b079162d81f8e3c880a7c162958a21944de9b673aad8c7a3deca2ebc281036cc3889f11c7b96db7dee6dd2954c34b554602d75710d0ab  libretro-desmume-5d0ae2be2c9fb6362af528b3722e81323318eb9f.tar.gz
+"

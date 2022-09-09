@@ -1,0 +1,38 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=glpk
+pkgver=5.0
+pkgrel=1
+pkgdesc="GLPK: For solving linear and mixed integer programming and other problems"
+url="https://www.gnu.org/software/glpk/"
+arch="all"
+license="GPL-3.0-only"
+makedepends="gmp-dev"
+subpackages="$pkgname-dev"
+source="https://ftp.gnu.org/gnu/glpk/glpk-$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+
+	update_config_sub
+	update_config_guess
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--with-gmp
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="4e92195fa058c707146f2690f3a38b46c33add948c852f67659ca005a6aa980bbf97be96528b0f8391690facb880ac2126cd60198c6c175e7f3f06cca7e29f9d  glpk-5.0.tar.gz"

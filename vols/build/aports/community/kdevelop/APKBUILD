@@ -1,0 +1,73 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kdevelop
+pkgver=22.04.2
+pkgrel=2
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://www.kdevelop.org/"
+pkgdesc="A featureful, plugin-extensible IDE for C/C++ and other programming languages"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later AND GFDL-1.2-only"
+depends="indent"
+makedepends="
+	boost-dev
+	clang>=12
+	clang-dev>=12
+	clang-libs>=12
+	extra-cmake-modules
+	grantlee-dev
+	karchive-dev
+	kcmutils-dev
+	kconfig-dev
+	kcrash-dev
+	kdeclarative-dev
+	kdoctools-dev
+	kguiaddons-dev
+	kiconthemes-dev
+	kio-dev
+	kitemmodels-dev
+	kitemviews-dev
+	kjobwidgets-dev
+	knewstuff-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kparts-dev
+	kservice-dev
+	ktexteditor-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libkomparediff2-dev
+	libksysguard-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	shared-mime-info
+	threadweaver-dev
+	"
+makedepends="$makedepends
+	llvm-dev>=12
+	samurai
+	" # Should always install the version of llvm that contains /usr/bin/llvm-config
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kdevelop-$pkgver.tar.xz
+	fix-find-clang-path.patch
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+options="!check" # Broken
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+813dc4a4f4b4d17e365dee6bf902b34bfb011e4b27876e6e9bb801462c860d9df376e6e65bf9657d7b3dd2ecdd19b4180968d0ebbdea68d4e3ec194ead20a29e  kdevelop-22.04.2.tar.xz
+6700fcf1da4243aa9950c8c81e47f916d3d04cd11a73fbf14bbe77209fd19000078f49c266d0b58158d7f85cdd89c0316d86284bf665470a5cfb2c8318bdf56d  fix-find-clang-path.patch
+"

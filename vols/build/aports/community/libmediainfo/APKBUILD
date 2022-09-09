@@ -1,0 +1,61 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+
+# Bundled libraries used in the package:
+#
+# Name         | License       | Location
+# -------------+---------------+---------
+# aes-gladman  | custom / GPL  | Source/ThirdParty/aes-gladman
+# base64       | unknown       | Source/ThirdParty/base64
+# hmac-gladman | custom / GPL  | Source/ThirdParty/hmac-gladman
+# jni          | Apache-2.0    | Source/ThirdParty/jni
+# md5          | Public domain | Source/ThirdParty/md5
+# sha1-gladman | custom / GPL  | Source/ThirdParty/sha1-gladman
+# sha2-gladman | custom / GPL  | Source/ThirdParty/sha2-gladman
+# tfsxml       | unknown       | Source/ThirdParty/tfsxml
+
+pkgname=libmediainfo
+pkgver=22.03
+pkgrel=0
+pkgdesc="Shared library for mediainfo"
+url="https://github.com/MediaArea/MediaInfoLib"
+arch="all"
+license="BSD-2-Clause"
+depends_dev="libzen-dev zlib-dev"
+makedepends="$depends_dev
+	cmake
+	curl-dev
+	libmms-dev
+	samurai
+	tinyxml2-dev
+	"
+subpackages="$pkgname-dev"
+source="https://mediaarea.net/download/source/libmediainfo/$pkgver/libmediainfo_$pkgver.tar.xz"
+builddir="$srcdir/MediaInfoLib"
+options="!check"  # upstream does not provide tests
+
+prepare() {
+	default_prepare
+	rm -rf Project/MS*
+
+	# Make sure that these bundled libs are not used.
+	rm -R Project/zlib
+	rm -R Source/ThirdParty/tinyxml2
+}
+
+build() {
+	cmake -G Ninja -S Project/CMake -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_VERBOSE_MAKEFILE=ON \
+		-DBUILD_SHARED_LIBS=ON
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+cae1df09f38e60363ef3c1d0f7324301b701f21c3fde84318f6389f91311b706037699fe83448f8e5b4d1f8af81ddf357b1630fe5f03aeccfa90fe0f9ae86477  libmediainfo_22.03.tar.xz
+"

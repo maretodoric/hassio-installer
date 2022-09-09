@@ -1,0 +1,60 @@
+# Contributor: rubicon <rubicon@mailo.com>
+# Maintainer:
+pkgname=ocaml-mmap
+_pkgname=mmap
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="File mapping functionality"
+url="https://github.com/mirage/mmap"
+arch="all !riscv64"  # limited by ocaml aport
+license="LGPL-2.1-only-WITH-linking-exception"
+depends="ocaml-runtime ocaml-bigarray-compat"
+depends_dev="$pkgname=$pkgver-r$pkgrel ocaml-bigarray-compat-dev"
+makedepends="$depends_dev dune ocaml"
+options="!check"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mirage/mmap/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+_ocamldir=usr/lib/ocaml
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	dune build --release --verbose
+}
+
+check() {
+	dune runtest --verbose
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--docdir=/.omit
+	rm -Rf "$pkgdir"/.omit
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find $_ocamldir \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+cef6c37953d62f2f7472147a03707d60401d92aaf4ddb2dbaa697ee4eee252f70d8068e8fe5c6a36e005d4cc738f61d2c5bea12d844f1e3a696fef2f6546d59c  ocaml-mmap-1.2.0.tar.gz
+"

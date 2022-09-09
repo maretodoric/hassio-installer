@@ -1,0 +1,51 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kcalutils
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="The KDE calendar utility library"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kconfigwidgets
+arch="all !armhf !s390x !riscv64"
+url="https://api.kde.org/kdepim/kcalutils/html"
+license="LGPL-2.0-or-later"
+depends_dev="
+	grantlee-dev
+	kcalendarcore-dev
+	kcodecs-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kidentitymanagement-dev
+	kwidgetsaddons-dev
+	samurai
+	"
+makedepends="$depends_dev extra-cmake-modules"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kcalutils-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# kcalutils-testincidenceformatter and kcalutils-testtodotooltip are broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "kcalutils-test(incidenceformatter|todotooltip|dndfactory)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+ec73027eb44ed10f604be43cf619092c3dff585745a4aeef5122952ce0f59b29c95a77b391f99c4ae596cf9f1f54360d1ba7b07f244757c1fcb3fe42f74988ae  kcalutils-22.04.2.tar.xz
+"

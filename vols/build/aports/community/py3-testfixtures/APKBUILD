@@ -1,0 +1,41 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-testfixtures
+pkgver=6.18.5
+pkgrel=0
+pkgdesc="Collection of helpers and mock objects for unit tests and doc tests"
+url="https://github.com/Simplistix/testfixtures"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="
+	py3-setuptools
+	py3-sphinx
+	"
+checkdepends="
+	py3-pytest
+	py3-sybil
+	py3-twisted
+	py3-zope-component
+	"
+source="https://pypi.python.org/packages/source/t/testfixtures/testfixtures-$pkgver.tar.gz"
+builddir="$srcdir/testfixtures-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	cd build/lib
+	pytest -v --ignore="testfixtures/tests/test_django" # Fails to import
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+
+	rm -r "$pkgdir"/usr/lib/python3.*/site-packages/testfixtures/tests
+}
+
+sha512sums="
+4d4ec7295bb056102995dc1c872b86059109b114ab921769d3aa2c2de96a3789fef30558f51826655b6d2d668ea1b1bc9f161a4584aab628f59d4da1fa95940e  testfixtures-6.18.5.tar.gz
+"

@@ -1,0 +1,37 @@
+# Contributor: Thomas Boerger <thomas@webhippie.de>
+# Maintainer: Thomas Boerger <thomas@webhippie.de>
+pkgname=cloudfoundry-cli
+pkgver=7.2.0
+pkgrel=6
+pkgdesc="A CLI for Cloud Foundry written in Go"
+url="https://github.com/cloudfoundry/cli"
+arch="all !s390x !armv7"
+license="Apache-2.0"
+makedepends="go bash"
+checkdepends="ginkgo"
+options="!check" # some tests fail
+source="$pkgname-$pkgver.tar.gz::https://github.com/cloudfoundry/cli/archive/v$pkgver.tar.gz"
+builddir="$srcdir/cli-$pkgver"
+
+export GOPATH="$srcdir/go"
+export GOCACHE="$srcdir/go-build"
+export GOTEMPDIR="$srcdir/go"
+
+export GOFLAGS="$GOFLAGS -mod=mod -modcacherw"
+
+build() {
+	make build GOFLAGS="$GOFLAGS"
+}
+
+check() {
+	make test GOFLAGS="$GOFLAGS"
+}
+
+package() {
+	mkdir -p "$pkgdir"/usr/bin
+	install -Dm755 out/cf "$pkgdir"/usr/bin/cf
+}
+
+sha512sums="
+9f194460c6ae00666367e60d6053c916ea162946dd198527eddc8dad6c94e0f85816d1000aed9cea825e13674df7c68e90d12be948e30351db4b3b28052bf29d  cloudfoundry-cli-7.2.0.tar.gz
+"

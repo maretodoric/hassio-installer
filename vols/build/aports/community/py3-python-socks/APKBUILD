@@ -1,0 +1,27 @@
+# Maintainer: Michał Adamski <michal@ert.pl>
+pkgname=py3-python-socks
+pkgver=1.1.2
+pkgrel=2
+pkgdesc="Core proxy client (SOCKS4, SOCKS5, HTTP) functionality for Python"
+options="!check" # Testsuite ships their own GLIBC version of 3proxy
+url="https://github.com/romis2012/python-socks"
+arch="noarch"
+license="Apache-2.0"
+depends="python3 py3-async-timeout"
+makedepends="py3-setuptools"
+checkdepends="py3-curio py3-trio py3-pytest py3-yarl"
+source="https://files.pythonhosted.org/packages/source/p/python-socks/python-socks-$pkgver.tar.gz"
+builddir="$srcdir/python-socks-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	py.test-3
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="9c65981bd0541b8d8684824ac0e628b56d2c9bfd5422772018836f65f631bd2730d69fb323b4a3b46be2171ef2626c8f0c2e356122d07d1c7ae89043719c9141  python-socks-1.1.2.tar.gz"

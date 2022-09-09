@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kalk
+pkgver=22.06
+pkgrel=0
+pkgdesc="A powerful cross-platfrom calculator application"
+arch="all !armhf" # Blocked by qt5-qtdeclarative
+url="https://invent.kde.org/plasma-mobile/kalk"
+license="GPL-3.0-or-later"
+makedepends="
+	bison
+	extra-cmake-modules
+	flex
+	gmp-dev
+	kconfig-dev
+	kcoreaddons-dev
+	ki18n-dev
+	kirigami2-dev
+	kunitconversion-dev
+	mpfr-dev
+	qt5-qtbase-dev
+	qt5-qtfeedback-dev
+	qt5-qtquickcontrols2-dev
+	samurai
+	"
+source="https://download.kde.org/stable/plasma-mobile/$pkgver/kalk-$pkgver.tar.xz"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# inputmanagertest_de is broken, https://invent.kde.org/plasma-mobile/kalk/-/issues/25
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "inputmanagertest_de"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+ffc0c3925b2a4708e9b96939d08c40932241fd6c1bc4f5d94f994acfc053dabff39b87a5d2a3b0ba14b34b02e3e2f94b5f4180f8a5b1290964d86662cd33ca52  kalk-22.06.tar.xz
+"

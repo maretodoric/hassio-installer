@@ -1,0 +1,35 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=libtins
+pkgver=4.4
+pkgrel=2
+pkgdesc="A high-level, multiplatform C++ network packet sniffing and crafting library"
+url="http://libtins.github.io/"
+arch="all"
+license="BSD-2-Clause"
+options="!check"
+makedepends="libpcap-dev openssl-dev boost-dev cmake"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mfontanini/libtins/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	mkdir -p build
+}
+
+build() {
+	cd build
+	cmake -DCMAKE_INSTALL_PREFIX=/usr \
+		-DLIBTINS_ENABLE_CXX11=yes \
+		../
+	make
+}
+
+package() {
+	cd build
+	make DESTDIR="$pkgdir" install
+	install -Dm644 ../LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+sha512sums="
+3edecaa1e1e8564fff2aa10df6c1fd25a8f16e338ffed9c1fa9983fd4b957ade20267bc9e98a59162fe57c92da798171d1fbc60cb9fc62cf599a99e493f5cf40  libtins-4.4.tar.gz
+"

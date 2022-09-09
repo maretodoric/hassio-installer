@@ -1,0 +1,49 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=nota
+pkgver=2.1.2
+pkgrel=0
+pkgdesc="Nota is a simple and convergent text editor"
+# armhf blocked by qt5-qtdeclarative
+# s390x, ppc64le and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !s390x !ppc64le !riscv64"
+url="https://invent.kde.org/maui/nota"
+license="GPL-2.0-or-later"
+depends="
+	kde-icons
+	mauikit-texteditor
+	"
+makedepends="
+	attica-dev
+	extra-cmake-modules
+	kconfig-dev
+	ki18n-dev
+	kio-dev
+	knotifications-dev
+	mauikit-dev
+	mauikit-filebrowsing-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	qt5-qtsvg-dev
+	qt5-qtwebengine-dev
+	samurai
+	syntax-highlighting-dev
+	"
+source="https://download.kde.org/stable/maui/nota/$pkgver/nota-$pkgver.tar.xz"
+options="!check" # No tests available
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+83f98cceefd70347b7ece920de02bfc7846bf4af39f904a4e07b5ec6f565a79c574dc21ed2256e078d1ad75a814a837b6dae10e89b497a3a6260f917bad2b547  nota-2.1.2.tar.xz
+"

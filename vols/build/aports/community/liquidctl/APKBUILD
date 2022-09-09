@@ -1,0 +1,47 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=liquidctl
+pkgver=1.9.1
+pkgrel=1
+pkgdesc="Liquid Cooler Control"
+url="https://github.com/liquidctl/liquidctl"
+options="!check" # Requires writable /var/run
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="
+	py3-colorlog
+	py3-docopt
+	py3-hidapi
+	py3-smbus
+	py3-usb
+	python3
+	"
+makedepends="
+	py3-build
+	py3-installer
+	py3-setuptools
+	py3-setuptools_scm
+	py3-wheel
+	"
+checkdepends="py3-pytest"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/liquidctl/liquidctl/archive/v$pkgver.tar.gz"
+
+build() {
+	export SETUPTOOLS_SCM_PRETEND_VERSION=$pkgver
+	python3 -m build --no-isolation --wheel
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 -m installer -d "$pkgdir" \
+		dist/liquidctl-$pkgver-py3-none-any.whl
+	install -Dm644 liquidctl.8 "$pkgdir"/usr/share/man/man8/liquidctl.8
+}
+
+sha512sums="
+4f54c456cefe0a4628a361f65c3de51872c670ccc86188d4c1b3f1c179853e7875a7f2c5f2bfa7845c06318eb58cbafa134c5ff9834f473df7d05b2c21504fe4  liquidctl-1.9.1.tar.gz
+"

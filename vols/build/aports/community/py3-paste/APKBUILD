@@ -1,0 +1,29 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=py3-paste
+pkgver=3.5.1
+pkgrel=0
+pkgdesc="Tools for using a Web Server Gateway Interface stack"
+url="https://pythonpaste.readthedocs.io/en/latest/"
+arch="noarch"
+license="MIT"
+depends="py3-setuptools py3-six"
+checkdepends="py3-pytest"
+source="$pkgname-$pkgver.tar.gz::https://files.pythonhosted.org/packages/source/P/Paste/Paste-$pkgver.tar.gz"
+builddir="$srcdir/Paste-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7ae39691bb6067309a12bf76e2a110913c7be6ddcda6215eaf0228144ff26a1c7b50500729b65e27652dc7a7edf6fe26bd144d261e8754d7af8bac495d4613f9  py3-paste-3.5.1.tar.gz
+"

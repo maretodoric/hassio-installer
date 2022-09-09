@@ -1,0 +1,81 @@
+# Maintainer: Ariadne Conill <ariadne@dereferenced.org>
+pkgname=mixxx
+pkgver=2.3.2
+pkgrel=4
+pkgdesc="DJ mixing software"
+url="https://www.mixxx.org/"
+# riscv64 and s390x blocked by polkit -> upower
+arch="all !riscv64 !s390x"
+license="GPL-2.0-or-later"
+depends="qt5-qtbase-sqlite"
+# eudev is used to determine the right location to install a udev file by the build system
+makedepends="
+	cmake
+
+	lame-dev
+	libebur128-dev
+	libkeyfinder-dev
+	libmad-dev
+	libid3tag-dev
+	taglib-dev
+	opusfile-dev
+	libmodplug-dev
+	libvorbis-dev
+	wavpack-dev
+	ffmpeg-dev
+	libsndfile-dev
+	flac-dev
+
+	fftw-dev
+	lilv-dev
+	rubberband-dev
+	soundtouch-dev
+
+	portaudio-dev
+	portmidi-dev
+	libshout-dev
+
+	protobuf-dev
+	chromaprint-dev
+	sqlite-dev
+	libusb-dev
+
+	upower-dev
+	hidapi-dev
+
+	qt5-qtbase-dev
+	qt5-qtkeychain-dev
+	qt5-qttools-dev
+	qt5-qtx11extras-dev
+	qt5-qtscript-dev
+	qt5-qtsvg-dev
+
+	samurai
+
+	glu-dev
+	eudev-dev
+	"
+checkdepends="xvfb-run"
+subpackages="$pkgname-doc"
+source="https://github.com/mixxxdj/mixxx/archive/$pkgver/mixxx-$pkgver.tar.gz"
+install="$pkgname.post-install $pkgname.post-upgrade"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+81282d6c587914157b9ef4a7ca2f0e886cb97a847e215e2b0496671938d392e3fc8f941071577bc69db517e677dcd96b72e4b53d6fd42d2224c8a4e62d2acbcd  mixxx-2.3.2.tar.gz
+"

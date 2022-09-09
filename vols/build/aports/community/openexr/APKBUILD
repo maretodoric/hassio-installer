@@ -1,0 +1,106 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Holger Jaekel <holger.jaekel@gmx.de>
+# Maintainer: Mark Riedesel <mark+alpine@klowner.com>
+pkgname=openexr
+pkgver=3.1.5
+pkgrel=2
+pkgdesc="A high dynamic-range image file format library"
+url="https://www.openexr.com/"
+arch="all"
+license="BSD-3-Clause"
+makedepends="
+	boost-dev
+	boost-python3
+	chrpath
+	cmake
+	samurai
+	zlib-dev
+	"
+subpackages="
+	$pkgname-doc
+	$pkgname-tools
+	$pkgname-dev
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/openexr/openexr/archive/v$pkgver.tar.gz
+	fix-x86.patch"
+
+# tests hopelessly broken on anything other than aarch64 and x86_64
+options="!check"
+
+# secfixes:
+#   3.1.4-r0:
+#     - CVE-2021-45942
+#   3.1.1-r0:
+#     - CVE-2021-3598
+#     - CVE-2021-23169
+#     - CVE-2021-23215
+#     - CVE-2021-26260
+#     - CVE-2021-26945
+#   2.5.4-r0:
+#     - CVE-2021-20296
+#     - CVE-2021-3474
+#     - CVE-2021-3475
+#     - CVE-2021-3476
+#     - CVE-2021-3477
+#     - CVE-2021-3478
+#     - CVE-2021-3479
+#   2.5.2-r0:
+#     - CVE-2020-15304
+#     - CVE-2020-15305
+#     - CVE-2020-15306
+#   2.4.1-r0:
+#     - CVE-2020-11758
+#     - CVE-2020-11759
+#     - CVE-2020-11760
+#     - CVE-2020-11761
+#     - CVE-2020-11762
+#     - CVE-2020-11763
+#     - CVE-2020-11764
+#     - CVE-2020-11765
+#   2.4.0-r0:
+#     - CVE-2017-12596
+#   2.2.1-r0:
+#     - CVE-2017-9110
+#     - CVE-2017-9111
+#     - CVE-2017-9112
+#     - CVE-2017-9113
+#     - CVE-2017-9114
+#     - CVE-2017-9115
+#     - CVE-2017-9116
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+		-DCMAKE_C_FLAGS="$CFLAGS" \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	_exclude_tests="OpenEXR.IlmImf"
+	case "$CARCH" in
+		x86) _exclude_tests="($_exclude_tests|IlmBase.Imath)" ;;
+		arm*) _exclude_tests="($_exclude_tests|OpenEXRCore.testHUF)" ;;
+	esac
+
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E $_exclude_tests
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+tools() {
+	amove usr/bin
+}
+
+sha512sums="
+01ef16eacd2dde83c67b81522bae87f47ba272a41ce7d4e35d865dbdcaa03093e7ac504b95d2c1b3a19535f2364a4f937b0e0570c74243bb1c6e021fce7b620c  openexr-3.1.5.tar.gz
+6d9b1009984747495b1e7ed31b99e3ca95b485669899b7daa84f8a3f52e52f19214dc14b93106636bed40ec31b8d3bd613804d5295aac075ad8cec13722eab09  fix-x86.patch
+"

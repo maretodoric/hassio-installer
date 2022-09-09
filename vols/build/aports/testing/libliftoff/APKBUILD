@@ -1,0 +1,30 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=libliftoff
+pkgver=0.2.0
+pkgrel=0
+pkgdesc="Lightweight KMS plane library"
+url="https://gitlab.freedesktop.org/emersion/libliftoff"
+license="MIT"
+arch="all"
+makedepends="meson libdrm-dev"
+subpackages="$pkgname-dev"
+source="https://gitlab.freedesktop.org/emersion/libliftoff/-/archive/v$pkgver/libliftoff-v$pkgver.tar.gz"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	abuild-meson . build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+check() {
+	meson test --no-rebuild -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C build
+}
+
+sha512sums="
+5a1c4e5d99ac0631fbdba8165cdd03c2461b7f5ac610ed94f5ba80521aee45391c9cd3cbee0644cc6bdcd1f6e0523018a50c4a6ae4dcc9410767055b9fe382bd  libliftoff-v0.2.0.tar.gz
+"

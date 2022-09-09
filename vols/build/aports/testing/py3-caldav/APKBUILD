@@ -1,0 +1,39 @@
+# Contributor: Galen Abell <galen@galenabell.com>
+# Maintainer: Galen Abell <galen@galenabell.com>
+pkgname=py3-caldav
+pkgver=0.9.1
+pkgrel=0
+pkgdesc="caldav client library for Python"
+url="https://github.com/python-caldav/caldav"
+arch="noarch"
+license="GPL-3.0-only AND Apache-2.0"
+depends="
+	python3
+	py3-icalendar
+	py3-lxml
+	py3-requests
+	py3-six
+	py3-tz
+	py3-tzlocal
+	py3-vobject
+	"
+makedepends="py3-setuptools"
+checkdepends="py3-nose py3-coverage"
+source="$pkgname-$pkgver.tar.gz::https://github.com/python-caldav/caldav/archive/v$pkgver.tar.gz"
+builddir="$srcdir/caldav-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	PYTHONPATH="." nosetests
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+9171a09aa81bd6ad885aaaa3dac4cb53cb05235b37aa5be72d641b1cd2ee27928213eb95358654e99adfdbf70bea4567977509f972f54b8747162e91c95e1397  py3-caldav-0.9.1.tar.gz
+"

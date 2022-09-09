@@ -1,0 +1,51 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Luca Weiss <luca@z3ntu.xyz>
+pkgname=openrc-settingsd
+pkgver=1.1.0
+pkgrel=0
+pkgdesc="System settings D-Bus service for OpenRC"
+url="https://gitlab.com/postmarketOS/openrc-settingsd"
+# s390x and riscv64 blocked by polkit
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+depends="tzdata"
+makedepends="glib-dev dbus-dev openrc-dev polkit-dev libdaemon-dev automake autoconf
+	libtool bash"
+subpackages="$pkgname-doc $pkgname-openrc"
+source="https://gitlab.com/postmarketOS/openrc-settingsd/-/archive/v$pkgver/openrc-settingsd-v$pkgver.tar.gz
+	use-profiled-instead-of-envd.patch
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+prepare() {
+	default_prepare
+
+	sed -i -e 's:/sbin/runscript:/sbin/openrc-run:g' data/init.d/openrc-settingsd.in
+	sed -e 's|^dbusbusconfigdir = $(sysconfdir)|dbusbusconfigdir = $(datadir)|' \
+		-i Makefile.am
+
+	autoreconf -if
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--with-pidfile=/run/openrc-settingsd.pid
+	make SHELL="/bin/bash"
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="8b0ea6c5cfe890c20409cede47f6778763165e9293150757767bd88b6252d85881597c6d0921190aa79cc68bdcfdc1237f3d5ad044cd6ea012650ba9e568d3b9  openrc-settingsd-v1.1.0.tar.gz
+d06d691c1ef52c0e4c5d68ad7d25eba73ad8fffa3d3675f5c79ff93808131c11f4dbbd13db64c463bb87ec8ebed143878703ba281e1241947d66fcad48063e56  use-profiled-instead-of-envd.patch"

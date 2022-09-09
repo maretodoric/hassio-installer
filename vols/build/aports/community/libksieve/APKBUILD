@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libksieve
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="KDE PIM library for managing sieves"
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org/"
+license="GPL-2.0-only"
+depends_dev="
+	karchive-dev
+	kdoctools-dev
+	ki18n-dev
+	kiconthemes-dev
+	kidentitymanagement-dev
+	kimap-dev
+	kio-dev
+	kmailtransport-dev
+	kmime-dev
+	knewstuff-dev
+	kpimtextedit-dev
+	kwindowsystem-dev
+	libkdepim-dev
+	pimcommon-dev
+	qt5-qtbase-dev
+	qt5-qtwebengine-dev
+	syntax-highlighting-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/libksieve-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+
+	# libksieveui-findbar-findbarbasetest, sieveeditorhelphtmlwidgettest and sieveeditor-autocreatescripts-sieveeditorgraphicalmodewidgettest require OpenGL
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "(libksieveui-findbar-findbarbase|sieveeditorhelphtmlwidget|sieveeditor-autocreatescripts-sieveeditorgraphicalmodewidget)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+811a930ade6d25f26e7a0e0a5cff42605a560ac2c331fed05d757f7518fe2dd02096e5f251cf6f3673ce87209feeeb1c2216b408af1df14632ca7977e23236b5  libksieve-22.04.2.tar.xz
+"

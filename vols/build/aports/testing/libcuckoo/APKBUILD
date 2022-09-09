@@ -1,0 +1,35 @@
+# Contributor: Grigory Kirillov <txgk@bk.ru>
+# Maintainer: Grigory Kirillov <txgk@bk.ru>
+pkgname=libcuckoo
+pkgver=0.3_git20211230
+_githash=784d0f5d147b9a73f897ae55f6c3712d9a91b058
+pkgrel=0
+pkgdesc="High-performance concurrent hash table library"
+url="https://github.com/efficient/libcuckoo"
+arch="all"
+license="Apache-2.0"
+makedepends="cmake samurai"
+source="$pkgname-$pkgver.tar.gz::https://github.com/efficient/libcuckoo/archive/$_githash.tar.gz"
+builddir="$srcdir/$pkgname-$_githash"
+
+build() {
+	cmake -B builddir -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_TESTS=1
+	cmake --build builddir
+}
+
+check() {
+	# insert_expansion test can randomly fail
+	# https://github.com/efficient/libcuckoo/issues/144
+	ctest --output-on-failure --test-dir builddir
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install builddir
+}
+
+sha512sums="
+64e04b4ecea71034fbe7308fa6a16b29f92dc943246de7a87c81c08a8d27ea7d76ce1329276b423bc0fb1157614406751ef1ed6a45ed045a70c5494d343dcf23  libcuckoo-0.3_git20211230.tar.gz
+"

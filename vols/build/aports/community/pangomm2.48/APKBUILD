@@ -1,0 +1,33 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=pangomm2.48
+pkgver=2.50.0
+pkgrel=0
+pkgdesc="C++ bindings for pango"
+#options="!check" # No testsuite
+url="https://www.gtkmm.org/"
+arch="all"
+license="LGPL-2.1-or-later AND GPL-2.0-or-later"
+makedepends="meson pango-dev glibmm2.68-dev cairomm1.16-dev"
+subpackages="$pkgname-dev"
+source="https://download.gnome.org/sources/pangomm/${pkgver%.*}/pangomm-$pkgver.tar.xz"
+builddir="$srcdir/pangomm-$pkgver"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+844850db93b8c4dab19dd364e674ee3d61b2fcb8e020ab3d314f240065ee17aeceea21e9ddc438a7d09d56410e3f82147a57425f76bb01e26d82872934269477  pangomm-2.50.0.tar.xz
+"

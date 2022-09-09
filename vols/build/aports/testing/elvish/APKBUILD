@@ -1,0 +1,29 @@
+# Maintainer: Daniel Isaksen <d@duniel.no>
+pkgname=elvish
+pkgver=0.15.0
+pkgrel=6
+pkgdesc="A friendly and expressive shell for Linux, macOS and BSDs"
+url="https://elv.sh/"
+arch="all"
+license="BSD-2-Clause"
+makedepends="go"
+options="!check chmod-clean"
+source="$pkgname-$pkgver.tar.gz::https://github.com/elves/elvish/archive/v$pkgver.tar.gz"
+builddir="$srcdir/src/github.com/elves/$pkgname"
+
+prepare() {
+	mkdir -p ${builddir%/*}
+	mv "$srcdir"/$pkgname-$pkgver "$builddir"/
+	default_prepare
+}
+
+build() {
+	export GOPATH="$srcdir"
+	go build -o bin/$pkgname
+}
+
+package() {
+	install -Dm755 "$builddir"/bin/elvish -t "$pkgdir"/usr/bin
+}
+
+sha512sums="fad60c44710c919384624e680cf22379c90126bd304b21fe12ff4f0fc8d5288456568c14e20d23a24cc5e96a2b90055a92b9741a0c40dda52edeaed1b6a8a9f7  elvish-0.15.0.tar.gz"

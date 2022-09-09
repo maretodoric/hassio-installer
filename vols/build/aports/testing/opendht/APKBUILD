@@ -1,0 +1,68 @@
+# Contributor: Gavin Henry <ghenry@sentrypeer.org>
+# Maintainer: Gavin Henry <ghenry@sentrypeer.org>
+pkgname=opendht
+pkgver=2.4.4
+pkgrel=0
+pkgdesc="C++17 Distributed Hash Table implementation"
+url="https://github.com/savoirfairelinux/opendht"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="
+	argon2-dev
+	asio-dev
+	cmake
+	cython
+	gnutls-dev
+	jsoncpp-dev
+	msgpack-cxx-dev
+	nettle-dev
+	py3-setuptools
+	python3-dev
+	readline-dev
+	samurai
+	"
+subpackages="$pkgname-static py3-$pkgname:_py3 $pkgname-libs $pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/savoirfairelinux/opendht/archive/refs/tags/$pkgver.tar.gz"
+
+[ "$CARCH" = "riscv64" ] && options="$options textrels"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DOPENDHT_C=ON \
+		-DOPENDHT_TOOLS=ON \
+		-DOPENDHT_PYTHON=ON \
+		-G Ninja \
+		$CMAKE_CROSSOPTS .
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+libs() {
+	default_libs
+	amove usr/lib/libopendht-c.so
+}
+
+_py3() {
+	pkgdesc="$pkgdesc (python bindings)"
+	amove usr/lib/python*
+	amove usr/bin/dhtcluster
+}
+
+sha512sums="
+f6d665485a4a82b292dc50e3da4a5e281d3e99e8735d7537d7426cd4efa8d70ba8137e4d9eb0feaae5373af431b165443d516f32296c107366614f587b78f338  opendht-2.4.4.tar.gz
+"

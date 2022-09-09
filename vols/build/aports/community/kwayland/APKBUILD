@@ -1,0 +1,50 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kwayland
+pkgver=5.95.0
+pkgrel=0
+pkgdesc="Qt-style Client and Server library wrapper for the Wayland libraries"
+arch="all !armhf" # armhf blocked by extra-cmake-modules
+url="https://www.kde.org"
+license="LGPL-2.1-only OR LGPL-3.0-only"
+depends_dev="
+	qt5-qtwayland-dev
+	wayland-dev
+	"
+makedepends="$depends_dev
+	doxygen
+	extra-cmake-modules
+	plasma-wayland-protocols
+	qt5-qtbase-dev
+	qt5-qttools-dev
+	wayland-protocols
+	samurai
+	"
+source="https://download.kde.org/stable/frameworks/${pkgver%.*}/kwayland-$pkgver.tar.xz
+	0001-PlasmaWindowManagement-Avoid-unbounded-recursion-and-delay-in-readData.patch
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-dbg"
+options="!check" # Fails due to requiring running Wayland compositor
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_QCH=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+8a10bdfe610ca9b0512e887637a8472bf650a6cb4d2a80fb102d7691cd6a85d6512bdb3feb52bc42ca7ee5d9d627c947b0a47e31d3a9852cf5a25eb7223c1681  kwayland-5.95.0.tar.xz
+d04e526a440d930187bc11df40b8d106ef034f27c8e5019f5aaea416994ad61f452b4d7a90880a0f9258acc2cafc0fef2530d692907783bb4e23cd913bcd7341  0001-PlasmaWindowManagement-Avoid-unbounded-recursion-and-delay-in-readData.patch
+"

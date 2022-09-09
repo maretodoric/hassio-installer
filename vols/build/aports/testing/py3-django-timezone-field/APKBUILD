@@ -1,0 +1,35 @@
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer:
+pkgname=py3-django-timezone-field
+_pkgname=django-timezone-field
+pkgver=4.2.1
+pkgrel=1
+pkgdesc="Django app providing database and form fields for pytz timezone objects"
+options="!check" # Testsuite is only coverage and flake8 tests
+url="https://pypi.python.org/pypi/django-timezone-field"
+arch="noarch"
+license="BSD-2-Clause"
+depends="py3-django py3-tz"
+makedepends="py3-setuptools"
+source="$pkgname-$pkgver.tar.gz::https://github.com/mfogel/$_pkgname/archive/$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-django-timezone-field" # Backwards compatibility
+provides="py-django-timezone-field=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+
+}
+
+check() {
+	python3 tests.py
+}
+
+package() {
+	python3 setup.py --quiet install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+4c2da420c3aaffa23d8cdb66dbbe4b2ea8638de5a45d9e381bf9af980e52eba77fc03a2b8fee8497662199cdc9436d56543c0f6316e74ae5da68187a305c34a2  py3-django-timezone-field-4.2.1.tar.gz
+"

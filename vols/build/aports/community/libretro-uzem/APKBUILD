@@ -1,0 +1,25 @@
+# Contributor: David Demelier <markand@malikania.fr>
+# Maintainer: David Demelier <markand@malikania.fr>
+pkgname=libretro-uzem
+pkgver=0_git20220414
+pkgrel=0
+_commit="08e39e19167727c89fb995e3fa70dde252e6aab0"
+pkgdesc="uzebox implementation for libretro"
+url="https://github.com/libretro/libretro-uzem"
+arch="all"
+license="MIT"
+source="$pkgname-$_commit.tar.gz::https://github.com/libretro/libretro-uzem/archive/$_commit.tar.gz"
+builddir="$srcdir/libretro-uzem-$_commit"
+options="!check" # No tests
+
+build() {
+	make -f Makefile.libretro
+}
+
+package() {
+	install -Dm644 uzem_libretro.so "$pkgdir"/usr/lib/libretro/uzem_libretro.so
+}
+
+sha512sums="
+f7e9727bb31e4d8cc5d2a4c139c111c782ecf3e116241cf4077fa0993dd504ae3453af1be1b8fd885f5c7578d018af8e250da90a985bac722d01b44db7a8c525  libretro-uzem-08e39e19167727c89fb995e3fa70dde252e6aab0.tar.gz
+"

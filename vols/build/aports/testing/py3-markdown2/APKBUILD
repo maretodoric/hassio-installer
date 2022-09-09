@@ -1,0 +1,33 @@
+# Maintainer: Marian Buschsieweke <marian.buschsieweke@ovgu.de>
+pkgname=py3-markdown2
+pkgver=2.4.1
+pkgrel=1
+pkgdesc="fast and complete implementation of Markdown in Python"
+url="https://github.com/trentm/python-markdown2"
+arch="noarch"
+license="MIT"
+depends="
+	python3
+	"
+makedepends="
+	py3-setuptools
+	"
+_pyname="markdown2"
+_pypiprefix="${_pyname%${_pyname#?}}"
+source="https://files.pythonhosted.org/packages/source/$_pypiprefix/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py test
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+sha512sums="
+fa62640a135bb01b2dc82f658089c5880a3183c3b6e498ce76a27075d3045d70d7e00b9d497180a63c00cbd9ece83ebabaa8cd31ee326160d891fb422f43528e  markdown2-2.4.1.tar.gz
+"

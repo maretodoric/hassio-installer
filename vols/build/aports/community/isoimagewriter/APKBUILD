@@ -1,0 +1,48 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=isoimagewriter
+pkgver=0.9
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kauth
+arch="all !armhf !s390x !riscv64"
+url="https://community.kde.org/ISOImageWriter"
+pkgdesc="A program to write hybrid ISO files onto a USB disk"
+license="GPL-3.0-only"
+makedepends="
+	eudev-dev
+	extra-cmake-modules
+	gpgme-dev
+	kauth-dev
+	kcoreaddons-dev
+	kcrash-dev
+	ki18n-dev
+	kiconthemes-dev
+	kwidgetsaddons-dev
+	qt5-qtbase-dev
+	samurai
+	solid-dev
+	"
+source="https://download.kde.org/unstable/isoimagewriter/$pkgver/isoimagewriter-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+94a05da44b22ae932a79f6bb91c6806047f94e9b0fb4fe5530eb6094664877c47a0581f0858ff4458daca8924a7803a979e74d6538ec8da642403c4ede58688d  isoimagewriter-0.9.tar.xz
+"

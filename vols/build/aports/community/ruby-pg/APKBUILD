@@ -1,0 +1,50 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=ruby-pg
+_gemname=pg
+pkgver=1.4.0
+pkgrel=0
+pkgdesc="A PostgreSQL client library for Ruby"
+url="https://github.com/ged/ruby-pg"
+arch="all"
+license="BSD-2-Clause PostgreSQL"
+checkdepends="postgresql ruby-rspec"
+makedepends="libpq-dev ruby-dev"
+source="https://github.com/ged/ruby-pg/archive/v$pkgver/ruby-pg-$pkgver.tar.gz
+	gemspec.patch
+	"
+options="!check"  # FIXME: tests seem to be broken
+
+build() {
+	gem build $_gemname.gemspec
+	gem install \
+		--local \
+		--install-dir dist \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+}
+
+check() {
+	GEM_PATH='dist:.gem' rspec
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+	cd "$builddir"/dist
+
+	mkdir -p "$gemdir"
+	cp -r extensions gems specifications "$gemdir"/
+
+	# Remove unnecessary files and rubbish...
+	find "$gemdir"/extensions/ -name mkmf.log -delete
+
+	cd "$gemdir"/gems/$_gemname-$pkgver
+	rm -r ext/ lib/*.so
+}
+
+sha512sums="
+b8982f130e41ce1c47943868399798565a8ea81d99845c1a4ed2469f39445e7f37f32902d683d7d7b32aff07f67bc183b082dbfb42a552e081faf4935ae3d6bb  ruby-pg-1.4.0.tar.gz
+22fe377af63de395e964b75d6588c38d3514a51ec64fb35f79d9c4ddfb44f6afe8b8ccb82e399554243c1fc1a43951843faad2c6bbc391dc8c3a592ef21c9f06  gemspec.patch
+"

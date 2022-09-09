@@ -1,0 +1,16 @@
+# Maintainer: Leo Unglaub <leo@unglaub.at>
+pkgname=getssl
+pkgver=2.22
+pkgrel=1
+pkgdesc="A pure shell implementation of the LetsEncrypt ACME protocol."
+url="https://github.com/srvrco/getssl"
+arch="noarch"
+license="GPL-3.0-or-later"
+depends="curl bash"
+options="!check" # No testsuite
+source="$pkgname-$pkgver.tar.gz::https://github.com/srvrco/getssl/archive/v$pkgver.tar.gz"
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+sha512sums="de499636ed01d8f4c9123c061cd54986a956175a2562bec79b0383528e816db085dda7b5ddb8b5512726bb2dc2d763295b35137ce59a52bf2a11ae0846af3361  getssl-2.22.tar.gz"

@@ -1,0 +1,85 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=korganizer
+pkgver=22.04.2
+pkgrel=1
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine -> kmailtransport
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://apps.kde.org/korganizer/"
+pkgdesc="The calendar and scheduling component of Kontact"
+license="GPL-2.0-or-later"
+depends="kdepim-runtime"
+makedepends="
+	akonadi-calendar-dev
+	akonadi-contacts-dev
+	akonadi-dev
+	akonadi-mime-dev
+	akonadi-notes-dev
+	akonadi-search-dev
+	calendarsupport-dev
+	eventviews-dev
+	extra-cmake-modules
+	incidenceeditor-dev
+	kcalendarcore-dev
+	kcalutils-dev
+	kcmutils-dev
+	kcodecs-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcontacts-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	kholidays-dev
+	kiconthemes-dev
+	kidentitymanagement-dev
+	kitemviews-dev
+	kjobwidgets-dev
+	kldap-dev
+	kmailtransport-dev
+	kmime-dev
+	knewstuff-dev
+	knotifications-dev
+	kontactinterface-dev
+	kparts-dev
+	kpimtextedit-dev
+	kservice-dev
+	kuserfeedback-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libkdepim-dev
+	phonon-dev
+	pimcommon-dev
+	qt5-qtbase-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/korganizer-$pkgver.tar.xz"
+subpackages="$pkgname-doc $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	# akonadi-sqlite-koeventpopupmenutest and akonadi-mysql-koeventpopupmenutest
+	# require running dbus server
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "akonadi(-sqlite-koeventpopupmenu|-mysql-koeventpopupmenu)test"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+9a1cd0009b29174b09524f5b79716a4b5688e33d70fc1432af97f605419f59a4f4051be5721679cae24fc49f69269dc893099199363ed40706735248b7cb06c6  korganizer-22.04.2.tar.xz
+"

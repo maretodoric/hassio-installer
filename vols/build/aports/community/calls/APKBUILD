@@ -1,0 +1,59 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=calls
+pkgver=42.0
+pkgrel=0
+_commit_libcall_ui="acfbb136bbf74514e0b9801ce6c1e8acf36350b6"
+pkgdesc="A phone dialer and call handler"
+# s390x and riscv64 blocked by polkit -> modemmanager
+arch="all !s390x !riscv64"
+url="https://gitlab.gnome.org/GNOME/calls"
+license="GPL-3.0-or-later"
+depends="modemmanager callaudiod"
+makedepends="
+	callaudiod-dev
+	evolution-data-server-dev
+	feedbackd-dev
+	folks-dev
+	gettext-dev
+	gobject-introspection-dev
+	gom-dev
+	gsound-dev
+	gstreamer-dev
+	gtk+3.0-dev
+	libhandy1-dev
+	libpeas-dev
+	meson
+	modemmanager-dev
+	ninja
+	sofia-sip-dev
+	vala
+	"
+subpackages="$pkgname-lang"
+source="https://gitlab.gnome.org/GNOME/calls/-/archive/$pkgver/calls-$pkgver.tar.gz
+	https://gitlab.gnome.org/World/Phosh/libcall-ui/-/archive/$_commit_libcall_ui/libcall-ui-$_commit_libcall_ui.tar.gz
+	"
+options="!check" # Requires running Wayland compositor
+
+prepare() {
+	default_prepare
+	mv "$srcdir"/libcall-ui-"$_commit_libcall_ui"/* \
+		"$builddir"/subprojects/libcall-ui
+}
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="
+59d7aaee53770706a11dff5ab60379d5c36a7c8ccfd0c5cd4901fae78ff085608c5ba193ce33685f0c6b463d4a2056ccb01dab92751e9a2b2ad755d2ae0e20f6  calls-42.0.tar.gz
+b79e3d8ac9889109e0fe20f149ffb14bde198f7a364152a60c7175228c283f18a7abe2049b01935d11fd005e14ef4da9c23ada6c651801364c79bc2dca1e71f2  libcall-ui-acfbb136bbf74514e0b9801ce6c1e8acf36350b6.tar.gz
+"

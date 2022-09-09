@@ -1,0 +1,29 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=py3-texttable
+pkgver=1.6.4
+pkgrel=1
+pkgdesc="module for creating simple ASCII tables"
+url="https://github.com/foutaise/texttable/"
+arch="noarch"
+license="MIT"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest"
+source="https://pypi.io/packages/source/t/texttable/texttable-$pkgver.tar.gz"
+builddir="$srcdir/texttable-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	py.test-3 tests.py -v
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+39a351d11ba5fd225ef1789ed4b6738329b135f4a984cdb1101844ff7c5832083381459b1266ffc9f2faa3f46f013ae229a4f81472d69796a34e4860cd83d88b  texttable-1.6.4.tar.gz
+"

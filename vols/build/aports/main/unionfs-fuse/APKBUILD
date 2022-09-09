@@ -1,0 +1,24 @@
+# Maintainer: Michael Zhou <zhoumichaely@gmail.com>
+pkgname=unionfs-fuse
+pkgver=2.1
+pkgrel=0
+pkgdesc="Union Filesystem in Userspace"
+url="https://github.com/rpodgorny/unionfs-fuse"
+arch="all"
+license="BSD-3-Clause"
+makedepends="fuse-dev linux-headers"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/rpodgorny/unionfs-fuse/archive/v$pkgver.tar.gz
+	0001-include-asm-ioctl.h-for-_IOC_SIZE.patch
+	"
+
+build() {
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
+
+sha512sums="851e378f8c189d8a84d2a0cf47ce8f1e9cdda5e789a8c0c97aac6e0757c2f6480ca4d931a525bb94cec4af11789073ccda44ad01d7ed02de1c29ded72f578aa0  unionfs-fuse-2.1.tar.gz
+a3dedebb86446a0b992c18d4cc27f223eac554e9688c0cfd6e4806302cb6afce3f691a1cabd540626cdbd7ee94171d6c39b361292c12f2ce43d885d04cf65412  0001-include-asm-ioctl.h-for-_IOC_SIZE.patch"

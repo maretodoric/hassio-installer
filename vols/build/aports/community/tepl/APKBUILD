@@ -1,0 +1,30 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=tepl
+pkgver=6.00.0
+pkgrel=3
+pkgdesc="Text editor product line"
+url="https://wiki.gnome.org/Projects/Tepl"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="amtk-dev glib-dev gtksourceview4-dev gtk+3.0-dev libxml2-dev
+	uchardet-dev vala gobject-introspection-dev meson gtk-doc"
+checkdepends="xvfb-run"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-lang"
+source="https://download.gnome.org/sources/tepl/${pkgver%.*}/tepl-$pkgver.tar.xz"
+
+build() {
+	abuild-meson \
+		-Dgtk_doc=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	xvfb-run meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="e36877b9f33943715a50546d82ed61e65fc07b71dca2c85ff350a305767e96eda74dc14f30b2a430e14deacd4ee8d49697fe01df1f5023afab3747e5e9c95e2e  tepl-6.00.0.tar.xz"

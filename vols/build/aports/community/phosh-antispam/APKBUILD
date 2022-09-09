@@ -1,0 +1,30 @@
+# Contributor: Clayton Craft <clayton@craftyguy.net>
+# Maintainer: Clayton Craft <clayton@craftyguy.net>
+pkgname=phosh-antispam
+pkgver=2.1
+pkgrel=0
+pkgdesc="monitors Gnome Calls and manages phone calls from unidentified/unknown callers"
+url="https://gitlab.com/kop316/phosh-antispam"
+arch="all !s390x !riscv64"  # no libhandy1
+license="GPL-3.0-or-later"
+depends="calls>=41_beta"
+makedepends="meson glib-dev gtk+3.0-dev libhandy1-dev"
+subpackages="$pkgname-doc $pkgname-lang $pkgname-bash-completion"
+source="https://gitlab.com/kop316/phosh-antispam/-/archive/$pkgver/phosh-antispam-$pkgver.tar.gz"
+
+build() {
+	abuild-meson . output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+a031d539e302888a554bb1559cd870c6cc526791127b4c949add36bde67d4b58686b93df44db8dfa5a68cd7921f00352d2e52f3bc1969d0d0910bce68b99bc8c  phosh-antispam-2.1.tar.gz
+"

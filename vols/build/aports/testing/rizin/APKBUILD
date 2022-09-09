@@ -1,0 +1,74 @@
+# Contributor: TBK <alpine@jjtc.eu>
+# Maintainer: TBK <alpine@jjtc.eu>
+pkgname=rizin
+pkgver=0.3.4
+pkgrel=0
+pkgdesc="UNIX-like reverse engineering framework and command-line toolset"
+url="https://rizin.re/"
+# 32bit - 15/78 big	FAIL 0.26s (exit status 1)
+# Could be integer overflow
+# s390x:
+# 49/75 pdb FAIL 0.97s (exit status 1)
+# 55/75 serialize_analysis FAIL 0.03s (exit status 1)
+options="!check" # tests are unstable
+arch="all"
+license="GPL-3.0-or-later AND LGPL-3.0-or-later"
+makedepends="
+	cmake
+	meson
+	py3-yaml
+	capstone-dev
+	file-dev
+	libuv-dev
+	linux-headers
+	libzip-dev
+	lz4-dev
+	openssl-dev
+	tree-sitter-dev
+	xxhash-dev
+	zlib-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+_testbins_commit=71eb2aeb33b32be0b0ad5d80d6f017bd0866e7c2
+source="$pkgname-$pkgver.tar.xz::https://github.com/rizinorg/rizin/releases/download/v$pkgver/rizin-src-v$pkgver.tar.xz
+	testbins.tar.gz::https://github.com/rizinorg/rizin-testbins/archive/$_testbins_commit.tar.gz
+	"
+builddir="$srcdir/rizin-v$pkgver"
+
+prepare() {
+	default_prepare
+
+	# bins used for testing
+	mv -v "$srcdir/rizin-testbins-$_testbins_commit" "$builddir/test/bins"
+}
+
+build() {
+	abuild-meson \
+		-Dpackager="alpinelinux"      \
+		-Duse_sys_capstone=enabled    \
+		-Duse_sys_magic=enabled       \
+		-Duse_sys_libzip=enabled      \
+		-Duse_sys_zlib=enabled        \
+		-Duse_sys_lz4=enabled         \
+		-Duse_sys_xxhash=enabled      \
+		-Duse_sys_openssl=enabled     \
+		-Duse_sys_tree_sitter=enabled \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	# Include the build rizin otherwise
+	# unit/test_rzpipe.c will fail
+	export PATH="$PATH:$builddir/output/binrz/rizin/"
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+cda35afe8c031f3207c055ed31d7f76a46b7addd04cead0f5aadf0733b66f4dd953ca16f054b47da7921d4726d6ea1250436012954a9755c1cd524a8fd0d670c  rizin-0.3.4.tar.xz
+f30993a2d5afd024337fd7b6085f658c03b7498b663654e1a455db0921a8405d86ff3d284f1e6407aeb1cd8f579719759e6a3530ef4dace57b1ddfb24a35f7ce  testbins.tar.gz
+"

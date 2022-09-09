@@ -1,0 +1,71 @@
+# Contributor: rubicon <rubicon@mailo.com>
+# Maintainer:
+pkgname=ocaml-sexplib
+_pkgname=sexplib
+pkgver=0.15.0
+pkgrel=1
+pkgdesc="Library for serializing OCaml values to and from S-expressions"
+url="https://github.com/janestreet/sexplib"
+arch="all !riscv64"  # limited by ocaml aport
+license="MIT"
+depends="
+	ocaml-runtime
+	ocaml-base
+	ocaml-num
+	ocaml-parsexp
+	ocaml-sexplib0
+	"
+depends_dev="
+	$pkgname=$pkgver-r$pkgrel
+	ocaml-base-dev
+	ocaml-num-dev
+	ocaml-parsexp-dev
+	ocaml-sexplib0-dev
+	"
+makedepends="$depends_dev dune ocaml"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://ocaml.janestreet.com/ocaml-core/v${pkgver%.*}/files/sexplib-v$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-v$pkgver"
+_ocamldir=usr/lib/ocaml
+
+# 32-bit archs
+case "$CARCH" in
+	arm*|x86) options="$options textrels" ;;
+esac
+
+build() {
+	dune build --release --verbose
+}
+
+check() {
+	dune runtest --verbose
+}
+
+package() {
+	dune install \
+		--destdir="$pkgdir" \
+		--docdir=/.omit
+	rm -Rf "$pkgdir"/.omit
+}
+
+dev() {
+	default_dev
+
+	cd "$pkgdir"
+
+	local path; for path in $(find $_ocamldir \( \
+			-name '*.cmt' -o \
+			-name '*.cmti' -o \
+			-name '*.cmx' -o \
+			-name '*.cmxa' -o \
+			-name '*.ml' -o \
+			-name '*.mli' \
+		\))
+	do
+		amove "$path"
+	done
+}
+
+sha512sums="
+141a24649439e1c707004ba19977072c44a68d2dc79fa3659663dc325089245fc623c7ef231d31774e94e92b6ceedbe604930a352c4ce54473adee7e9d377c11  ocaml-sexplib-0.15.0.tar.gz
+"

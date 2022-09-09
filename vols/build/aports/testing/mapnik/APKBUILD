@@ -1,0 +1,75 @@
+# Contributor: Markus Juenemann <markus@juenemann.net>
+# Maintainer: Markus Juenemann <markus@juenemann.net>
+pkgname=mapnik
+pkgver=3.1.0
+pkgrel=14
+pkgdesc="An open source toolkit for developing mapping applications"
+url="https://mapnik.org/"
+arch="all"
+license="LPGL-2.0-or-later"
+makedepends="
+	boost-dev
+	cairo-dev
+	freetype-dev
+	gdal-dev
+	harfbuzz-dev
+	icu-dev
+	libpng-dev
+	libpq-dev
+	libwebp-dev
+	libxml2-dev
+	proj-dev
+	proj-dev
+	py3-setuptools
+	python3
+	sqlite-dev
+        scons
+	tiff-dev
+	zlib-dev
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/mapnik/mapnik/releases/download/v$pkgver/mapnik-v$pkgver.tar.bz2
+	boost-1.77.patch
+        scons4.patch
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	scons configure  FAST=True \
+		PREFIX="/usr" \
+		INPUT_PLUGINS=all \
+		XMLPARSER=libxml2 \
+		DESTDIR="$pkgdir" \
+		CUSTOM_CXXFLAGS="$CXXFLAGS" \
+		CUSTOM_LDFLAGS="$LDFLAGS" \
+		CUSTOM_DEFINES="-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H=1"
+
+	scons --jobs=$JOBS
+}
+
+package() {
+	scons install \
+		--config=cache \
+		--jobs=$JOBS \
+		--implicit-cache \
+		--max-drift=1
+}
+
+dev() {
+	pkgdesc="Mapnik development files"
+	mkdir -p "$subpkgdir"/usr/include/mapnik
+	mv "$pkgdir"/usr/include/mapnik "$subpkgdir"/usr/include/mapnik
+}
+
+doc() {
+	pkgdesc="Mapnik documentation"
+	mkdir -p "$subpkgdir"/usr/share/docs/$pkgname/docs/
+	install -Dm644 $builddir/*.md "$subpkgdir"/usr/share/docs/$pkgname/
+	install -Dm644 $builddir/docs/* "$subpkgdir"/usr/share/docs/$pkgname/docs/
+}
+
+sha512sums="
+089e619f4672e017b1aaf31836ade7e22d2a465f5a923f697935d8447d5dd0c2acb9ae6682d1c9035e58036c62685c2f38f75f0a106ee9b4ce6197e0357c47eb  mapnik-v3.1.0.tar.bz2
+b5961faf1bf903fca0d92408f4b9a783e61b5c06e89c9318aa7f59c6ca98be922504909ae7cf59dd09e953378952f7af3335f3f71cb1ff9f5a8a8c8f7c729f6d  boost-1.77.patch
+e0c60c696b9d195ad0e430c8c4fb9c36465d9635fae3e4a8b25dca4b421d90330994285c92dfcefe929a196ff87345da278a564d8fa9f3ac29a46d9e2dfa3110  scons4.patch
+"

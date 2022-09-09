@@ -1,0 +1,33 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Contributor: Sergey Lukin <sergej.lukin@gmail.com>
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=libwnck3
+pkgver=40.1
+pkgrel=0
+pkgdesc="Window Navigator Construction Kit"
+url="https://gitlab.gnome.org/GNOME/libwnck"
+arch="all"
+license="LGPL-2.0-or-later"
+subpackages="$pkgname-dev $pkgname-lang"
+replaces="libwnck"
+makedepends="glib-dev gtk+3.0-dev libx11-dev pango-dev cairo-dev meson
+	startup-notification-dev libxres-dev gobject-introspection-dev"
+options="!check" # no tests
+source="https://download.gnome.org/sources/libwnck/${pkgver%.*}/libwnck-$pkgver.tar.xz"
+
+builddir="$srcdir"/libwnck-$pkgver
+
+build() {
+	abuild-meson \
+		-Dgtk_doc=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+sha512sums="
+50ba20547e95280d10f1f66f36eea6c649b59d385da7a9217c295150520099585a5ff43c08a552afb8b0db3ee7305bbb2c38d0baed84cc6dc0942f3ca1e43e29  libwnck-40.1.tar.xz
+"

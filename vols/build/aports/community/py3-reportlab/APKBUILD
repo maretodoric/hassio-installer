@@ -1,0 +1,42 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Maintainer: Carlo Landmeter <clandmeter@alpinelinux.org>
+pkgname=py3-reportlab
+_pyname=reportlab
+pkgver=3.6.8
+pkgrel=0
+pkgdesc="Python library for generating PDFs and graphics"
+url="https://www.reportlab.com/opensource"
+arch="all"
+license="BSD-3-Clause"
+depends="py3-pillow python3 ttf-dejavu"
+makedepends="freetype-dev libart-lgpl-dev py3-setuptools python3-dev"
+source="https://files.pythonhosted.org/packages/source/${_pyname:0:1}/$_pyname/$_pyname-$pkgver.tar.gz"
+builddir="$srcdir/$_pyname-$pkgver"
+
+replaces="py-reportlab" # Backwards compatibility
+provides="py-reportlab=$pkgver-r$pkgrel" # Backwards compatibility
+
+prepare() {
+	default_prepare
+
+	# use installed (system) libart
+	rm -rf src/rl_addons/renderPM/libart_lgpl
+
+	# remove interpreter line from libraries
+	find src -type f -name "*.py" -exec sed -i '/^#!\//d' {} \;
+}
+
+build() {
+	export CFLAGS="$CFLAGS -I/usr/include/libart-2.0"
+	python3 setup.py build --use-system-libart
+}
+
+package() {
+	export CFLAGS="$CFLAGS -I/usr/include/libart-2.0"
+	python3 setup.py install --use-system-libart --skip-build \
+		--prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+7eb2381a8020f751f03008bb8dc1eb07f954a97c0c3d38646602a22ed7f69dd73e11bbd1251a471da141c98492be7f3867cf120e489c58911ae6e9f29c926507  reportlab-3.6.8.tar.gz
+"

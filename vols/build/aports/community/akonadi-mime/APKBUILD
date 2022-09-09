@@ -1,0 +1,52 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=akonadi-mime
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Libraries and daemons to implement basic email handling"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by akonadi
+# ppc64le blocked by qt5-qtwebengine -> kaccounts-integration
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later"
+depends_dev="
+	akonadi-dev>=$pkgver
+	kcodecs-dev
+	kconfigwidgets-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kio-dev
+	kitemmodels-dev
+	kmime-dev
+	kxmlgui-dev
+	libxslt-dev
+	qt5-qtbase-dev
+	samurai
+	shared-mime-info
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/akonadi-mime-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	# mailserializerplugintest is broken
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest -E "mailserializerplugintest"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+4c55414cb4fb756890b554981facf0a37aecc9ff43353605e4ac44e826f347b46814ec81afdbfec8a05d25a7af0efb1a5bb0b31752bbf3996242e3b8a6b1afdb  akonadi-mime-22.04.2.tar.xz
+"

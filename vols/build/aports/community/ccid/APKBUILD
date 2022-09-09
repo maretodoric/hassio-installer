@@ -1,0 +1,36 @@
+# Contributor: Timo Teräs <timo.teras@iki.fi>
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=ccid
+pkgver=1.5.0
+pkgrel=0
+pkgdesc="USB CCID/ICCD SmartCard reader driver"
+url="https://ccid.apdu.fr/"
+arch="all"
+license="LGPL-2.1-or-later"
+depends="pcsc-lite"
+makedepends="perl libusb-dev pcsc-lite-dev"
+source="https://ccid.apdu.fr/files/ccid-$pkgver.tar.bz2"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--enable-twinserial \
+		--localstatedir=/var
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	mkdir -p "$pkgdir"/usr/lib/udev/rules.d/
+	cp src/92_pcscd_ccid.rules "$pkgdir"/usr/lib/udev/rules.d/
+}
+
+sha512sums="
+fa2eac306066255fd89e8220e2b8d82811ce9e284baa155ea968b7afe0f113a94b1ee1898578d02fb8cde0634b6fe60ae8af956089ce5401c11bb90c3b334d5a  ccid-1.5.0.tar.bz2
+"

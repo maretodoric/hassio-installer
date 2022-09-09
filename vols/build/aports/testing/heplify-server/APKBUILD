@@ -1,0 +1,66 @@
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=heplify-server
+pkgver=1.55
+pkgrel=5
+pkgdesc="HEP Capture Server & Switch in Go"
+url="http://sipcapture.io"
+arch="all !riscv64" # FTBFS
+license="AGPL-3.0-or-later"
+makedepends="go"
+install="$pkgname.pre-install"
+subpackages="$pkgname-openrc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/sipcapture/heplify-server/archive/$pkgver.tar.gz
+	$pkgname.initd
+	fix-go-vet-errors.patch
+	"
+
+case $CARCH in
+	riscv64)
+		makedepends="$makedepends lua5.1-dev"
+		export GOFLAGS="$GOFLAGS -tags=llua"
+		;;
+	*)
+		makedepends="$makedepends luajit-dev"
+		;;
+esac
+
+
+export GOPATH="$srcdir/go"
+export GOCACHE="$srcdir/go-build"
+export GOTEMPDIR="$srcdir/go"
+
+export GOFLAGS="$GOFLAGS -modcacherw"
+
+prepare() {
+	default_prepare
+
+	case $CARCH in
+		armhf|armv7|x86|s390x|riscv64)
+			# -race is not supported on these arches
+			sed -i '/go test/s/-race//' Makefile
+	esac
+}
+
+build() {
+	make all
+}
+
+check() {
+	# is not supported when testing with -race
+	export GOFLAGS="${GOFLAGS/-buildmode=pie}"
+
+	make test
+}
+
+package() {
+	install -D -m755 heplify-server "$pkgdir"/usr/bin/heplify-server
+	install -D -m644 example/homer7_config/heplify-server.toml \
+		"$pkgdir"/etc/homer/heplify-server.toml
+	install -D -m755 "$srcdir"/$pkgname.initd "$pkgdir"/etc/init.d/$pkgname
+}
+
+sha512sums="
+1da175311e5638a356e3ff53799fb90ca309a6d10eb7a56fa51b84430c01e43d67654bfe89bc4d2031f30709db1ad1a90d9c5af344259acdbddc72501a5f572e  heplify-server-1.55.tar.gz
+5c2c950e93bdbe5514be67e5012763883795d4ad3d83889d0fa360151b7eb860e9d4d00a47d188ab12722bc8db708cc557fbc3ea6dd912994e801758be62c02b  heplify-server.initd
+2d1bdaffc9297e01b1b604bef3e511c5bc81817ddc231096e21036826fe32a9801d7db5ed38892b1dc8943455f3799b42347ef31d5df21db26caca4fe81e6a09  fix-go-vet-errors.patch
+"

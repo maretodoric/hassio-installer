@@ -1,0 +1,60 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=monado
+pkgver=21.0.0
+pkgrel=5
+pkgdesc="The open source OpenXR runtime"
+url="https://monado.freedesktop.org"
+# ppc64le, s390x blocked by opencv -> vtk -> netcdf
+arch="all !ppc64le !s390x"
+license="BSL-1.0"
+depends="xr-hardware"
+makedepends="
+	cmd:glslangValidator
+	cmd:wayland-scanner
+	doxygen
+	eigen-dev
+	eudev-dev
+	graphviz
+	libjpeg-turbo-dev
+	libsurvive-dev
+	libxrandr-dev
+	mesa-dev
+	meson
+	opencv-dev
+	openhmd-dev
+	sdl2-dev
+	v4l-utils-dev
+	vulkan-loader-dev
+	wayland-dev
+	wayland-protocols
+	zlib-dev
+	"
+source="https://gitlab.freedesktop.org/monado/monado/-/archive/v$pkgver/monado-v$pkgver.tar.gz
+	fix-build.patch
+	"
+builddir="$srcdir/$pkgname-v$pkgver"
+
+build() {
+	# Steam is not available on Alpine and probably never will be
+	# It can be ran in a Flatpak on Alpine but Monado installed on the host
+	# can never work with it, so there is no need for us to build it
+
+	abuild-meson . output \
+		-Ddrivers=auto,ohmd,survive \
+		-Dsteamvr_plugin=false
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+d4f723da9d4b6b62bef4e4c4553e1573fa23a239e01337087859a1395c5cfe9fb10e89474e0e6d2747206e463bcded6fc9e85d5bbd37e082828216cc0d8e9933  monado-v21.0.0.tar.gz
+58b19c33f32d958934683250b381f00f52c530f83c6ae512225f1dff61a42534839a7a778fc3e0ee7d5ce51dc0f01cc6effc69b727b9f969dab06edd6d9825e5  fix-build.patch
+"

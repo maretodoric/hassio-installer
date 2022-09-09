@@ -1,0 +1,63 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=kmail-account-wizard
+pkgver=22.04.2
+pkgrel=0
+# armhf blocked by extra-cmake-modules
+# ppc64le, s390x and riscv64 blocked by qt5-qtwebengine -> kmailtransport
+arch="all !armhf !ppc64le !s390x !riscv64"
+url="https://kontact.kde.org/"
+pkgdesc="KMail account wizard"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later AND GFDL-1.2-only"
+makedepends="
+	akonadi-dev
+	akonadi-mime-dev
+	extra-cmake-modules
+	gpgme-dev
+	kcmutils-dev
+	kcodecs-dev
+	kconfig-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdoctools-dev
+	kidentitymanagement-dev
+	kimap-dev
+	kldap-dev
+	kmailtransport-dev
+	knewstuff-dev
+	knotifications-dev
+	knotifyconfig-dev
+	kross-dev
+	kservice-dev
+	ktexteditor-dev
+	kwallet-dev
+	libkdepim-dev
+	libkleo-dev
+	pimcommon-dev
+	qt5-qtbase-dev
+	samurai
+	shared-mime-info
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/kmail-account-wizard-$pkgver.tar.xz"
+subpackages="$pkgname-lang"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+707cfd0d6f0fd8f80f97c41be05998a0ffc312a0cb50a466cea22e690d31b5b94dd3d61ad3de3557b6a000ee48c83b68a4858bec34f466f4a9152c307ca01faf  kmail-account-wizard-22.04.2.tar.xz
+"

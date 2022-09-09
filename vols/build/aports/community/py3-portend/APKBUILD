@@ -1,0 +1,37 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-portend
+pkgver=3.1.0
+pkgrel=2
+pkgdesc="TCP port monitoring and discovery"
+url="https://github.com/jaraco/portend"
+arch="noarch"
+license="MIT"
+depends="
+	py3-tempora
+	python3
+	"
+# py3-setuptools_scm is required to set version of python module
+makedepends="
+	py3-setuptools
+	py3-setuptools_scm
+	"
+checkdepends="py3-freezegun py3-pytest"
+source="https://pypi.python.org/packages/source/p/portend/portend-$pkgver.tar.gz"
+builddir="$srcdir/portend-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	pytest
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+017dff68ea85f48d19398f71fbd8189329ca9c27c05d8599dd5e53632eb5ddc6dea322e94c924a0653f25f042a3c8ee1cda5f8450b02f3406a72036d54cd1aaf  portend-3.1.0.tar.gz
+"

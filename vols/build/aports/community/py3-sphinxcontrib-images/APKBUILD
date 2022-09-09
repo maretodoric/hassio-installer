@@ -1,0 +1,29 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-sphinxcontrib-images
+_pkgname=sphinxcontrib-images
+pkgver=0.9.3
+pkgrel=1
+pkgdesc="Sphinx images extension"
+url="https://github.com/sphinx-contrib/images"
+arch="noarch"
+license="Apache-2.0"
+depends="py3-requests py3-sphinx"
+makedepends="py3-setuptools py3-wheel"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-sphinxcontrib-images" # Backwards compatibility
+provides="py-sphinxcontrib-images=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+5e6d51acac8c24cb32c9c78f446fdb175b99668f44154a03edf46c71755aa8a93df60fb34e7db4305bd05ef694848be95a39734bd15fac779450ebcec6aaa85b  sphinxcontrib-images-0.9.3.tar.gz
+"

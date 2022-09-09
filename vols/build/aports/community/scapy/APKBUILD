@@ -1,0 +1,30 @@
+# Contributor: Paul Kilar <pkilar@gmail.com>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=scapy
+pkgver=2.4.5
+pkgrel=2
+pkgdesc="Powerful interactive packet manipulation"
+url="https://scapy.net/"
+arch="noarch"
+license="GPL-2.0-only"
+depends="python3"
+makedepends="python3-dev py3-setuptools"
+install="$pkgname.post-install"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/secdev/scapy/archive/v$pkgver.tar.gz"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 setup.py check
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+1cf36bb256e72e55b6524c37dea68da103dc6050af56e57aa9beeb521583537aeb9fbe1b8eae0629a6f2d381f368c5b8f5b45dd9e285277477e0dd168ce55325  scapy-2.4.5.tar.gz
+"

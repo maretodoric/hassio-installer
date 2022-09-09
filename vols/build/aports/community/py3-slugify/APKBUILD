@@ -1,0 +1,29 @@
+# Contributor: Michał Polański <michal@polanski.me>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=py3-slugify
+pkgver=6.1.2
+pkgrel=0
+pkgdesc="Python module for creating slugs from unicode strings"
+url="https://github.com/un33k/python-slugify"
+license="MIT"
+arch="noarch"
+depends="python3 py3-text-unidecode"
+makedepends="py3-setuptools"
+source="https://github.com/un33k/python-slugify/archive/v$pkgver/py3-slugify-$pkgver.tar.gz"
+builddir="$srcdir/python-slugify-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	python3 test.py
+}
+
+package() {
+	python3 setup.py install --root="$pkgdir" --skip-build
+}
+
+sha512sums="
+3748c18d469032fc002318fbd5730b96a6f8430ff7b0b1a9afb4c19d4dd8e7528400682fa6b2fcc11ec4230917d7e7f61de290f5b199935d77d5335006af0ffb  py3-slugify-6.1.2.tar.gz
+"

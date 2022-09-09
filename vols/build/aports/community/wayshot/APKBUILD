@@ -1,0 +1,39 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=wayshot
+pkgver=1.1.5
+# https://github.com/waycrate/wayshot/issues/20
+_gitrev=e03feb5b62dd088c1488d61c54e080a093b13ae2
+pkgrel=1
+pkgdesc="A native screenshot tool for wlroots based compositors"
+url="https://git.sr.ht/~shinyzenith/wayshot"
+arch="aarch64 armhf armv7 ppc64le x86 x86_64"  # blocked by rust/cargo
+license="BSD-2-Clause"
+depends="wlroots"
+makedepends="cargo"
+source="https://github.com/waycrate/wayshot/archive/$_gitrev/wayshot-$_gitrev.tar.gz"
+builddir="$srcdir/$pkgname-$_gitrev"
+options="!check"  # no tests provided
+
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+export CARGO_PROFILE_RELEASE_LTO="true"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="s"
+export CARGO_PROFILE_RELEASE_PANIC="abort"
+
+prepare() {
+	default_prepare
+
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --frozen --release
+}
+
+package() {
+	install -D -m755 target/release/wayshot -t "$pkgdir"/usr/bin/
+}
+
+sha512sums="
+bb0cf8229b46f2032aaf7c2be86cd76238e38401399c36a551a665fa4e1055e10d1c0ef776e45da9c4372136f6cca71953fedd48f636a68b799c11b1a29f595e  wayshot-e03feb5b62dd088c1488d61c54e080a093b13ae2.tar.gz
+"

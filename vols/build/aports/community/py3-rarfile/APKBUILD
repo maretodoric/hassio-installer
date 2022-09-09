@@ -1,0 +1,34 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-rarfile
+_pyname=rarfile
+pkgver=4.0
+pkgrel=3
+pkgdesc="RAR archive reader"
+url="https://github.com/markokr/rarfile"
+arch="noarch"
+license="ISC"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="py3-pytest unrar libarchive-tools"
+source="https://files.pythonhosted.org/packages/source/r/rarfile/rarfile-$pkgver.tar.gz"
+builddir="$srcdir"/$_pyname-$pkgver
+options="!check" # tests depend on non-free unrar package
+
+replaces="py-rarfile" # Backwards compatibility
+provides="py-rarfile=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# unar is not packaged in Alpine
+	pytest -k "not test_unar_tool"
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="05e15acd749564288d4f069970ac196344c33fd2710e918b84afe4c388aa364a17c63f86577037524336e3a022f6db2c8619f9b526f89e00753a8ab0d89263d4  rarfile-4.0.tar.gz"

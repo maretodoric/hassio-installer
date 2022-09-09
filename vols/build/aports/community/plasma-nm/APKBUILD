@@ -1,0 +1,78 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-nm
+pkgver=5.25.1
+pkgrel=0
+pkgdesc="Plasma applet written in QML for managing network connections"
+# armhf blocked by qt5-qtdeclarative
+# s390x and riscv64 blocked by polkit -> plasma-framework
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/plasma-desktop/"
+license="(LGPL-2.1-only OR LGPL-3.0-only) AND LGPL-2.0-or-later"
+depends="
+	kirigami2
+	networkmanager
+	"
+makedepends="
+	extra-cmake-modules
+	kcompletion-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	knotifications-dev
+	kservice-dev
+	kwallet-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	mobile-broadband-provider-info
+	modemmanager-qt-dev
+	networkmanager-qt-dev
+	plasma-framework-dev
+	prison-dev
+	qca-dev
+	qt5-qtbase-dev
+	qt5-qtdeclarative-dev
+	samurai
+	solid-dev
+	"
+
+case "$pkgver" in
+	*.90*) _rel=unstable;;
+	*) _rel=stable;;
+esac
+source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-nm-$pkgver.tar.xz"
+subpackages="$pkgname-lang $pkgname-mobile"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_MOBILE=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+mobile() {
+	pkgdesc="$pkgdesc (mobile KCM's)"
+	depends="$depends $pkgname"
+
+	amove usr/share/kpackage
+	amove usr/lib/qt5/plugins/kcms
+}
+
+sha512sums="
+9ee77b669965e24109b4eda85e0316405b000610787805ccb452e1ea9561e0e9a5e381690fdd749cf1fb0fe805d03531fd14ed9dab3f0ada3b792aa5ce5cc91f  plasma-nm-5.25.1.tar.xz
+"

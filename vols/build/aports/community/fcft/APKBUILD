@@ -1,0 +1,39 @@
+# Maintainer: Alex McGrath <amk@amk.ie>
+pkgname=fcft
+pkgver=3.1.2
+pkgrel=0
+pkgdesc="Simple library for font loading and glyph rasterization using FontConfig, FreeType and pixman"
+url="https://codeberg.org/dnkl/fcft.git"
+license="MIT"
+arch="all"
+makedepends="
+	meson
+	scdoc
+	fontconfig-dev
+	freetype-dev
+	harfbuzz-dev
+	pixman-dev
+	tllist-dev
+	utf8proc-dev
+	"
+checkdepends="check-dev ttf-dejavu" # tests require a font to be installed
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://codeberg.org/dnkl/fcft/archive/$pkgver.tar.gz"
+builddir="$srcdir/fcft"
+
+build() {
+	abuild-meson -Dsvg-backend=nanosvg . output
+	meson compile -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+b3874819ef90a4f1d1975cae72b925c928bc9758629e63b2083dab807166133bc68308ba4f9481c34c9e0b5262a1d2558e47cccf6ce9d34516583e48d03a5bf9  fcft-3.1.2.tar.gz
+"

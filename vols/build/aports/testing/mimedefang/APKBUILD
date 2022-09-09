@@ -1,0 +1,57 @@
+# Contributor: Duncan Bellamy <dunk@denkimushi.com>
+# Maintainer: Duncan Bellamy <dunk@denkimushi.com>
+pkgname=mimedefang
+pkgver=3.0
+pkgrel=1
+pkgdesc="e-mail filtering tool that works with the Sendmail Milter library"
+url="https://mimedefang.org"
+arch="all"
+license="GPL-2.0-only"
+pkgusers="defang"
+pkggroups="defang"
+depends="
+	perl-digest-sha1
+	perl-html-parser
+	perl-io-socket-ssl
+	perl-mail-dkim
+	perl-mail-spf
+	perl-mime-base64
+	perl-mime-tools
+	perl-net-dns
+	perl-unix-syslog
+	tzdata
+	"
+# if compiled with support from clamd it must be run as user defang
+makedepends="clamav-clamdscan clamav-scanner libmilter-dev rspamd-client"
+checkdepends="perl-archive-zip perl-test-class perl-test-harness-utils perl-test-most"
+subpackages="$pkgname-doc"
+install="$pkgname.pre-install"
+source="https://github.com/The-McGrail-Foundation/MIMEDefang/releases/download/v$pkgver/mimedefang-$pkgver.tar.gz
+	date-test.patch
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--with-user=defang
+	make
+}
+
+check() {
+	make test SMTP_TEST=no
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	install -dm 750 -o defang -g defang "$pkgdir"/var/log/$pkgname
+}
+
+sha512sums="
+e3b9c56d0e5a1c3c4ae54790a5f67f97c92bee1080126728cadd0d077f0cf879332d300b69acc2ee4c072055777013fe455f27864f1063dc6c46d44398f926de  mimedefang-3.0.tar.gz
+3921058b9526dfbb2480d989e45ec9e1fc584470afb024f328e682b0fccdd8121945f9b61794c3abb599b22b0a0797dfaeb3071930e8f339cf0508baf1513ecd  date-test.patch
+"

@@ -1,0 +1,93 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Síle Ekaterin Liszka <sheila@vulpine.house>
+# Maintainer: Síle Ekaterin Liszka <sheila@vulpine.house>
+pkgname=nheko
+pkgver=0.9.3
+pkgrel=2
+pkgdesc="Qt5-based client for Matrix protocol"
+url="https://github.com/Nheko-Reborn/nheko/releases"
+# armhf blocked by qt5-qtmultimedia
+arch="all !armhf"
+license="GPL-3.0-or-later"
+options="!check" # no test suite
+depends="
+	qt5-qtquickcontrols2
+	so:libgstdtls.so
+	so:libgstopus.so
+	so:libgstrtpmanager.so
+	so:libgstsrtp.so
+	so:libgstwebrtc.so
+	so:libgstcompositor.so
+	so:libgstopengl.so
+	so:libgstqmlgl.so
+	so:libgstrtp.so
+	so:libgstvpx.so
+	libnice-gstreamer
+	dbus:org.freedesktop.Secrets
+	"
+makedepends="
+	asciidoctor
+	cmake
+	ninja
+	boost-dev
+	lmdb-dev
+	lmdbxx
+	tweeny
+	qt5-qtbase-dev
+	qt5-qttools-dev
+	qt5-qtmultimedia-dev
+	qt5-qtsvg-dev
+	qt5-qtdeclarative-dev
+	qt5-qtquickcontrols2-dev
+	qt5-qtkeychain-dev
+	zlib-dev
+	openssl1.1-compat-dev
+	olm-dev
+	nlohmann-json
+	cmark-dev
+	spdlog-dev
+	mtxclient-dev
+	gstreamer-dev
+	gst-plugins-base-dev
+	gst-plugins-bad-dev
+	xcb-util-wm-dev
+	"
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/Nheko-Reborn/nheko/archive/v$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	sed -e '/-Wall/d' \
+		-e '/-Wextra/d' \
+		-e '/-Werror/d' \
+		-e '/-pedantic/d' \
+		-e '/-pipe/d' \
+		-i CMakeLists.txt
+}
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-GNinja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_SKIP_RPATH=True \
+		-DCMAKE_BUILD_TYPE=None \
+		$CMAKE_CROSSOPTS .
+	ninja -C build
+}
+
+check() {
+	ninja -C build check
+}
+
+package() {
+	DESTDIR="$pkgdir" ninja -C build install
+}
+
+sha512sums="
+187348e8e274f727a638ca3cb3ed015b9f7cbb50eea2e33bc519cd216a74763cab265466001a82c584dcf91f950c41c3f7a4f3c1ac1f1564a8d5f7711eb37d5a  nheko-0.9.3.tar.gz
+"

@@ -1,0 +1,27 @@
+# Contributor: August Klein <amatcoder@gmail.com>
+# Maintainer: August Klein <amatcoder@gmail.com>
+pkgname=viewnior
+_pkgname=Viewnior
+pkgver=1.8
+pkgrel=0
+pkgdesc="A fast and simple image viewer"
+url="http://siyanpanayotov.com/project/viewnior"
+arch="all"
+license="GPL-3.0-or-later"
+makedepends="gnome-common meson ninja gtk+2.0-dev exiv2-dev desktop-file-utils"
+subpackages="$pkgname-lang $pkgname-doc"
+source="https://github.com/hellosiyan/$_pkgname/archive/viewnior-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgname-$pkgver
+
+build() {
+	abuild-meson builddir
+	meson compile ${JOBS:+-j ${JOBS}} -C builddir
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C builddir
+}
+
+sha512sums="
+0f9698801172ef6b8f5df4132526b2e605e9aa9fd69cf41a091a3623de9b2e84ca857e625aaa9e83f29df318f70a13fb458bac0df11ae46837b78ef257a00bee  viewnior-1.8.tar.gz
+"

@@ -1,0 +1,34 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-impacket
+_pkgname=impacket
+pkgver=0.10.0
+pkgrel=0
+pkgdesc="Collection of Python3 classes providing access to network packets"
+url="https://github.com/SecureAuthCorp/impacket"
+arch="noarch"
+license="Apache-2.0"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-impacket" # Backwards compatibility
+provides="py-impacket=$pkgver-r$pkgrel" # Backwards compatibility
+
+# secfixes:
+#   0.9.23-r0:
+#     - CVE-2021-31800
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+	rm -rf "$pkgdir"/usr/share/doc # LICENSE and README.md
+}
+
+sha512sums="
+6c850bf792fa256800c28d7f9867c14c7bb23644aa4d02cbb6b764fd355cb6ecf77fcbb2341e289e8cba5416fb53a55bfadbcf9d92894335f3ce3a1a8e5cc7bf  impacket-0.10.0.tar.gz
+"

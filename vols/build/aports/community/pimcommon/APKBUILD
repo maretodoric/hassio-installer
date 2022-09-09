@@ -1,0 +1,69 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=pimcommon
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="Common lib for KDEPim"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit -> kio
+# ppc64le blocked by qt5-qtwebengine -> akonadi
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url='https://community.kde.org/KDE_PIM'
+license="GPL-2.0-or-later"
+depends_dev="
+	akonadi-contacts-dev
+	akonadi-dev
+	karchive-dev
+	kcodecs-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcontacts-dev
+	kcoreaddons-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kimap-dev
+	kio-dev
+	kitemmodels-dev
+	kjobwidgets-dev
+	kmime-dev
+	knewstuff-dev
+	kpimtextedit-dev
+	kservice-dev
+	kwidgetsaddons-dev
+	kxmlgui-dev
+	libkdepim-dev
+	purpose-dev
+	qt5-qtbase-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	qt5-qttools-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+source="https://download.kde.org/stable/release-service/$pkgver/src/pimcommon-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-lang"
+options="net" # net required for tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_DESIGNERPLUGIN=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+6b6d80ffb2748bf930b256e1514c406ab57a6fcf5904487e7ff550eed5acae519a2c865bc0bc638fc7f8199d59de48653cad771793642d15a0274375a6aa4faa  pimcommon-22.04.2.tar.xz
+"

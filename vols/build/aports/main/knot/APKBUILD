@@ -1,0 +1,136 @@
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Contributor: Dennis Przytarski <dennis@przytarski.com>
+# Contributor: Francesco Zanini <francesco@zanini.me>
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=knot
+pkgver=3.1.8
+pkgrel=1
+pkgdesc="An high-performance authoritative-only DNS server"
+url="https://www.knot-dns.cz/"
+# testsuite fails on 32 bit arches with musl 1.2
+arch="all !x86 !armhf !armv7"
+license="GPL-3.0-or-later"
+depends_dev="
+	$pkgname=$pkgver-r$pkgrel
+	$pkgname-libs-static=$pkgver-r$pkgrel
+	$pkgname-utils=$pkgver-r$pkgrel
+	"
+checkdepends="softhsm"
+makedepends="
+	bison
+	bsd-compat-headers
+	flex
+	fstrm-dev
+	gnutls-dev
+	jansson-dev
+	libcap-ng-dev
+	libedit-dev
+	libidn-dev
+	libtool
+	lmdb-dev
+	m4
+	libmaxminddb-dev
+	nghttp2-dev
+	openssl1.1-compat-dev
+	perl
+	protobuf-c-dev
+	sed
+	userspace-rcu-dev
+	zlib-dev
+	"
+install="$pkgname.pre-install $pkgname.post-install $pkgname.post-upgrade"
+pkgusers="knot"
+pkggroups="knot"
+subpackages="
+	$pkgname-mod-dnstap:_module
+	$pkgname-mod-geoip:_module
+	$pkgname-libs
+	$pkgname-libs-static
+	$pkgname-utils
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-openrc
+	"
+source="https://secure.nic.cz/files/$pkgname-dns/$pkgname-$pkgver.tar.xz
+	knotd.confd
+	knotd.initd
+	"
+
+# tests fail due to alignment problems on armv6
+[ "$CARCH" = "armhf" ] && options="!check"
+
+# link against gcc libatomic on riscv64
+[ "$CARCH" = "riscv64" ] && export LDFLAGS="$LDFLAGS -latomic"
+
+prepare() {
+	default_prepare
+
+	cd "$builddir"
+	# Make sure embedded LMDB library is not used.
+	rm -rf src/contrib/lmdb
+}
+
+build() {
+	./configure \
+		--build="$CBUILD" \
+		--host="$CHOST" \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--libexecdir="/usr/lib/$pkgname" \
+		--enable-maxminddb \
+		--with-rundir="/run/$pkgname" \
+		--with-storage="/var/lib/$pkgname" \
+		--with-module-dnstap=shared \
+		--with-module-geoip=shared \
+		--disable-silent-rules
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	rm -rf "$pkgdir"/run
+	install -d -m750 -o knot -g knot "$pkgdir"/var/lib/$pkgname
+
+	install -D -m755 "$srcdir"/knotd.initd "$pkgdir"/etc/init.d/knotd
+	install -D -m644 "$srcdir"/knotd.confd "$pkgdir"/etc/conf.d/knotd
+}
+
+libs() {
+	pkgdesc="Libraries used by the Knot DNS server and client applications"
+
+	amove usr/lib/libdnssec.so.*
+	amove usr/lib/libknot.so.*
+	amove usr/lib/libzscanner.so.*
+}
+
+utils() {
+	pkgdesc="Knot and DNS client utilities shipped with the Knot DNS server"
+
+	amove usr/bin
+	amove usr/sbin/keymgr
+	amove usr/sbin/kjournalprint
+	amove usr/sbin/kcatalogprint
+}
+
+_module() {
+	local modname=${subpkgname#$pkgname-mod-}
+	pkgdesc="$modname module for Knot DNS"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/$pkgname/modules-${pkgver%.*}/$modname.so
+}
+
+gpg_signature_extensions="asc"
+gpgfingerprints="good:742F A4E9 5829 B6C5 EAC6  B857 10BB 7AF6 FEBB D6AB"
+
+sha512sums="
+af72cbcc5b511dad148e7ce990819df00bdf99c110b44b3b521eddd8690a6ebd4c76c24e63d843956971d5f158bbfa851804616630d34f3a0ec06888c78ecf2c  knot-3.1.8.tar.xz
+471d3c639a8235ba09491c99d36c0a4f1074d6055ccfd3807be02a30d3ed5bbe69a84f0414ea7810db6bbc1e38f5837108e5744fc59f949ed78a262a7de4597e  knotd.confd
+979f06a83dd4326920a682f8190319577faf904e0e379b3c55e0420eb43dcb55d86c6727015634fa0c2dff1dddac43bbd5a216ff04f217ad91d670eb899dbefa  knotd.initd
+"

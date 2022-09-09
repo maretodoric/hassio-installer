@@ -1,0 +1,132 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=plasma-workspace
+pkgver=5.25.1
+pkgrel=0
+pkgdesc="KDE Plasma Workspace"
+# armhf blocked by kirigami2
+# s390x and riscv64 blocked by polkit -> kio-extras
+arch="all !armhf !s390x !riscv64"
+url="https://kde.org/plasma-desktop/"
+license="(GPL-2.0-only OR GPL-3.0-only) AND LGPL-2.1-or-later AND GPL-2.0-or-later AND MIT AND LGPL-2.1-only AND LGPL-2.0-or-later AND (LGPL-2.1-only OR LGPL-3.0-only) AND LGPL-2.0-only"
+depends="
+	kactivitymanagerd
+	kded
+	kinit
+	kio-extras
+	kirigami2
+	kquickcharts
+	kwin
+	milou
+	pipewire-session-manager
+	plasma-integration
+	qt5-qtquickcontrols
+	qt5-qttools
+	qtchooser
+	tzdata
+	"
+depends_dev="
+	appstream-dev
+	baloo-dev
+	gpsd-dev
+	iso-codes-dev
+	kactivities-stats-dev
+	kcmutils-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	kdeclarative-dev
+	kded-dev
+	kdelibs4support-dev
+	kdesu-dev
+	kglobalaccel-dev
+	kholidays-dev
+	ki18n-dev
+	kidletime-dev
+	kitemmodels-dev
+	kjsembed-dev
+	knewstuff-dev
+	knotifyconfig-dev
+	kpackage-dev
+	kpeople-dev
+	krunner-dev
+	kscreenlocker-dev
+	ktexteditor-dev
+	ktextwidgets-dev
+	kuserfeedback-dev
+	kwallet-dev
+	kwayland-dev
+	kwin-dev
+	layer-shell-qt-dev
+	libkscreen-dev
+	libksysguard-dev
+	libqalculate-dev
+	networkmanager-qt-dev
+	phonon-dev
+	plasma-framework-dev
+	prison-dev
+	samurai
+	zlib-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	kdoctools-dev
+	libxtst-dev
+	samurai
+	"
+checkdepends="xvfb-run"
+
+case "$pkgver" in
+	*.90*) _rel=unstable;;
+	*) _rel=stable;;
+esac
+source="https://download.kde.org/$_rel/plasma/$pkgver/plasma-workspace-$pkgver.tar.xz"
+subpackages="$pkgname-dev $pkgname-libs $pkgname-doc $pkgname-lang $pkgname-dbg"
+replaces="plasma-desktop<5.24 breeze<5.22.90"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DPLASMA_WAYLAND_DEFAULT_SESSION=TRUE
+	cmake --build build
+}
+
+check() {
+	cd build
+	# nightcolortest requires running dbus
+	# testdesktop, lookandfeel-kcmTest, test_kio_fonts, servicerunnertest systemtraymodeltest are broken
+	# tst_triangleFilter requires plasma-workspace to be installed
+	# locationsrunnertest requires a running Wayland environment
+	local skipped_tests="("
+	local tests="
+		nightcolortest
+		testdesktop
+		lookandfeel-kcmTest
+		test_kio_fonts
+		servicerunnertest
+		systemtraymodeltest
+		tst_triangleFilter
+		locationsrunnertest
+		"
+	case "$CARCH" in
+		arm*|aarch64|ppc64le) tests="$tests calculatorrunnertest" ;;
+	esac
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)"
+	CTEST_OUTPUT_ON_FAILURE=TRUE xvfb-run ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+
+	# We don't ship systemd
+	rm -r "$pkgdir"/usr/lib/systemd
+}
+
+sha512sums="
+e11fd39df8fe6120f29d485729c8b2f9f37f0b37cd91afeae762973e01bf65043374ac0f94d2224266e044f81825839dc33a82fd599cc64e9ae61c6c705c40a6  plasma-workspace-5.25.1.tar.xz
+"

@@ -1,0 +1,42 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Michał Polański <michal@polanski.me>
+pkgname=gtk-layer-shell
+pkgver=0.7.0
+pkgrel=0
+pkgdesc="Create panels and other desktop components in Wayland using the Layer Shell protocol"
+url="https://github.com/wmww/gtk-layer-shell"
+arch="all"
+license="MIT"
+makedepends="meson wayland-dev gtk+3.0-dev gobject-introspection-dev"
+subpackages="$pkgname-dev $pkgname-demo"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wmww/gtk-layer-shell/archive/v$pkgver.tar.gz
+	disable-warn_gtk_version_may_be_unsupported.patch
+	"
+
+build() {
+	abuild-meson \
+		-Dexamples=true \
+		-Ddocs=false \
+		-Dtests=true \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+demo() {
+	pkgdesc="Demo of GTK Layer Shell"
+
+	amove usr/bin/gtk-layer-demo
+}
+
+sha512sums="
+97463b4bd90318e95576e3f4b05c0acae401b8103b389cb9a0dc7716871d8d8285595ddda76419883c98c6f00fcd4ffdfd9dba48385cb8a6edcbdc7f202e2818  gtk-layer-shell-0.7.0.tar.gz
+e5219f2ea9ee91933d99b3e825b5223c5cb296672974afcdf24149bf801088fa444aa68828eadf88b1ba16f79641144d344032429e7f899bfbca2433dce083f3  disable-warn_gtk_version_may_be_unsupported.patch
+"

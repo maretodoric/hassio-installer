@@ -1,0 +1,44 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libmtp
+pkgver=1.1.19
+pkgrel=0
+pkgdesc="Software library for MTP media players"
+url="http://libmtp.sourceforge.net"
+arch="all"
+license="LGPL-2.0-or-later"
+depends_dev="libusb-compat-dev"
+makedepends="$depends_dev eudev-dev"
+subpackages="$pkgname-dev $pkgname-examples"
+source="http://download.sourceforge.net/libmtp/libmtp-$pkgver.tar.gz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--with-udev=/lib/udev
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+examples() {
+	pkgdesc="Example programs for libmtp"
+	mkdir -p "$subpkgdir"/usr
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+}
+
+sha512sums="
+3cd3b0ea5aecb25abf4267e301d5e82ad9f6253bfa5a3bc4c70645d3007c69b014d6407c6703665d987cce3a42bd2219abbf1972e5964b39e9e1329bf9091044  libmtp-1.1.19.tar.gz
+"

@@ -1,0 +1,43 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=libkipi
+pkgver=22.04.2
+pkgrel=0
+pkgdesc="KDE Image Plugin Interface library"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by kxmlgui
+arch="all !armhf !s390x !riscv64"
+url="https://www.digikam.org/"
+license="GPL-2.0-or-later AND LGPL-2.0-or-later"
+depends_dev="
+	kconfig-dev
+	kservice-dev
+	kxmlgui-dev
+	qt5-qtbase-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	libjpeg-turbo-dev
+	libkexiv2-dev
+	samurai
+	tiff-dev
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/libkipi-$pkgver.tar.xz"
+subpackages="$pkgname-dev"
+options="!check" # No tests
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+f4762f897901c0f689da4cf83d63220ea97b5880f4f48868588a19cdfc3f135c89a22cb264aa938a30f4195a21462ab85849d1598b7a342c95d70d16acf026c4  libkipi-22.04.2.tar.xz
+"

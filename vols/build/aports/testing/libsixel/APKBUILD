@@ -1,0 +1,33 @@
+# Contributor: Maxim Karasev <begs@disroot.org>
+# Contributor: Dmitry Kruchko <corg@disroot.org>
+# Maintainer: Maxim Karasev <begs@disroot.org>
+pkgname=libsixel
+_commit=bc93c8ce570b35b8f3bb429ea5892ac260e4c8b1
+pkgver=1.10.3_git20211017
+pkgrel=1
+pkgdesc="SIXEL encoder/decoder implementation"
+url="https://github.com/libsixel/libsixel"
+arch="all"
+license="MIT"
+makedepends="meson libpng-dev libjpeg-turbo-dev zlib-dev libtool"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	"
+source="https://github.com/libsixel/libsixel/archive/$_commit.tar.gz"
+builddir="$srcdir/libsixel-$_commit"
+
+build() {
+	abuild-meson . output
+	meson compile -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+sha512sums="
+d7ea52073a9e3015922f44f887d7f6f693d9271b2e2c8ab88823adb31b1591282b6e65343d26820fe6d4c049143fde6871a2c818c8aefc6b621616e05ac92826  bc93c8ce570b35b8f3bb429ea5892ac260e4c8b1.tar.gz
+"

@@ -1,0 +1,54 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Maintainer: Sören Tempel <soeren+alpine@soeren-tempel.net>
+pkgname=drawterm
+pkgver=0_hg20210414
+pkgrel=0
+pkgdesc="Connect to Plan 9 CPU servers from other operating systems"
+url="http://drawterm.9front.org/"
+arch="all !armhf !armv7 !s390x"
+license="LPL-1.02"
+options="!check" # upstream does not have a test suite
+makedepends="linux-headers libx11-dev libxt-dev"
+subpackages="$pkgname-dbg"
+source="https://dev.alpinelinux.org/archive/drawterm/drawterm-$pkgver.tar.gz
+	respect-env.patch"
+
+_srcurl="https://code.9front.org/hg/$pkgname"
+_srcrev="80a4267e62de"
+
+prepare() {
+	default_prepare
+	if [ "$CARCH" = "ppc64le" ]; then
+		ln -s posix-power posix-ppc64le
+	fi
+}
+
+snapshot() {
+	mkdir -p "$srcdir" && cd "$srcdir"
+
+	hg clone "$_srcurl" $pkgname-$pkgver \
+		-r "$_srcrev"
+	hg --cwd "$pkgname-$pkgver" archive \
+		-t tgz \
+		-X ".hg*" \
+		-p $pkgname-$pkgver/ \
+		"$srcdir"/$pkgname-$pkgver.tar.gz
+
+	scp "$srcdir"/$pkgname-$pkgver.tar.gz \
+		dev.alpinelinux.org:/archive/$pkgname/
+}
+
+build() {
+	CONF=unix make X11INC=/usr/include/X11 \
+		X11LIB=/usr/lib/X11
+}
+
+package() {
+	install -Dm755 $pkgname \
+		"$pkgdir"/usr/bin/$pkgname
+	install -Dm644 LICENSE \
+		"$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+sha512sums="97e0299497316e4d9799bd4e0ad6dec29e638559d13bb7f1dee3c30003201fa52d4ef704aff7baec611993262d0c96517ae1095092dac86aa66d7661f4d56f02  drawterm-0_hg20210414.tar.gz
+abbef7eb9291f2a5479fe9a77ba5e1924b53797ae7a2505e46c502242d594ab6d7b77a0f97bb50ce2e58742fac01269c75887e9ebd835d2ed2afd68dccb8f44a  respect-env.patch"

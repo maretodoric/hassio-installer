@@ -1,0 +1,44 @@
+# Maintainer: psykose <alice@ayaya.dev>
+pkgname=rtrlib
+pkgver=0.8.0
+pkgrel=2
+pkgdesc="open-source C implementation of the RPKI/Router Protocol client"
+url="https://github.com/rtrlib/rtrlib"
+arch="all"
+license="MIT"
+makedepends="
+	cmake
+	cmocka-dev
+	doxygen
+	graphviz
+	libssh-dev
+	samurai
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/rtrlib/rtrlib/archive/v$pkgver.tar.gz"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		"$CMAKE_CROSSOPTS"
+	cmake --build build
+}
+
+check() {
+	ctest --output-on-failure --test-dir build \
+		--exclude-regex "(test_dynamic_groups|test_live_validation)"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+sha512sums="
+36e44dce5c6117f3fe3c21994a7f9ebfeb4029ade1fddcb0f1df680c9ca4713fe3031da4cf80963b8a3d9bdb930bd9fd95c84b1fe182a9089a29ddfe879060dc  rtrlib-0.8.0.tar.gz
+"

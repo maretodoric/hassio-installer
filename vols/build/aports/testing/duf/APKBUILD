@@ -1,0 +1,27 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=duf
+pkgver=0.8.1
+pkgrel=3
+pkgdesc="Disk Usage/Free Utility"
+options="net !check" # No testsuite
+url="https://github.com/muesli/duf"
+license="MIT"
+arch="all"
+makedepends="go"
+source="https://github.com/muesli/duf/archive/v$pkgver/duf-$pkgver.tar.gz"
+
+build() {
+	go build \
+		-trimpath \
+		-ldflags "-X main.Version=$pkgver -extldflags \"$LDFLAGS\"" \
+		-o duf
+}
+
+package() {
+	install -Dm755 duf -t "$pkgdir"/usr/bin
+}
+
+sha512sums="
+598318cd90e8a27bdc448cb84682f3846baa02bab0f527a26de42b8b3efd3ba258a76b6f7a74a41405e20b23ccff92db1b6ef7d3412fc8261942a8ccde4241dc  duf-0.8.1.tar.gz
+"

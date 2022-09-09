@@ -1,0 +1,97 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=akonadi
+pkgver=22.04.2
+pkgrel=1
+pkgdesc="A cross-desktop storage service for PIM data and meta data providing concurrent read, write, and query access"
+# armhf blocked by extra-cmake-modules
+# s390x and riscv64 blocked by polkit
+# ppc64le blocked by kaccounts-integration
+arch="all !armhf !s390x !riscv64 !ppc64le"
+url="https://community.kde.org/KDE_PIM"
+license="LGPL-2.0-or-later"
+depends="
+	mariadb
+	qt5-qtbase-mysql
+	qt5-qtbase-sqlite
+	"
+depends_dev="
+	boost-dev
+	kaccounts-integration-dev
+	kcompletion-dev
+	kconfig-dev
+	kconfigwidgets-dev
+	kcoreaddons-dev
+	kcrash-dev
+	kdbusaddons-dev
+	ki18n-dev
+	kiconthemes-dev
+	kio-dev
+	kitemmodels-dev
+	kitemviews-dev
+	kwidgetsaddons-dev
+	kwindowsystem-dev
+	kxmlgui-dev
+	libaccounts-qt-dev
+	libxml2-dev
+	qt5-qtbase-dev
+	samurai
+	shared-mime-info
+	sqlite-dev
+	"
+makedepends="$depends_dev
+	extra-cmake-modules
+	qt5-qttools-dev
+	"
+checkdepends="
+	cmd:dbus-run-session
+	xvfb-run
+	"
+source="https://download.kde.org/stable/release-service/$pkgver/src/akonadi-$pkgver.tar.xz"
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-lang"
+
+build() {
+	# akonadi recurses while walking e-mail threads, so give it a decent stack
+	LDFLAGS="$LDFLAGS -Wl,-z,stack-size=1024768" \
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_DESIGNERPLUGIN=ON
+	cmake --build build
+}
+
+check() {
+	cd build
+	# akonadixml-xmldocumenttest, mimetypecheckertest and akonadi-mysql-testenvironmenttest are broken
+	# All sqlite tests are hanging
+	# All mysql tests are broken "Cannot connect to non-local host <hostname>"
+	# tagmodeltest fails on 32-bit architectures
+	local skipped_tests="("
+	local tests="
+		akonadixml-xmldocument
+		mimetypechecker
+		akonadi-mysql-testenvironment
+		.*sqlite.*
+		.*mysql.*
+		tagmodel
+		"
+	case "$CARCH" in
+		s390x) tests="$tests
+			AkonadiServer-itemcreatehandler
+			AkonadiServer-relationhandler
+			" ;;
+	esac
+	for test in $tests; do
+		skipped_tests="$skipped_tests|$test"
+	done
+	skipped_tests="$skipped_tests)test"
+	CTEST_OUTPUT_ON_FAILURE=TRUE dbus-run-session xvfb-run ctest -E "$skipped_tests"
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+sha512sums="
+ea06a24ea0d740ba44705a33e7b7a51e99ca4a51efa735e409dd5be5707d0447ce409e8af88ad316a6064e61f381b27a63262a583d097a79cbdb132d6ca13d45  akonadi-22.04.2.tar.xz
+"

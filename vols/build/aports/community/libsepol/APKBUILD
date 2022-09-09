@@ -1,0 +1,32 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libsepol
+pkgver=3.3
+pkgrel=0
+pkgdesc="SELinux binary policy manipulation library"
+url="https://github.com/SELinuxProject/selinux/wiki"
+arch="all"
+license="LGPL-2.0-or-later"
+depends_dev="bsd-compat-headers"
+makedepends="$depends_dev flex-dev coreutils"
+options="!check" # tests fail
+subpackages="$pkgname-dev $pkgname-doc"
+source="https://github.com/SELinuxProject/selinux/releases/download/$pkgver/libsepol-$pkgver.tar.gz
+	"
+
+build() {
+	# More than a hundred multiple definitions
+	CFLAGS="$CFLAGS -fcommon" \
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+check() {
+	make test
+}
+
+sha512sums="
+fb6bb69f8e43a911a1a9cbd791593215386e93cb9292e003f5d8efe6e86e0ce5d0287e95d52fe2fbce518a618beaf9b1135aea0d04eaebcdbd8c6d07ee67b500  libsepol-3.3.tar.gz
+"

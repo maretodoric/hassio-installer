@@ -1,0 +1,47 @@
+# Contributor: Mathias LANG <pro.mathias.lang@gmail.com>
+# Maintainer: Mathias LANG <pro.mathias.lang@gmail.com>
+#
+# There are 4 'public' tools in the repository as of v2.098.0
+# In addition, there are a few 'build' tools which could be
+# useful (and can be trivially added if needed).
+#
+# Out of those 4 public tools, only 'dman' has heavy dependencies,
+# as it rely on building dlang.org (and by extension DMD & co),
+# so it is excluded from this package.
+pkgname=dtools
+pkgver=2.098.0
+pkgrel=1
+pkgdesc="Ancillary tools for the D programming language compiler"
+url="https://github.com/dlang/tools"
+arch="x86_64 aarch64"
+license="BSL-1.0"
+makedepends="chrpath ldc llvm-libunwind-dev"
+source="tools-$pkgver.tar.gz::https://github.com/dlang/tools/archive/v$pkgver.tar.gz
+		0001-Add-workaround-for-broken-test.patch"
+
+builddir="$srcdir/tools-$pkgver/"
+_outputdir="$builddir/alpine-build/"
+
+build() {
+	ldmd2 -O -release "$builddir/ddemangle.d" -of"$_outputdir/ddemangle"
+	ldmd2 -O -release "$builddir/DustMite/dustmite.d" "$builddir/DustMite/splitter.d" "$builddir/DustMite/polyhash.d" -of"$_outputdir/dustmite"
+	ldmd2 -O -release "$builddir/rdmd.d" -of"$_outputdir/rdmd"
+
+	# Remove redundant rpath
+	chrpath -d "$_outputdir/ddemangle" "$_outputdir/dustmite" "$_outputdir/rdmd"
+}
+
+check() {
+	ldmd2 -run "$builddir/rdmd_test.d" --rdmd-default-compiler=ldmd2 "$_outputdir/rdmd"
+}
+
+package() {
+	install -s -D "$_outputdir/ddemangle" "$pkgdir/usr/bin/ddemangle"
+	install -s -D "$_outputdir/dustmite" "$pkgdir/usr/bin/dustmite"
+	install -s -D "$_outputdir/rdmd" "$pkgdir/usr/bin/rdmd"
+}
+
+sha512sums="
+a56abcc5b14498d82d8b1de8e545e741d1aae48ffdf904574b36a8f023389c168dc3262be05f8824f0c216f79f8d67edaac9f1f7059b06827119fdf010f27583  tools-2.098.0.tar.gz
+6064a7de3f2e6e031544ffa35823ad198c403f2415a98485df03b2a701cafbfc6ab1640bca71fa5caf4722c36e07bf604a42e6bbeaabe9e9d24d4d86206d8320  0001-Add-workaround-for-broken-test.patch
+"

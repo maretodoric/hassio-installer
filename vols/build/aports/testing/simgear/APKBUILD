@@ -1,0 +1,51 @@
+# Maintainer: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=simgear
+pkgver=2020.3.13
+_pkgver=${pkgver%.*}
+pkgrel=0
+pkgdesc="Sim library for FlightGear"
+options="!check" # Accepts boost only up to 1.71.0
+url="https://github.com/FlightGear/simgear"
+arch="all !riscv64" # openscenegraph availability
+license="GPL-2.0-or-later"
+makedepends="
+	$depends_dev
+	boost-dev
+	cmake
+	curl-dev
+	expat-dev
+	mesa-dev
+	openal-soft-dev
+	openscenegraph-dev
+	zlib-dev
+	"
+subpackages="$pkgname-dev"
+source="
+	https://downloads.sourceforge.net/project/flightgear/release-$_pkgver/simgear-$pkgver.tar.bz2
+	musl-strerror_r.patch
+	musl-u_types.patch
+	"
+
+build() {
+	# use system expat
+	rm -rf simgear/xml/*.h simgear/xml/*.c
+
+	cmake \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DSYSTEM_EXPAT=ON \
+		-DENABLE_TESTS=false \
+		.
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+1128c6026cebc902f1d411a6013b3d406664ebae5b209248d15c55895823715066d18ca442af2642577d69c6f68d6d02daf64ebbc9bfe43142aae30b9ce1ae62  simgear-2020.3.13.tar.bz2
+0dac20e58c663227336e39b3c3c75fbf7e47d60b5a16dc30f0d7f8c9bbc3fec901b5f4e3511e28c682fad5ff925df0f0215604295989d1eb99e4155fd3dde685  musl-strerror_r.patch
+a34b8ba88fcc3d06f5695484d20fe6c40b8c623cafc81642fd123d62955cf59e12ac10a335a541c5e4353997fa9c5ac00b265c6821a7810c936f456a72b5e1aa  musl-u_types.patch
+"

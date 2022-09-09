@@ -1,0 +1,42 @@
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-fsspec
+pkgver=2021.08.1
+pkgrel=1
+pkgdesc="A specification for pythonic filesystems"
+url="https://github.com/intake/filesystem_spec"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-aiohttp
+	py3-cloudpickle
+	py3-lz4
+	py3-numpy
+	py3-paramiko
+	py3-pyftpdlib
+	py3-pygit2
+	py3-pytest
+	py3-requests
+	"
+source="https://github.com/intake/filesystem_spec/archive/$pkgver/filesystem_spec-$pkgver.tar.gz"
+builddir="$srcdir/filesystem_spec-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# test find and test_dbfs.py require network connections
+	pytest -k 'not test_find' \
+		--deselect fsspec/implementations/tests/test_dbfs.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+760e556cc54e93dfb7132c38cad753b92c3a23f187c8881c7ae53b0d2a14dcc4004c051a44f4e952c5910f0356dfc0bcaa43e22f910a2a0370d64942b625e758  filesystem_spec-2021.08.1.tar.gz
+"

@@ -1,0 +1,51 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=hwinfo
+pkgver=21.81
+pkgrel=0
+pkgdesc="Hardware information tool"
+url="https://github.com/openSUSE/hwinfo"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="$depends_dev flex perl libx86emu-dev linux-headers util-linux-dev"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+source="$pkgname-$pkgver.tar.gz::https://github.com/openSUSE/hwinfo/archive/$pkgver.tar.gz
+	respect-flags.patch
+	eudev-udevadm-path.patch"
+options="!check"  # no tests provided
+
+export HWINFO_VERSION=$pkgver
+
+build() {
+	# Build full and tiny static libraries.
+	#make tinystatic  # FIXME: fails
+	make static
+	cp src/libhd*.a .
+	make clean
+
+	# Build full shared library.
+	make shared LIBDIR=/usr/lib
+}
+
+package() {
+	make install \
+		LIBDIR=/usr/lib \
+		DESTDIR="$pkgdir"
+
+	rmdir "$pkgdir"/sbin "$pkgdir"/usr/lib || true
+
+	install -m 644 -t "$pkgdir"/usr/lib/ libhd.a
+	#install -m 644 -t "$pkgdir"/usr/lib/ libhd_tiny.a  # FIXME: disabled above
+
+	mkdir -p "$pkgdir"/usr/share/man/man1
+	cp doc/*.1 "$pkgdir"/usr/share/man/man1/
+
+	mkdir -p "$pkgdir"/usr/share/man/man8
+	cp doc/*.8 "$pkgdir"/usr/share/man/man8/
+}
+
+sha512sums="
+2998a6cd40bc0b311666d1f1c8ede06585278b13d215f6e4652a066b49d6e37ff6546afddf802b2e774888d45ad4b98df97bbf1d8609abf2af8030c960298ce7  hwinfo-21.81.tar.gz
+581db9d2324c8ba686a1676c9f673885bc927c160d420739b421596c5a8106e80cb26698e2fca8c77147b62667ec4c2a933e6373ad980658048ed1718d906707  respect-flags.patch
+3bf22dc8afecbdf080b882358e866dc01bc8837522cf0f47409c514892a0fe0900d060f87d28dd3cb5e0ee4224cbec415273024efd70fcdb947ca004915d2543  eudev-udevadm-path.patch
+"

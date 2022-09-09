@@ -1,0 +1,21 @@
+# Contributor: Milan P. Stanić <mps@arvanta.net>
+# Maintainer: Milan P. Stanić <mps@arvanta.net>
+pkgname=vifm-colors
+pkgver=0.11
+pkgrel=0
+pkgdesc="various colorschemes for vifm file explorer"
+url="https://github.com/vifm/vifm-colors"
+arch="all"
+license="GPL-2.0-or-later"
+options="!check" # package does not have tests
+source="$pkgname-$pkgver.tar.gz::https://github.com/vifm/vifm-colors/archive/v$pkgver.tar.gz"
+
+package() {
+	local i; for i in *.vifm; do
+		install -Dm644 "$i" -t "$pkgdir/usr/share/vifm/colors"
+	done
+}
+
+sha512sums="
+e4ff4ada7903cc4c98429d35c5a942d68446147db6cfde6a385212f901a936a378002fab098f1000e8d183d62225cb10a88bb53e38ac363ae2a25f8f0fe78959  vifm-colors-0.11.tar.gz
+"

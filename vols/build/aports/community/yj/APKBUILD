@@ -1,0 +1,40 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=yj
+pkgver=1.2.0
+pkgrel=0
+pkgdesc="Command line tool that converts YAML to JSON"
+url="https://github.com/bruceadams/yj"
+arch="x86_64 armv7 armhf aarch64 x86 ppc64le"  # limited by rust/cargo
+license="Apache-2.0"
+makedepends="cargo"
+source="https://github.com/bruceadams/yj/archive/$pkgver/yj-$pkgver.tar.gz"
+options="!check"  # no tests provided
+
+prepare() {
+	default_prepare
+
+	# Decrease binary size from 1.2 MiB to 0.7 MiB.
+	cat >> Cargo.toml <<-EOF
+
+		[profile.release]
+		codegen-units = 1
+		lto = true
+		opt-level = "z"
+		panic = "abort"
+	EOF
+	cargo fetch --locked
+}
+
+build() {
+	cargo build --release --frozen
+}
+
+package() {
+	cargo install --locked --offline --path . --root="$pkgdir/usr"
+	rm "$pkgdir"/usr/.crates*
+}
+
+sha512sums="
+3ab0e3690f4f48399b65d39adeaa2c55d6bf9a70db9292bfe556d7d3a4039f50e5f29d0ecb561600580f761f70308f6b049a0fdb1bc6f6f97d87377ed27b5a7e  yj-1.2.0.tar.gz
+"

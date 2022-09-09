@@ -1,0 +1,65 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=gutenprint
+pkgver=5.3.4
+pkgrel=0
+pkgdesc="Top quality printer drivers for POSIX systems"
+url="http://gimp-print.sourceforge.net/"
+arch="all"
+license="GPL-2.0-or-later"
+makedepends="
+	cups-dev
+	tiff-dev
+	libjpeg-turbo-dev
+	libpng-dev
+	ghostscript-dev
+	libusb-dev
+	autoconf
+	automake
+	libtool
+	gettext-dev
+	bash
+	"
+subpackages="$pkgname-static $pkgname-dev $pkgname-doc $pkgname-lang $pkgname-libs $pkgname-cups $pkgname-samples"
+source="https://downloads.sourceforge.net/gimp-print/gutenprint-$pkgver.tar.xz"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--localstatedir=/var \
+		--disable-nls \
+		--enable-cups-ppds \
+		--enable-simplified-cups-ppds	
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+	rm -r "$pkgdir"/usr/share/gutenprint/doc \
+		"$pkgdir"/etc/cups/command.types
+}
+
+cups() {
+	pkgdesc="CUPS drivers for Canon, Epson, HP and compatible printers"
+	for d in usr/share usr/lib usr/bin usr/sbin etc; do
+		mkdir -p "$subpkgdir"/$d || return 1
+		mv "$pkgdir"/$d/cups* "$subpkgdir"/$d/
+	done
+}
+
+samples() {
+	pkgdesc="Sample test pattern generator for gutenprint-dev"
+	mkdir -p "$subpkgdir"/usr/share/gutenprint "$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/share/gutenprint/samples \
+		"$subpkgdir"/usr/share/gutenprint/
+	mv "$pkgdir"/usr/bin/testpattern "$subpkgdir"/usr/bin/
+
+}
+
+sha512sums="
+63de0b62edbe255a7efaaeab1dcd22577b7b46d7e0e48441b79977f19e76bf3862e4e8e18c55dd1f2e7392d555f9e8ee875ea53b90c689852d2343491a8fbcc8  gutenprint-5.3.4.tar.xz
+"

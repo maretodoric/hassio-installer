@@ -1,0 +1,30 @@
+# Maintainer: Kevin Daudt <kdaudt@alpinelinux.org>
+pkgname=pugixml
+pkgver=1.12.1
+pkgrel=0
+pkgdesc="Light-weight, simple and fast XML parser for C++ with XPath support"
+options="!check" # No testsuite
+url="https://pugixml.org"
+arch="all"
+license="MIT"
+makedepends="cmake"
+subpackages="$pkgname-dev"
+source="https://github.com/zeux/pugixml/releases/download/v$pkgver/pugixml-$pkgver.tar.gz"
+builddir="$srcdir/pugixml-${pkgver%.*}"
+
+build() {
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DCMAKE_BUILD_TYPE=None
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+af5200d1835a51a2a7ce3d7000c1be6e0ea69e46d512f8df4337ec5c72f9ffce0c0a72f2f03e23ddc048ae5c02e2554d189ee8faed2119719d44e93bf52e647b  pugixml-1.12.1.tar.gz
+"

@@ -1,0 +1,49 @@
+# Contributor: Jakub Jirutka <jakub@jirutka.cz>
+# Maintainer: Jakub Jirutka <jakub@jirutka.cz>
+pkgname=sqlint
+_gemname=sqlint
+pkgver=0.2.1
+pkgrel=1
+pkgdesc="Simple SQL linter supporting ANSI and PostgreSQL syntaxes"
+url="https://github.com/purcell/sqlint"
+# x86, armhf, armv7, s390x and riscv64 blocked by ruby-pg_query
+arch="noarch !x86 !armhf !armv7 !s390x !riscv64"
+license="MIT"
+depends="ruby ruby-pg_query"
+checkdepends="ruby-rspec"
+makedepends="ruby-dev"
+source="https://github.com/purcell/sqlint/archive/$pkgver/$pkgname-$pkgver.tar.gz
+	gemspec.patch
+	"
+
+build() {
+	gem build $_gemname.gemspec
+}
+
+check() {
+	rspec
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+
+	gem install \
+		--local \
+		--install-dir "$gemdir" \
+		--bindir "$pkgdir/usr/bin" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+
+	# Clean-up...
+	rm -r "$gemdir"/cache \
+		"$gemdir"/build_info \
+		"$gemdir"/doc \
+		"$gemdir"/extensions
+}
+
+sha512sums="
+dadf539afd6ac37f243480322957f1a34f84f7433d8a9e657ebeb8007eb7f26dd7998192abbeef2e0ac6beb2d994f08626b4b9d27ae8cc5b05dc63b9c253f5f1  sqlint-0.2.1.tar.gz
+ebe98a70c188095847b7e6bd374ac50ae0972a9c2ea970b58478db1715c5ae4db1631f65405a3fc1ab07c3bef3b9a1f9a152c36a22e55ce57a91d93a81226aca  gemspec.patch
+"

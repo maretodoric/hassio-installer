@@ -1,0 +1,26 @@
+# Contributor: Kaarle Ritvanen <kunkku@alpinelinux.org>
+# Maintainer: Kaarle Ritvanen <kunkku@alpinelinux.org>
+pkgname=py3-django-contact-form
+pkgver=1.9
+pkgrel=1
+pkgdesc="Generic contact-form application for Django"
+url="https://github.com/ubernostrum/django-contact-form"
+arch="noarch"
+license="BSD-3-Clause"
+depends="py3-django"
+makedepends="py3-setuptools"
+replaces="py-django-contact-form"
+source="https://files.pythonhosted.org/packages/source/d/django-contact-form/django-contact-form-$pkgver.tar.gz"
+builddir="$srcdir/django-contact-form-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --root "$pkgdir"
+}
+
+sha512sums="
+f64579985df5cf660456d2d2357f0140df955a812525b29dc9ccd89470de52ee9b5c3fd5095b4c514200dc26adba3dc6c2a81b7ed062958830307c2552fa2a31  django-contact-form-1.9.tar.gz
+"

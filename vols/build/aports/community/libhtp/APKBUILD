@@ -1,0 +1,42 @@
+# Contributor: Steve McMaster <code@mcmaster.io>
+# Maintainer: Steve McMaster <code@mcmaster.io>
+pkgname=libhtp
+pkgver=0.5.40
+pkgrel=0
+pkgdesc="HTTP normalizer and parser library"
+url="https://github.com/OISF/libhtp"
+arch="all"
+license="BSD-3-Clause"
+depends_dev="zlib-dev"
+makedepends="$depends_dev automake autoconf libtool"
+subpackages="$pkgname-dev"
+source="$pkgname-$pkgver.tar.gz::https://github.com/OISF/libhtp/archive/$pkgver.tar.gz"
+
+prepare() {
+	default_prepare
+	autoreconf -vif
+}
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		--disable-static
+	make
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+check() {
+	make check
+}
+
+sha512sums="
+e60ad9c2bbdb0aea0966b4d672353ae68aa1fde4dfb3ad4eabc3b9ebf7907685cf583a2b66e5bfc080c5833a2fc3c593e0cd025c62051f6fe13f89d450bab18b  libhtp-0.5.40.tar.gz
+"

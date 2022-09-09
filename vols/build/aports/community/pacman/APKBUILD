@@ -1,0 +1,68 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer:
+pkgname=pacman
+pkgver=6.0.1
+pkgrel=1
+pkgdesc="A simple library-based package manager"
+options="!check" # Depends on not packaged fakechroot
+url="https://www.archlinux.org/pacman/"
+arch="all"
+license="GPL-2.0-or-later"
+depends="bash libarchive-tools"
+depends_dev="gettext-dev"
+makedepends="$depends_dev asciidoc curl-dev libarchive-dev meson openssl1.1-compat-dev
+	gpgme-dev"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-lang
+	$pkgname-makepkg
+	$pkgname-bash-completion
+	$pkgname-zsh-completion
+	"
+source="https://sources.archlinux.org/other/pacman/pacman-$pkgver.tar.xz
+	use-gettext-libintl.patch"
+
+# secfixes:
+#   5.2.0-r0:
+#     - CVE-2019-18183
+#     - CVE-2019-18182
+#   5.1.3-r0:
+#     - CVE-2019-9686
+
+build() {
+	abuild-meson \
+		-Dscriptlet-shell=/usr/bin/bash \
+		-Di18n=true \
+		-Ddoc=enabled \
+		build
+	meson compile ${JOBS:+-j ${JOBS}} -C build
+}
+
+check() {
+	meson test -C build
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install -C build
+
+	mkdir -p "$pkgdir"/usr/lib/pkgconfig
+	mv "$pkgdir"/usr/share/pkgconfig/* "$pkgdir"/usr/lib/pkgconfig
+	rmdir -p "$pkgdir"/usr/share/pkgconfig || true
+}
+
+makepkg() {
+	depends="$depends pacman=$pkgver-r$pkgrel"
+	amove etc/makepkg.conf \
+		usr/bin/makepkg \
+		usr/bin/makepkg-template \
+		usr/bin/testpkg \
+		usr/share/makepkg \
+		usr/share/makepkg-template \
+		usr/share/pacman
+}
+
+sha512sums="
+d17b9aea9f8d51a5a02fc9faa8e36227c0edea73957cc8a8174a23a81ca42737ecfce630aa86008ab26daec584004b772cd2eb3527aeef9e098b445edaa21f6f  pacman-6.0.1.tar.xz
+f8cd24b003b9e0c21736fac49df549129d303f424039acc20c5c6d986027488480b68029e756329fa6b3f0a4351efe38f669a7ca268f478af9d35fbc8388abdd  use-gettext-libintl.patch
+"

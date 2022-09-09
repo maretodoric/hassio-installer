@@ -1,0 +1,76 @@
+# Contributor: Rasmus Thomsen <oss@cogitri.dev>
+# Maintainer: Rasmus Thomsen <oss@cogitri.dev>
+pkgname=tracker
+pkgver=3.3.0
+pkgrel=1
+pkgdesc="Personal search tool and storage system"
+url="https://wiki.gnome.org/Projects/Tracker"
+# s390x and riscv64 blocked by networkmanager -> polkit
+arch="all !s390x !riscv64"
+license="GPL-2.0-or-later"
+makedepends="
+	asciidoc
+	bash-completion
+	dbus-dev
+	glib-dev
+	gobject-introspection-dev
+	icu-dev
+	json-glib-dev
+	libsoup-dev
+	libstemmer-dev
+	libxml2-dev
+	meson
+	py3-gobject3
+	py3-setuptools
+	sqlite-dev
+	networkmanager-dev
+	vala
+	"
+options="!check"
+subpackages="
+	$pkgname-dev
+	$pkgname-doc
+	$pkgname-lang
+	lib$pkgname:libs
+	$pkgname-bash-completion:bashcomp:noarch
+	$pkgname-dbg
+	$pkgname-testutils:_testutils"
+source="https://download.gnome.org/sources/tracker/${pkgver%.*}/tracker-$pkgver.tar.xz"
+
+build() {
+	# https://gitlab.gnome.org/GNOME/tracker-miners/issues/91
+	export LDFLAGS="$LDFLAGS -Wl,-z,stack-size=2097152"
+
+	abuild-meson \
+		-Ddocs=false \
+		-Dsystemd_user_services=false \
+		. output
+	meson compile ${JOBS:+-j ${JOBS}} -C output
+}
+
+check() {
+	meson test --no-rebuild -v -C output
+}
+
+package() {
+	DESTDIR="$pkgdir" meson install --no-rebuild -C output
+}
+
+bashcomp() {
+	pkgdesc="Bash completion for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	mkdir -p "$subpkgdir"/usr/share
+	mv "$pkgdir"/usr/share/bash-completion "$subpkgdir"/usr/share
+}
+
+_testutils() {
+	pkgdesc="$pkgname (test utilities)"
+	depends="tracker=$pkgver-r$pkgrel py3-gobject3 bash"
+
+	amove usr/lib/tracker-3.0/trackertestutils
+}
+
+sha512sums="
+0a55a80b44c2267f149c4c83ecbe42ca27a0645bd4fc206984999520f6bed3b7c63c71f81450f40ce2896223ce17326add20e7f39a71c821d754f30b8ce157bc  tracker-3.3.0.tar.xz
+"

@@ -1,0 +1,27 @@
+# Contributor: Fabian Affolter <fabian@affolter-engineering.ch>
+# Maintainer: Fabian Affolter <fabian@affolter-engineering.ch>
+pkgname=py3-twiggy
+_pkgname=Twiggy
+pkgver=0.5.0
+pkgrel=2
+pkgdesc="A Pythonic logger"
+url="https://github.com/wearpants/twiggy"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3 py3-six"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir/$_pkgname-$pkgver"
+
+replaces="py-twiggy" # Backwards compatibility
+provides="py-twiggy=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="29eb8e642e437e09aeeff66e6659d74df72892395a9b0a082e241200c8e46c29db6377f5698d7f422e62101a3f851b1fe9b3d60a7309a67636afd09e6a464249  Twiggy-0.5.0.tar.gz"

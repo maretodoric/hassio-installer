@@ -1,0 +1,52 @@
+# Contributor: Sören Tempel <soeren+alpine@soeren-tempel.net>
+# Contributor: Valery Kartel <valery.kartel@gmail.com>
+# Contributor: stef <l0ls0fo2i@ctrlc.hu>
+# Contributor: Jose-Luis Rivas <ghostbar@riseup.net>
+# Maintainer: Valery Kartel <valery.kartel@gmail.com>
+pkgname=radare2
+pkgver=5.7.2
+pkgrel=0
+pkgdesc="An opensource, crossplatform reverse engineering framework"
+url="http://www.radare.org"
+arch="all"
+license="GPL-3.0"
+options="net !check" # upstream does not provide any working testsuite
+makedepends="$depends_dev libzip-dev openssl1.1-compat-dev capstone-dev linux-headers"
+subpackages="$pkgname-dbg $pkgname-dev $pkgname-doc $pkgname-libs"
+source="$pkgname-$pkgver-r$pkgrel.tar.gz::https://github.com/radare/radare2/archive/$pkgver.tar.gz
+	string-header-build-fix.patch"
+
+# secfixes:
+#   4.5.0-r0:
+#     - CVE-2020-15121
+#   3.9.0-r0:
+#     - CVE-2019-14745
+#     - CVE-2019-12865
+#     - CVE-2019-12829
+#     - CVE-2019-12802
+#     - CVE-2019-12790
+
+build() {
+	[ "$CARCH" = "s390x" ] && _disable_debugger="--disable-debugger"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var \
+		$_disable_debugger \
+		--with-syscapstone \
+		--with-openssl \
+		--with-syszip
+	make HAVE_LIBVERSION=1
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+6998553d6fb7b010a9b4a553289cd5200ccbf4e49173c70040088c235f62d85a365e1a914848e70663fae042f07eb9edf0af085dba4761b6641fcb8b93314890  radare2-5.7.2-r0.tar.gz
+5e60a1112a10cdd6a31374ba9b564d6522a37086380cf74b7232e32fb700ae1b2f68edbc0726ebedcc31d4789bc4f89525f117f25dac3609c60a75d471e49c85  string-header-build-fix.patch
+"

@@ -1,0 +1,31 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Francesco Colista <fcolista@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=py3-opengl
+_pkgname=PyOpenGL
+pkgver=3.1.6
+pkgrel=0
+pkgdesc="Standard OpenGL bindings"
+url="http://pyopengl.sourceforge.net"
+options="!check"
+arch="noarch"
+license="BSD-3-Clause"
+depends="python3"
+makedepends="py3-setuptools"
+source="https://files.pythonhosted.org/packages/source/P/PyOpenGL/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+replaces="py-opengl" # Backwards compatibility
+provides="py-opengl=$pkgver-r$pkgrel" # Backwards compatibility
+
+build() {
+	python3 setup.py build
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+b6f2f083df0fd7cf8f8a1077f42fa388bce94c0edde00ed6492104af8306c9925b74649cd2c222be4205b0892e7975de2f7591d0f0bcd9540eb53c0de95fec00  PyOpenGL-3.1.6.tar.gz
+"

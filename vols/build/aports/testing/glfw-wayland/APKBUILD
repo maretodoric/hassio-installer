@@ -1,0 +1,48 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: rfaa <rfaa@rfaa.se>
+pkgname=glfw-wayland
+pkgver=3.3.7
+pkgrel=0
+pkgdesc="Multi-platform library for OpenGL and Vulkan application development (Wayland)"
+options="!check" # tests requires a working wayland session
+url="https://www.glfw.org/"
+arch="all !armhf" # Limited by extra-cmake-modules
+license="Zlib"
+depends_dev="linux-headers mesa-dev extra-cmake-modules wayland-dev wayland-protocols
+	libxkbcommon-dev"
+makedepends="$depends_dev cmake samurai"
+subpackages="$pkgname-dev"
+source="https://github.com/glfw/glfw/releases/download/$pkgver/glfw-$pkgver.zip"
+builddir="$srcdir/glfw-$pkgver"
+
+provides="glfw=$pkgver-r$pkgrel"
+replaces="glfw"
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=ON \
+		-DGLFW_USE_WAYLAND=ON \
+		$CMAKE_CROSSOPTS
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+}
+
+dev() {
+	provides="glfw-dev=$pkgver-r$pkgrel"
+	replaces="glfw-dev"
+
+	default_dev
+}
+
+sha512sums="
+e4865731caf7c19de3ee79d066233373e188239bedb65afb70a47f243d4c051fa0cee859dcc704a71d595b8318b6e18b995bf95573b6026329aa5ee204e158a8  glfw-3.3.7.zip
+"

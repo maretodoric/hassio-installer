@@ -1,0 +1,57 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Contributor: Mika Havela <mika.havela@gmail.com>
+# Maintainer: Mika Havela <mika.havela@gmail.com>
+pkgname=zziplib
+pkgver=0.13.72
+pkgrel=1
+pkgdesc="Lightweight library to easily extract data from zip files"
+options="!check" # Some tests fail
+url="https://github.com/gdraheim/zziplib"
+arch="all"
+license="LGPL-2.0-or-later MPL-1.1"
+makedepends="cmake zlib-dev python3 bash samurai"
+checkdepends="zip"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-utils"
+source="zziplib-$pkgver.tar.gz::https://github.com/gdraheim/zziplib/archive/v$pkgver.tar.gz"
+
+# secfixes:
+#   0.13.69-r2:
+#     - CVE-2018-16548
+#     - CVE-2018-17828
+
+build() {
+	if [ "$CBUILD" != "$CHOST" ]; then
+		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+	fi
+	cmake -B build -G Ninja \
+		-DCMAKE_BUILD_TYPE=None \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib \
+		-DBUILD_SHARED_LIBS=True \
+		-DBUILD_STATIC_LIBS=False \
+		-DBUILD_TESTS=OFF \
+		-DMSVC_STATIC_RUNTIME=OFF \
+		-DZZIPSDL=OFF \
+		-DZZIPTEST=OFF \
+		-DZZIPWRAP=OFF \
+		$CMAKE_CROSSOPTS .
+	ninja -C build
+}
+
+check() {
+	ninja -C build check
+}
+
+package() {
+	DESTDIR="$pkgdir" ninja -C build install
+}
+
+utils() {
+	pkgdesc="Utilities for the zziplib library"
+	install -d "$subpkgdir"/usr
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+}
+
+sha512sums="
+4bb089e74813c6fac9657cd96e44e4a6469bf86aba3980d885c4573e8db45e74fd07bbdfcec9f36297c72227c8c0b2c37dab1bc4326cef8529960e482fe501c8  zziplib-0.13.72.tar.gz
+"

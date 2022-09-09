@@ -1,0 +1,40 @@
+# Contributor: Leo <thinkabit.ukim@gmail.com>
+# Maintainer: Bart Ribbers <bribbers@disroot.org>
+pkgname=py3-gitpython
+pkgver=3.1.27
+pkgrel=0
+pkgdesc="Python3 Git Library"
+url="https://github.com/gitpython-developers/GitPython"
+arch="noarch"
+license="BSD-3-Clause"
+depends="
+	git
+	py3-gitdb2
+	py3-typing-extensions
+	python3
+	"
+makedepends="py3-setuptools"
+checkdepends="
+	py3-pytest
+	py3-pytest-cov
+	py3-pytest-sugar
+	"
+source="https://github.com/gitpython-developers/GitPython/archive/$pkgver/GitPython-$pkgver.tar.gz"
+builddir="$srcdir/GitPython-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# There are more tests but they require a specific git configuration
+	pytest test/test_config.py
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+3810dd65fb1af2805fae2ea688cb526e014961b9d39633878c56f0fa3d250205fd73a0f2baf528614af420281fbd57820637810bdad40310573bd171f42e0fb5  GitPython-3.1.27.tar.gz
+"

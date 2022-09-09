@@ -1,0 +1,33 @@
+# Contributor: Newbyte <newbyte@disroot.org>
+# Maintainer: Newbyte <newbyte@disroot.org>
+pkgname=py3-pydantic
+pkgver=1.9.0
+pkgrel=1
+pkgdesc="Data parsing and validation using Python type hints"
+url="https://github.com/samuelcolvin/pydantic"
+arch="noarch"
+license="MIT"
+depends="python3 py3-typing-extensions"
+makedepends="py3-setuptools"
+checkdepends="py3-hypothesis py3-pytest py3-pytest-mock"
+source="$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz
+	deprecation-warning.patch"
+builddir="$srcdir/pydantic-$pkgver"
+
+build() {
+	python3 setup.py build
+}
+
+check() {
+	# Requires pydantic to be installed. See issue 2357 on its GitHub repo
+	pytest -k "not test_can_construct_models_with_all_fields"
+}
+
+package() {
+	python3 setup.py install --prefix=/usr --root="$pkgdir"
+}
+
+sha512sums="
+6a9674048933ed5c5f874c975754e264b5bb70499d05102c20641a627c52347d000d1e416be44b0331cb168334a879d25c7274e7ceef7cf044f5412813a53fed  py3-pydantic-1.9.0.tar.gz
+7fd9f0a5b49232f271a0f12f727c326512934ba158372199af9ed7b25942cc3aecfd0a5092cbffe934c66b5d59e21a07e7517639d049dca06b61ed5886de6629  deprecation-warning.patch
+"

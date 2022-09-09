@@ -1,0 +1,40 @@
+# Contributor: Alan Lacerda <alacerda@alpinelinux.org>
+# Maintainer: Francesco Colista <fcolista@alpinelinux.org>
+pkgname=mate-power-manager
+pkgver=1.26.0
+pkgrel=0
+pkgdesc="A Power Manager for MATE"
+url="https://github.com/mate-desktop/mate-power-manager"
+arch="all !s390x !riscv64" # blocked by mate-desktop and polkit
+license="GPL-2.0-or-later"
+makedepends="$depends_dev intltool gettext-dev itstool glib-dev libcanberra-dev
+	dbus-glib-dev mate-desktop-dev dconf-dev libnotify-dev
+	upower-dev libgnome-keyring-dev mate-panel-dev harfbuzz-dev
+	polkit-dev libsecret-dev"
+subpackages="$pkgname-doc $pkgname-lang"
+source="https://pub.mate-desktop.org/releases/${pkgver%.*}/mate-power-manager-$pkgver.tar.xz
+	0001-get_nprocs-patch.patch
+	"
+
+build() {
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--sysconfdir=/etc \
+		--prefix=/usr \
+		--enable-static=no
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="
+1ddede827f72738e87870d2abeed7f0767ef2e383b8325b24faa0fd1e811ed634446516e6634b19a6546ddd7185092fd757b2b2ff97f51b88a9d2c313407abd4  mate-power-manager-1.26.0.tar.xz
+76d93fb1313e3fabbd333d9ccb3a97907cea5292150aecf813ca32f4e434eab69f337ff7578ce3d0e940bb8fad28d1b13264bd6130cdaea7de618104c5826779  0001-get_nprocs-patch.patch
+"

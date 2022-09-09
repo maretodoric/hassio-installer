@@ -1,0 +1,81 @@
+# Contributor: Konstantin Kulikov <k.kulikov2@gmail.com>
+# Maintainer: Adam Jensen <adam@acj.sh>
+pkgname=bpftrace
+pkgver=0.15.0
+pkgrel=2
+pkgdesc="High-level tracing language for Linux eBPF"
+url="https://github.com/iovisor/bpftrace"
+arch="aarch64 ppc64le x86_64"
+license="Apache-2.0"
+_llvmver=14
+makedepends="
+	asciidoctor
+	bcc-dev
+	binutils-dev
+	bison
+	cereal
+	clang-dev
+	clang-static
+	cmake
+	elfutils-dev
+	flex-dev
+	libbpf-dev
+	linux-headers
+	llvm$_llvmver-dev
+	llvm$_llvmver-static
+	samurai
+	"
+source="$pkgname-$pkgver.tar.gz::https://github.com/iovisor/bpftrace/archive/v$pkgver.tar.gz
+	10-link-libbpf.patch
+	"
+# Tests require root, network to download gmock and a few tests fail.
+# Stripping is done ourselves to keep the BEGIN_trigger symbol required
+# for BEGIN probe (see https://github.com/iovisor/bpftrace/issues/954 )
+options="!check !strip"
+subpackages="$pkgname-doc:doc $pkgname-tools:tools:noarch $pkgname-tools-doc:tools_doc"
+
+build() {
+	cmake -B build -G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DBUILD_TESTING=OFF \
+		-DLLVM_REQUESTED_VERSION="$(/usr/lib/llvm$_llvmver/bin/llvm-config --version)"
+	cmake --build build
+}
+
+# Main package contains only bpftrace binary.
+package() {
+	DESTDIR="$pkgdir" cmake --install build
+	strip --keep-symbol BEGIN_trigger \
+		--keep-symbol END_trigger \
+		"$pkgdir/usr/bin/bpftrace"
+
+	mv "$pkgdir/usr/share/bpftrace/tools/doc" "$pkgdir/usr/share/bpftrace/tools_doc"
+}
+
+# Doc package should contain only man page for bpftrace.
+doc() {
+	mkdir -p "$subpkgdir/usr/share/man/man8"
+	mv "$pkgdir/usr/share/man/man8/bpftrace.8.gz" "$subpkgdir/usr/share/man/man8/"
+}
+
+# Tools are not installed in PATH, because they would conflict with other tools provided by bcc or perf-tools.
+tools() {
+	depends="$pkgname"
+	pkgdesc="$pkgdesc (tools)"
+	amove usr/share/bpftrace/tools
+}
+
+# Tools docs contains man pages and examples for tools. They shouldn't go into shared MANPATH for the same reasons as tools pkg above.
+tools_doc() {
+	pkgdesc="$pkgdesc (tool docs and examples)"
+
+	mkdir -p "$subpkgdir/usr/share/bpftrace"
+	mv "$pkgdir/usr/share/bpftrace/tools_doc" "$subpkgdir/usr/share/bpftrace/doc"
+	mv "$pkgdir/usr/share/man/man8" "$subpkgdir/usr/share/bpftrace/"
+}
+
+sha512sums="
+916e9afeab301e62472e570ef77a3b9b27b43251880b64f1c5f151583c59a6c61e9ede50f3607044b27c5a6ce1a654f290153bf3f9237ebc0a823b5e6356187a  bpftrace-0.15.0.tar.gz
+1f884e75ee7df8d28e8f613eca64cc56f859806c5a8d0f491c07709b0000be3a29be62a3eab6dfb04fcf9aadd1a4c3fde26e212ea0c40e5a54e59a197f148ed4  10-link-libbpf.patch
+"

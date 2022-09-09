@@ -1,0 +1,66 @@
+# Maintainer: Timo Teräs <timo.teras@iki.fi>
+pkgname=raspberrypi
+pkgver=0.20220324
+pkgrel=0
+_commit="c4fd1b8986c6d6d4ae5cd51e65a8bbeb495dfa4e"
+pkgdesc="Raspberry Pi support tools"
+url="https://github.com/raspberrypi/userland"
+arch="armhf armv7 aarch64"
+license="BSD-3-Clause"
+depends_dev="linux-headers raspberrypi-static raspberrypi-libs"
+makedepends="cmake samurai $depends_dev"
+options="!fhs !check"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-static $pkgname-libs"
+source="raspberrypi-$_commit.tar.gz::https://github.com/raspberrypi/userland/archive/$_commit.tar.gz"
+builddir="$srcdir/userland-$_commit"
+
+prepare() {
+	default_prepare
+	sed -i 's/ bash / sh /g' host_applications/linux/apps/raspicam/CMakeLists.txt
+}
+
+build() {
+	case "$CARCH" in
+		arm*) local _arm64=off;;
+		aarch64) local _arm64=on;;
+	esac
+	cmake -B build -G Ninja \
+		-DCMAKE_C_FLAGS="$CFLAGS -D_GNU_SOURCE" \
+		-DARM64=$_arm64 \
+		-DCMAKE_BUILD_TYPE=MinSizeRel \
+		-DCMAKE_INSTALL_RPATH=/opt/vc/lib \
+		-DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-as-needed"
+	cmake --build build
+}
+
+package() {
+	DESTDIR="$pkgdir" cmake --build build --target install
+
+	# nuke the unwanted stuff
+	rm -rf "$pkgdir"/opt/vc/src
+}
+
+static() {
+	pkgdesc="Static files for $pkgname"
+
+	mkdir -p "$subpkgdir"/opt/vc/lib
+	mv "$pkgdir"/opt/vc/lib/*.a "$subpkgdir"/opt/vc/lib
+}
+
+libs() {
+	pkgdesc="Raspberry Pi support libraries"
+
+	mkdir -p "$subpkgdir"/opt/vc/lib
+	mv "$pkgdir"/opt/vc/lib/* "$subpkgdir"/opt/vc/lib
+}
+
+doc() {
+	mkdir -p "$subpkgdir"/usr/share
+	mv "$pkgdir"/opt/vc/man "$subpkgdir"/usr/share
+
+	default_doc
+}
+
+sha512sums="
+e59cf4d6b3fba79c5ded69a1f6c99efedd067afbfa9edfaaeebf2d8a6ab7dc3c44ea0cfb79227e5b2dd4308a56390341cb7c1aa9c9072b2a94e31240c5d68006  raspberrypi-c4fd1b8986c6d6d4ae5cd51e65a8bbeb495dfa4e.tar.gz
+"

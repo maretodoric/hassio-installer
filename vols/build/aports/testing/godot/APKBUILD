@@ -1,0 +1,55 @@
+# Contributor: Díaz Urbaneja Diego <sodomon2@gmail.com>
+# Maintainer: Díaz Urbaneja Diego <sodomon2@gmail.com>
+pkgname=godot
+pkgver=3.2.3
+pkgrel=3
+pkgdesc="An advanced, feature packed, multi-platform 2D and 3D game engine"
+url="http://www.godotengine.org"
+arch="x86_64" # deactivated for other architecture due to conflicts between binaries
+license="MIT"
+# TODO: Use system freetype instead of bundled one.
+makedepends="
+	alsa-lib-dev
+	gcc
+	libexecinfo-dev
+	libx11-dev
+	libxcursor-dev
+	libxi-dev
+	libxinerama-dev
+	libxrandr-dev
+	mesa-dev
+	pulseaudio-dev
+	python3
+	scons
+	vulkan-headers
+	yasm-dev
+	"
+options="!check" # no testsuites
+subpackages="$pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/godotengine/godot/archive/$pkgver-stable.tar.gz
+	crash_handler_x11.patch
+	"
+builddir="$srcdir/$pkgname-$pkgver-stable"
+
+build() {
+	scons platform=x11 \
+		tools=yes \
+		target=release_debug \
+		use_llvm=no \
+		colored=yes \
+		pulseaudio=yes \
+		builtin_vulkan=yes \
+		builtin_freetype=no \
+		bits=64 \
+		-j${JOBS:-1}
+}
+
+package() {
+	install -Dm644 misc/dist/linux/org.godotengine.Godot.desktop "$pkgdir/usr/share/applications/godot.desktop"
+	install -Dm644 icon.svg "$pkgdir/usr/share/pixmaps/godot.svg"
+
+	install -D -m755 bin/godot.x11.opt.tools.64 "$pkgdir/usr/bin/godot"
+	install -D -m644 misc/dist/linux/godot.6 "$pkgdir/usr/share/man/man6/godot.6"
+}
+sha512sums="229a32f082e412f20533b781ee95a1e7a9039a6329fe3429f9a3388ba3aada311bcc49c2abecdeec7496ef039a81358009126b21daaeeb127c170b77c3def99f  godot-3.2.3.tar.gz
+17f46f7260487d72353a5b16499e964360b8e0cb007780a485c756fd5bb36dbb422f8f9844100bf4753bcc99ab04ea58daa4ca1c1972c3fcdc22ca7efdc9efe2  crash_handler_x11.patch"
