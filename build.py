@@ -9,6 +9,9 @@ from subprocess import Popen, PIPE
 SD = os.path.dirname(os.path.realpath(__file__))
 os.chdir(SD)
 
+OWNER = "maretodoric"
+REPO = "hassio-installer"
+
 class color:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -92,6 +95,27 @@ def getGHAuthHeader():
     dprint(f"Returning header: {header}")
     return header
 
+def deleteRelease():
+    iprint("Deleting latest release, generating GitHub Auth Header")
+    headers=getGHAuthHeader()
+
+    latest = requests.get(f"https://api.github.com/repos/{OWNER}/{REPO}/releases/latest", headers=headers)
+    tag_name = latest.json()["tag_name"]
+    rel_id = latest.json()["id"]
+
+    iprint(f"Removing Release ID: {rel_id}")
+    res = requests.delete(f"https://api.github.com/repos/{OWNER}/{REPO}/releases/{rel_id}", headers=headers)
+    if res.status_code == 204:
+        iprint("Successfully removed release")
+    else:
+        fprint(f"Failed to remove release, status code: {res.status_code}, reply:\n{json.dumps(res.json(), indent=4)}")
+
+    res = requests.delete(f"https://api.github.com/repos/{OWNER}/{REPO}/git/refs/tags/{tag_name}", headers=headers)
+    if res.status_code == 204:
+        iprint("Successfully removed tag")
+    else:
+        fprint(f"Failed to remove tag, status code: {res.status_code}, reply:\n{json.dumps(res.json(), indent=4)}")
+
 def release():
     iprint("Creating release, generating GitHub Auth Header...")
     headers=getGHAuthHeader()
@@ -131,7 +155,7 @@ def release():
     }
     dprint(f"Request body:\n{json.dumps(payload, indent=4)}")
     iprint("Sending payload to GitHub...")
-    release = requests.post("https://api.github.com/repos/maretodoric/hassio-installer/releases", headers=headers, json=payload)
+    release = requests.post(f"https://api.github.com/repos/{OWNER}/{REPO}/releases", headers=headers, json=payload)
     if release.status_code == 201:
         upload_url = release.json()["upload_url"].replace("{?name,label}","")
         release_id = release.json()["id"]
@@ -163,8 +187,8 @@ def release():
             iprint(f"Asset successfully uploaded, link to release: {html_url}")
         else:
             eprint(f"Failed to upload ISO Image as Asset! Response:\n{json.dumps(asset.json(), indent=4)}")
-            requests.delete(f"https://api.github.com/repos/maretodoric/hassio-installer/releases/{release_id}", headers=headers)
-            requests.delete(f"https://api.github.com/repos/maretodoric/hassio-installer/git/refs/tags/{VERSION}", headers=headers)
+            requests.delete(f"https://api.github.com/repos/{OWNER}/{REPO}/releases/{release_id}", headers=headers)
+            requests.delete(f"https://api.github.com/repos/{OWNER}/{REPO}/git/refs/tags/{VERSION}", headers=headers)
             iprint("Falling back created release.")
             sys.exit(1)
     else:
@@ -217,6 +241,7 @@ parser.add_argument("--rm", dest="remove", action="store_true", help="Will remov
 parser.add_argument("--send-to", "--upload-to", dest="upload_to", type=str, help="Sends ISO Image to selected host, you can use user@host or just host - will use SCP and honor ~/.ssh/config")
 parser.add_argument("--release", dest="release", action="store_true", help="This will build and tag the ISO with version instead of 'test'. Version will be used from vols/build/aports/custom-scripts/installer.sh")
 parser.add_argument("--release-only", dest="release_only", action="store_true", help="This will only publish release to GitHub, will not build ISO. Expects that ISO is already created")
+parser.add_argument("--delete-latest-release", dest="delete_latest", action="store_true", help="This will delete the latest release in github")
 parser.add_argument("--cmd", dest="cmd", nargs="*", default="", help="Command to execute inside container, does not actually build ISO unless manual build is triggered inside container.")
 parser.add_argument("--fix-perms", dest="fix_perms", action="store_true", help="Fix permissions for volume in case you have those errors")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Show verbose output")
@@ -238,6 +263,11 @@ if args.fix_perms:
     iprint("Fixing permissions")
     sh(f"chmod -v 777 {SD}/vols/tmp", verbose=True)
     sh(f"chown -cR 1000:300 {SD}/vols/build", verbose=True)
+
+if args.delete_latest:
+    deleteRelease()
+    iprint("Script will exit now, please re-run if you need to create new release or re-build the ISO")
+    sys.exit(0)
 
 if args.release_only:
     release()
