@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:3.16.2
 
 COPY chroot/entrypoint.sh /
 
@@ -43,10 +43,13 @@ RUN \
 		-G abuild \
 		-D -s /bin/bash \
 		-h /build && \
-	echo "%abuild ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/abuild
+	echo "%abuild ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/abuild && \
+	su build -c "abuild-keygen -a -i -n" && \
+	mv /build/.abuild /
 
 VOLUME build
+USER build
+ENV USER=build
 
 ENTRYPOINT [ "/entrypoint.sh" ]
-
 CMD [ "/build/aports/scripts/start.sh" ]

@@ -1,27 +1,23 @@
 #!/bin/bash
 
+# User Check
 if [ ! "$(whoami)" == "build" ]; then
 	echo "Need to use build user for container to work"
 	exit 1
-else
-	export USER=build
 fi
 
-if [ -d /build/.abuild ] && [ -f /build/.abuild/abuild.conf ]; then
-	. /build/.abuild/abuild.conf
-	if [ -f $PACKAGER_PRIVKEY ] && [ -f ${PACKAGER_PRIVKEY}.pub ]; then
-		echo "Using existig key in ${PACKAGER_PRIVKEY}"
-		sudo cp ${PACKAGER_PRIVKEY}.pub /etc/apk/keys/
-	else
-		echo "abuild directory and config file is present but not the keys, creating new pairs"
-		rm -rf /build/.abuild
-		abuild-keygen -a -i -n
-	fi
-else
-	echo "abuild directory and/or config file is not present, creating new pairs"
-	abuild-keygen -a -i -n
-fi
+# Permission Check
+find /build ! -user build | sudo xargs -r chown build
+find /build ! -group abuild | sudo xargs -r chgrp abuild
 
+# Keys Loading
+if [ -d /build/.abuild ]; then
+	rm -rf /build/.abuild
+fi
+sudo mv /.abuild /build/
 
 cd /build/aports/scripts
 exec $@
+
+# Removing /tmp
+sudo rm -rf /tmp/*
