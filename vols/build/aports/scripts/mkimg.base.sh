@@ -142,7 +142,7 @@ grub_gen_config() {
 					_initrd="$_p $_initrd"
 				done
 			fi
-			kernel_cmdline="$kernel_cmdline hass.fake_url=0 hass.fake_image=0"
+			kernel_cmdline="$kernel_cmdline"
 			cat <<- EOF
 
 			menuentry "Home Assistant OS Installer" {
