@@ -2,7 +2,7 @@
 
 import datetime, pdb
 import argparse, requests
-import sys, os, json
+import sys, os, json, hashlib
 
 from subprocess import Popen, PIPE
 
@@ -116,11 +116,10 @@ def release():
     if not os.path.exists(rnfile):
         fprint("Release Notes file does not exists! Exiting.")
     else:
-        iprint("Forming release notes")
         with open(rnfile) as f:
             body = f.read()
 
-    iprint("Forming request body")
+    iprint("Creating request body")
     payload = {
             "tag_name": VERSION,
             "target_commitish": "main",
@@ -134,24 +133,38 @@ def release():
     iprint("Sending payload to GitHub...")
     release = requests.post("https://api.github.com/repos/maretodoric/hassio-installer/releases", headers=headers, json=payload)
     if release.status_code == 201:
-        upload_url = release.json()["upload_url"].replace("{?name,label}",f"?name={isoname}")
+        upload_url = release.json()["upload_url"].replace("{?name,label}","")
         release_id = release.json()["id"]
         html_url = release.json()["html_url"]
-        iprint(f"Release with ID: {release_id} and version: {VERSION} successfully created! Pushing ISO Image...")
 
         # Load iso file
         dprint("Loading ISO Image to buffer...")
+        sha256_hash = hashlib.sha256()
         with open(isopath, "rb") as f:
             isoasset = f.read()
+            dprint("Calculating sha256 hash...")
+            f.seek(0)
+            f.flush()
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
 
+        dprint(f"Creating hash file with value: {sha256_hash.hexdigest()}")
+        with open(isopath + ".sha256", "w") as f:
+            f.write(sha256_hash.hexdigest())
+
+        with open(isopath + ".sha256", "rb") as f:
+            shaasset = f.read()
+
+        iprint(f"Release with ID: {release_id} and version: {VERSION} successfully created! Pushing ISO Image...")
         dprint(f"Pushing ISO Image using URL: {upload_url}")
-        asset = requests.post(upload_url, headers={ "Authorization": headers["Authorization"], "Content-Type": "application/octet-stream" }, data=isoasset)
+        asset = requests.post(upload_url + f"?name={isoname}", headers={ "Authorization": headers["Authorization"], "Content-Type": "application/octet-stream" }, data=isoasset)
+        shaasset = requests.post(upload_url + f"?name={isoname}.sha256", headers={ "Authorization": headers["Authorization"], "Content-Type": "text/plan" }, data=shaasset)
         if asset.status_code == 201:
             iprint(f"Asset successfully uploaded, link to release: {html_url}")
         else:
             eprint(f"Failed to upload ISO Image as Asset! Response:\n{json.dumps(asset.json(), indent=4)}")
             requests.delete(f"https://api.github.com/repos/maretodoric/hassio-installer/releases/{release_id}", headers=headers)
-            requests.delete(f"https://api.github.com/repos/maretodoric/hassio-installer/git/refs/tags/{VERSION}")
+            requests.delete(f"https://api.github.com/repos/maretodoric/hassio-installer/git/refs/tags/{VERSION}", headers=headers)
             iprint("Falling back created release.")
             sys.exit(1)
     else:
